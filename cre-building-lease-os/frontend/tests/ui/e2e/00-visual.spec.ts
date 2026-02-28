@@ -60,10 +60,10 @@ test('visual snapshots for key pages', async ({ page, request }) => {
   });
 
   await page.goto('/buildings');
-  await expect(page.locator('.hero')).toHaveScreenshot('buildings-hero.png');
+  await expect(page.locator('main')).toHaveScreenshot('dashboard-page.png');
 
   await page.goto(`/buildings/${buildingId}`);
-  await expect(page.locator('.hero')).toHaveScreenshot('building-detail-hero.png');
+  await expect(page.locator('main')).toHaveScreenshot('building-workspace-page.png');
 
   await page.goto(`/buildings/${buildingId}/stacking`);
   await expect(page.locator('main')).toHaveScreenshot('stacking-page.png');

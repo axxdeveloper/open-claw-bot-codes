@@ -145,19 +145,43 @@ npm run test:ui:headed    # 本機可視化除錯
 
 ---
 
-## 5) 視覺系統（宏泰風格參考）
+## 5) UX 設計原則（Task-first）
 
-- 深藍 / 灰 / 白為主色
-- 一致化 card / table / button / spacing / focus state
-- 核心頁面（Buildings / Building / Floors / Stacking / Repairs）統一樣式
-- Hero/Banner 已加入：
-  - `/buildings`
-  - `/buildings/[id]`
-  - `/buildings/[id]/stacking`
+本版前端由「工程資料頁」改為「任務導向產品頁」。
+
+### 設計原則
+- 先給任務，再給欄位（頁首明確目的 + CTA）
+- 摘要卡先看重點（KPI / 風險）
+- 主流程可連續完成（避免頻繁跳頁）
+- 不暴露工程欄位（例如 sortIndex / 內部 ID）
+- 空狀態必有下一步，避免死畫面
+- 成功/失敗回饋一致化（inline alert）
+
+### 主要操作路徑
+1. Dashboard：今日待辦 / 異常 / 下一步
+2. 建立新大樓：建檔 -> 樓層設定 -> 導向配置
+3. 空間管理：樓層 -> 單位 -> 入住概況（Stacking）
+4. 客戶與合約：住戶 -> 租約 -> 到期風險
+5. 維運管理：Owners / Common Areas / Repairs
+
+### UX 文件
+- `docs/ux-review.md`
+- `docs/ux-decisions.md`
+- `docs/user-journeys.md`
 
 ---
 
-## 6) 品牌資產來源與替換方式
+## 6) 視覺系統（Token + 元件）
+
+- 色彩：主色 / 成功 / 警示 / 風險語意
+- 字級：`--font-xs ~ --font-xl`
+- 間距：`--space-1 ~ --space-6`
+- 陰影：`--elevation-1 ~ --elevation-2`
+- 元件一致化：button / input / table / card / chip / alert / empty-state
+
+---
+
+## 7) 品牌資產來源與替換方式
 
 - 圖片資產：`frontend/public/brand`
 - 來源與授權：`docs/ui-assets-sources.md`
@@ -171,7 +195,7 @@ npm run test:ui:headed    # 本機可視化除錯
 
 ---
 
-## 7) 上線前 Checklist（安全 / 備份 / 監控 / 權限）
+## 8) 上線前 Checklist（安全 / 備份 / 監控 / 權限）
 
 ## 安全
 - [ ] 正式身份驗證（JWT/SSO）
@@ -197,7 +221,7 @@ npm run test:ui:headed    # 本機可視化除錯
 
 ---
 
-## 8) 參考文件
+## 9) 參考文件
 
 - 商用化差距與路線圖：`docs/commercial-readiness.md`
 - UI 素材來源與授權：`docs/ui-assets-sources.md`
