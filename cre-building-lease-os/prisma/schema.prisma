@@ -1,0 +1,374 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum LeaseStatus {
+  DRAFT
+  ACTIVE
+  TERMINATED
+}
+
+enum OccupancyStatus {
+  DRAFT
+  ACTIVE
+  ENDED
+}
+
+enum FileKind {
+  CONTRACT
+  FLOORPLAN
+  IMAGE
+  OTHER
+}
+
+enum RepairScopeType {
+  FLOOR
+  COMMON_AREA
+}
+
+enum RepairStatus {
+  DRAFT
+  QUOTED
+  APPROVED
+  IN_PROGRESS
+  COMPLETED
+  ACCEPTED
+  REJECTED
+}
+
+enum AcceptanceResult {
+  PASS
+  FAIL
+  CONDITIONAL
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  sessions     Session[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+}
+
+model Building {
+  id            String   @id @default(cuid())
+  name          String
+  code          String?  @unique
+  address       String?
+  managementFee Decimal? @db.Decimal(12, 2)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  floors        Floor[]
+  units         Unit[]
+  tenants       Tenant[]
+  owners        Owner[]
+  occupancies   Occupancy[]
+  leases        Lease[]
+  vendors       Vendor[]
+  commonAreas   CommonArea[]
+  repairRecords RepairRecord[]
+  buildingFiles BuildingFile[]
+}
+
+model Floor {
+  id         String   @id @default(cuid())
+  buildingId String
+  label      String
+  sortIndex  Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  building      Building       @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  units         Unit[]
+  floorOwners   FloorOwner[]
+  commonAreas   CommonArea[]
+  repairRecords RepairRecord[]
+  floorFiles    FloorFile[]
+
+  @@unique([buildingId, label])
+  @@unique([buildingId, sortIndex])
+}
+
+model Unit {
+  id               String    @id @default(cuid())
+  buildingId       String
+  floorId          String
+  code             String
+  grossArea        Decimal   @db.Decimal(10, 2)
+  netArea          Decimal?  @db.Decimal(10, 2)
+  balconyArea      Decimal?  @db.Decimal(10, 2)
+  isCurrent        Boolean   @default(true)
+  replacedAt       DateTime?
+  replacedByUnitId String?
+  sourceUnitId     String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  building       Building    @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  floor          Floor       @relation(fields: [floorId], references: [id], onDelete: Cascade)
+  replacedByUnit Unit?       @relation("UnitReplacement", fields: [replacedByUnitId], references: [id])
+  replacedUnits  Unit[]      @relation("UnitReplacement")
+  sourceUnit     Unit?       @relation("UnitSplitSource", fields: [sourceUnitId], references: [id])
+  splitChildren  Unit[]      @relation("UnitSplitSource")
+  occupancies    Occupancy[]
+  leaseUnits     LeaseUnit[]
+
+  @@unique([floorId, code, isCurrent])
+  @@index([buildingId, floorId, isCurrent])
+}
+
+model Tenant {
+  id           String   @id @default(cuid())
+  buildingId   String
+  name         String
+  taxId        String?
+  contactName  String?
+  contactEmail String?
+  contactPhone String?
+  notes        String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  building    Building    @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  occupancies Occupancy[]
+  leases      Lease[]
+
+  @@index([buildingId, name])
+}
+
+model Owner {
+  id           String   @id @default(cuid())
+  buildingId   String
+  name         String
+  taxId        String?
+  contactName  String?
+  contactPhone String?
+  contactEmail String?
+  notes        String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  building    Building     @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  floorOwners FloorOwner[]
+
+  @@index([buildingId, name])
+}
+
+model FloorOwner {
+  id           String    @id @default(cuid())
+  floorId      String
+  ownerId      String
+  sharePercent Decimal   @db.Decimal(5, 2)
+  startDate    DateTime  @default(now())
+  endDate      DateTime?
+  notes        String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  floor Floor @relation(fields: [floorId], references: [id], onDelete: Cascade)
+  owner Owner @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([floorId, startDate])
+  @@index([ownerId, startDate])
+}
+
+model Occupancy {
+  id         String          @id @default(cuid())
+  buildingId String
+  unitId     String
+  tenantId   String
+  leaseId    String?
+  status     OccupancyStatus @default(DRAFT)
+  startDate  DateTime        @default(now())
+  endDate    DateTime?
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  building Building @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  unit     Unit     @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  lease    Lease?   @relation(fields: [leaseId], references: [id], onDelete: SetNull)
+
+  @@index([unitId, status])
+  @@index([tenantId, status])
+}
+
+model Lease {
+  id            String      @id @default(cuid())
+  buildingId    String
+  tenantId      String
+  status        LeaseStatus @default(DRAFT)
+  startDate     DateTime
+  endDate       DateTime
+  managementFee Decimal?    @db.Decimal(12, 2)
+  rent          Decimal?    @db.Decimal(12, 2)
+  deposit       Decimal?    @db.Decimal(12, 2)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  building         Building          @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  tenant           Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  leaseUnits       LeaseUnit[]
+  occupancies      Occupancy[]
+  leaseAttachments LeaseAttachment[]
+
+  @@index([buildingId, status])
+  @@index([tenantId, status])
+}
+
+model LeaseUnit {
+  id        String   @id @default(cuid())
+  leaseId   String
+  unitId    String
+  createdAt DateTime @default(now())
+
+  lease Lease @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+  unit  Unit  @relation(fields: [unitId], references: [id], onDelete: Cascade)
+
+  @@unique([leaseId, unitId])
+  @@index([unitId])
+}
+
+model Vendor {
+  id           String   @id @default(cuid())
+  buildingId   String
+  name         String
+  taxId        String?
+  contactName  String?
+  contactPhone String?
+  contactEmail String?
+  notes        String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  building      Building       @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  repairRecords RepairRecord[]
+
+  @@index([buildingId, name])
+}
+
+model CommonArea {
+  id          String   @id @default(cuid())
+  buildingId  String
+  floorId     String?
+  name        String
+  code        String?
+  description String?
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  building      Building       @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  floor         Floor?         @relation(fields: [floorId], references: [id], onDelete: SetNull)
+  repairRecords RepairRecord[]
+
+  @@index([buildingId, name])
+  @@index([floorId])
+}
+
+model RepairRecord {
+  id               String            @id @default(cuid())
+  buildingId       String
+  scopeType        RepairScopeType
+  floorId          String?
+  commonAreaId     String?
+  item             String
+  description      String?
+  vendorId         String?
+  vendorName       String
+  quoteAmount      Decimal           @db.Decimal(12, 2)
+  approvedAmount   Decimal?          @db.Decimal(12, 2)
+  status           RepairStatus      @default(DRAFT)
+  acceptanceResult AcceptanceResult?
+  inspectorName    String?
+  reportedAt       DateTime          @default(now())
+  startedAt        DateTime?
+  completedAt      DateTime?
+  acceptedAt       DateTime?
+  notes            String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  building          Building           @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  floor             Floor?             @relation(fields: [floorId], references: [id], onDelete: SetNull)
+  commonArea        CommonArea?        @relation(fields: [commonAreaId], references: [id], onDelete: SetNull)
+  vendor            Vendor?            @relation(fields: [vendorId], references: [id], onDelete: SetNull)
+  repairAttachments RepairAttachment[]
+
+  @@index([buildingId, status, scopeType])
+  @@index([floorId])
+  @@index([commonAreaId])
+}
+
+model BuildingFile {
+  id         String   @id @default(cuid())
+  buildingId String
+  fileName   String
+  fileUrl    String
+  kind       FileKind @default(OTHER)
+  createdAt  DateTime @default(now())
+
+  building Building @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+
+  @@index([buildingId])
+}
+
+model FloorFile {
+  id        String   @id @default(cuid())
+  floorId   String
+  fileName  String
+  fileUrl   String
+  kind      FileKind @default(OTHER)
+  createdAt DateTime @default(now())
+
+  floor Floor @relation(fields: [floorId], references: [id], onDelete: Cascade)
+
+  @@index([floorId])
+}
+
+model LeaseAttachment {
+  id        String   @id @default(cuid())
+  leaseId   String
+  fileName  String
+  fileUrl   String
+  kind      FileKind @default(CONTRACT)
+  createdAt DateTime @default(now())
+
+  lease Lease @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+
+  @@index([leaseId])
+}
+
+model RepairAttachment {
+  id        String   @id @default(cuid())
+  repairId  String
+  fileName  String
+  fileUrl   String
+  createdAt DateTime @default(now())
+
+  repair RepairRecord @relation(fields: [repairId], references: [id], onDelete: Cascade)
+
+  @@index([repairId])
+}
