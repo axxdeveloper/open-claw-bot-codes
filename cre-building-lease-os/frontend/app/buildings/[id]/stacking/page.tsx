@@ -9,7 +9,13 @@ import { apiErrorMessage, apiFetch } from "@/lib/api";
 type Row = {
   floorId: string;
   floorLabel: string;
-  units: Array<{ id: string; code: string; tenantName: string | null; occupancyStatus: string | null }>;
+  units: Array<{
+    id: string;
+    code: string;
+    tenantId: string | null;
+    tenantName: string | null;
+    occupancyStatus: string | null;
+  }>;
 };
 
 export default function StackingPage() {
@@ -17,60 +23,97 @@ export default function StackingPage() {
   const id = params.id;
 
   const [rows, setRows] = useState<Row[]>([]);
+  const [tenants, setTenants] = useState<any[]>([]);
+  const [selectedTenantByUnit, setSelectedTenantByUnit] = useState<Record<string, string>>({});
   const [filter, setFilter] = useState<"all" | "vacant" | "active" | "draft">("all");
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
-  useEffect(() => {
+  const load = async () => {
     if (!id) return;
 
-    (async () => {
-      const [floorsRes, tenantsRes, occRes] = await Promise.all([
-        apiFetch<any[]>(`/buildings/${id}/floors`),
-        apiFetch<any[]>(`/buildings/${id}/tenants`),
-        apiFetch<any[]>(`/buildings/${id}/occupancies`),
-      ]);
+    const [floorsRes, tenantsRes, occRes] = await Promise.all([
+      apiFetch<any[]>(`/buildings/${id}/floors`),
+      apiFetch<any[]>(`/buildings/${id}/tenants`),
+      apiFetch<any[]>(`/buildings/${id}/occupancies`),
+    ]);
 
-      if (!floorsRes.ok) {
-        setError(apiErrorMessage(floorsRes.error));
-        return;
-      }
+    if (!floorsRes.ok) {
+      setError(apiErrorMessage(floorsRes.error));
+      return;
+    }
 
-      const tenantsById = new Map<string, string>();
-      if (tenantsRes.ok) {
-        for (const t of tenantsRes.data) tenantsById.set(t.id, t.name);
-      }
+    if (tenantsRes.ok) setTenants(tenantsRes.data);
 
-      const occByUnit = new Map<string, any>();
-      if (occRes.ok) {
-        for (const o of occRes.data) {
-          const prev = occByUnit.get(o.unitId);
-          if (!prev || prev.status !== "ACTIVE") {
-            occByUnit.set(o.unitId, o);
-          }
+    const tenantsById = new Map<string, string>();
+    if (tenantsRes.ok) {
+      for (const t of tenantsRes.data) tenantsById.set(t.id, t.name);
+    }
+
+    const occByUnit = new Map<string, any>();
+    if (occRes.ok) {
+      for (const o of occRes.data) {
+        const prev = occByUnit.get(o.unitId);
+        if (!prev || prev.status !== "ACTIVE") {
+          occByUnit.set(o.unitId, o);
         }
       }
+    }
 
-      const list: Row[] = [];
-      for (const f of floorsRes.data.slice().reverse()) {
-        const detail = await apiFetch<any>(`/floors/${f.id}`);
-        if (!detail.ok) continue;
+    const list: Row[] = [];
+    for (const f of floorsRes.data.slice().reverse()) {
+      const detail = await apiFetch<any>(`/floors/${f.id}`);
+      if (!detail.ok) continue;
 
-        const units = (detail.data.units || []).map((u: any) => {
-          const occ = occByUnit.get(u.id);
-          return {
-            id: u.id,
-            code: u.code,
-            occupancyStatus: occ?.status || null,
-            tenantName: occ?.tenantId ? tenantsById.get(occ.tenantId) || null : null,
-          };
-        });
+      const units = (detail.data.units || []).map((u: any) => {
+        const occ = occByUnit.get(u.id);
+        return {
+          id: u.id,
+          code: u.code,
+          tenantId: occ?.tenantId || null,
+          occupancyStatus: occ?.status || null,
+          tenantName: occ?.tenantId ? tenantsById.get(occ.tenantId) || null : null,
+        };
+      });
 
-        list.push({ floorId: f.id, floorLabel: f.label, units });
-      }
+      list.push({ floorId: f.id, floorLabel: f.label, units });
+    }
 
-      setRows(list);
-    })();
+    setRows(list);
+  };
+
+  useEffect(() => {
+    load();
   }, [id]);
+
+  const assignDraft = async (unitId: string) => {
+    const tenantId = selectedTenantByUnit[unitId];
+    if (!tenantId) {
+      setError("請先選擇住戶，再建立草稿入住。");
+      return;
+    }
+
+    setError(null);
+    setSuccess(null);
+
+    const result = await apiFetch(`/occupancies`, {
+      method: "POST",
+      body: JSON.stringify({
+        buildingId: id,
+        unitId,
+        tenantId,
+        status: "DRAFT",
+      }),
+    });
+
+    if (!result.ok) {
+      setError(apiErrorMessage(result.error));
+      return;
+    }
+
+    setSuccess("已建立草稿入住。下一步可直接建立租約。 ");
+    await load();
+  };
 
   const summary = useMemo(() => {
     let total = 0;
@@ -115,7 +158,7 @@ export default function StackingPage() {
     <main className="page">
       <PageHeader
         title="堆疊圖｜空置與入住總覽"
-        description="從高樓層到低樓層查看各單位狀態，快速掌握招商與續約重點。"
+        description="從高樓層到低樓層查看各單位狀態；可直接在此頁 2 步驟指派住戶。"
         action={<Link href={`/buildings/${id}/leases`} className="btn">前往租約管理</Link>}
       />
 
@@ -127,6 +170,9 @@ export default function StackingPage() {
           { label: "空置單位", value: summary.vacant, hint: "可優先招商" },
         ]}
       />
+
+      {error ? <div className="errorBox">{error}</div> : null}
+      {success ? <div className="successBox">{success}</div> : null}
 
       <SectionBlock
         title="視圖篩選"
@@ -140,8 +186,6 @@ export default function StackingPage() {
           </div>
         }
       >
-        {error ? <div className="errorBox">{error}</div> : null}
-
         {filteredRows.length === 0 ? (
           <EmptyState
             title="目前沒有可顯示資料"
@@ -153,22 +197,63 @@ export default function StackingPage() {
             <div key={row.floorId} className="card" style={{ boxShadow: "none" }}>
               <div className="row" style={{ justifyContent: "space-between", marginBottom: 8 }}>
                 <h3 style={{ margin: 0 }}>{row.floorLabel}</h3>
-                <Link href={`/buildings/${id}/floors/${row.floorId}`} className="badge">
-                  前往樓層作業
-                </Link>
+                <div className="row">
+                  <Link href={`/buildings/${id}/floors/${row.floorId}`} className="badge">
+                    前往樓層作業
+                  </Link>
+                  <Link href={`/buildings/${id}/floors/${row.floorId}#create-floor-repair-form`} className="badge">
+                    新增修繕
+                  </Link>
+                </div>
               </div>
               {row.units.map((u) => (
-                <div className="row" key={u.id} style={{ justifyContent: "space-between" }}>
+                <div className="row" key={u.id} style={{ justifyContent: "space-between", alignItems: "center" }} data-testid="stacking-unit-row">
                   <span>
                     <b>{u.code}</b> {u.tenantName ? `— ${u.tenantName}` : "— 空置"}
                   </span>
-                  {u.occupancyStatus === "ACTIVE" ? (
-                    <StatusChip tone="active">啟用</StatusChip>
-                  ) : u.occupancyStatus === "DRAFT" ? (
-                    <StatusChip tone="draft">草稿</StatusChip>
-                  ) : (
-                    <StatusChip tone="neutral">空置</StatusChip>
-                  )}
+
+                  <div className="row" style={{ gap: 8 }}>
+                    {u.occupancyStatus === "ACTIVE" ? (
+                      <StatusChip tone="active">啟用</StatusChip>
+                    ) : u.occupancyStatus === "DRAFT" ? (
+                      <StatusChip tone="draft">草稿</StatusChip>
+                    ) : (
+                      <StatusChip tone="neutral">空置</StatusChip>
+                    )}
+
+                    {u.occupancyStatus !== "ACTIVE" ? (
+                      <>
+                        <select
+                          value={selectedTenantByUnit[u.id] || ""}
+                          onChange={(e) =>
+                            setSelectedTenantByUnit((prev) => ({ ...prev, [u.id]: e.target.value }))
+                          }
+                          data-testid={`stacking-tenant-select-${u.id}`}
+                          style={{ minWidth: 180 }}
+                        >
+                          <option value="">選住戶</option>
+                          {tenants.map((t) => (
+                            <option key={t.id} value={t.id}>{t.name}</option>
+                          ))}
+                        </select>
+                        <button
+                          type="button"
+                          className="secondary"
+                          data-testid={`stacking-assign-btn-${u.id}`}
+                          onClick={() => assignDraft(u.id)}
+                        >
+                          指派 DRAFT
+                        </button>
+                        <Link
+                          href={`/buildings/${id}/leases?unitId=${u.id}&tenantId=${selectedTenantByUnit[u.id] || ""}`}
+                          className="badge"
+                          data-testid={`stacking-quick-lease-${u.id}`}
+                        >
+                          建租約
+                        </Link>
+                      </>
+                    ) : null}
+                  </div>
                 </div>
               ))}
             </div>

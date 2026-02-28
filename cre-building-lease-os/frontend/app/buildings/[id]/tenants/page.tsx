@@ -103,9 +103,9 @@ export default function TenantsPage() {
         description="只填必要資料即可，其他欄位可後續補齊。"
         className="taskCard"
       >
-        <form className="grid" onSubmit={onSubmit} aria-label="create-tenant-form">
+        <form className="grid" onSubmit={onSubmit} aria-label="create-tenant-form" id="quick-add-tenant" data-testid="create-tenant-form">
           <div className="split">
-            <input name="name" placeholder="公司或住戶名稱（必填）" required />
+            <input name="name" placeholder="公司或住戶名稱（必填）" required data-testid="tenant-name-input" />
             <input name="taxId" placeholder="統編（選填）" />
           </div>
           <div className="split">
@@ -115,7 +115,7 @@ export default function TenantsPage() {
           <input name="contactEmail" placeholder="聯絡 Email" type="email" />
           <div className="row" style={{ justifyContent: "space-between" }}>
             <span className="muted">建立後可直接在租約頁選取該住戶。</span>
-            <button type="submit">新增住戶</button>
+            <button type="submit" data-testid="tenant-submit">新增住戶</button>
           </div>
         </form>
       </SectionBlock>

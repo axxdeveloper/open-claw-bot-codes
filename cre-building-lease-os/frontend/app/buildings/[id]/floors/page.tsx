@@ -16,6 +16,8 @@ type FloorRow = {
   activeCount: number;
   draftCount: number;
   vacantCount: number;
+  ownerCount: number;
+  repairCount: number;
   configured: boolean;
 };
 
@@ -66,6 +68,8 @@ export default function FloorsPage() {
       activeCount: 0,
       draftCount: 0,
       vacantCount: 0,
+      ownerCount: 0,
+      repairCount: 0,
       configured: false,
     }));
     setRows(baseRows);
@@ -87,7 +91,11 @@ export default function FloorsPage() {
       }
     }
 
-    const details = await Promise.all(baseRows.map((f) => apiFetch<any>(`/floors/${f.id}`)));
+    const [details, floorOwnersRows, repairRows] = await Promise.all([
+      Promise.all(baseRows.map((f) => apiFetch<any>(`/floors/${f.id}`))),
+      Promise.all(baseRows.map((f) => apiFetch<any[]>(`/floors/${f.id}/owners`))),
+      Promise.all(baseRows.map((f) => apiFetch<any[]>(`/buildings/${buildingId}/repairs?floorId=${f.id}`))),
+    ]);
 
     const merged = baseRows.map((row, idx) => {
       const detail = details[idx];
@@ -103,6 +111,8 @@ export default function FloorsPage() {
 
       const unitCount = units.length;
       const vacantCount = Math.max(unitCount - activeCount - draftCount, 0);
+      const ownerCount = floorOwnersRows[idx]?.ok ? floorOwnersRows[idx].data.length : 0;
+      const repairCount = repairRows[idx]?.ok ? repairRows[idx].data.length : 0;
 
       return {
         ...row,
@@ -110,6 +120,8 @@ export default function FloorsPage() {
         activeCount,
         draftCount,
         vacantCount,
+        ownerCount,
+        repairCount,
         configured: unitCount > 0,
       };
     });
@@ -156,6 +168,9 @@ export default function FloorsPage() {
       above,
       total: rows.length,
       configured,
+      draftOccupancies: rows.reduce((acc, x) => acc + x.draftCount, 0),
+      ownerAssignments: rows.reduce((acc, x) => acc + x.ownerCount, 0),
+      repairs: rows.reduce((acc, x) => acc + x.repairCount, 0),
     };
   }, [rows]);
 
@@ -200,6 +215,8 @@ export default function FloorsPage() {
           { label: "地上層數", value: summary.above, hint: "1F、2F..." },
           { label: "總樓層", value: summary.total, hint: "本棟目前樓層" },
           { label: "已配置樓層", value: summary.configured, hint: "已建立單位" },
+          { label: "草稿入住", value: summary.draftOccupancies, hint: "待轉正式租約" },
+          { label: "持分 / 修繕", value: `${summary.ownerAssignments} / ${summary.repairs}`, hint: "owners / repairs" },
         ]}
       />
 
@@ -233,6 +250,7 @@ export default function FloorsPage() {
               <button
                 key={key}
                 type="button"
+                data-testid={`floors-filter-${key}`}
                 className={filter === key ? "" : "secondary"}
                 onClick={() => setFilter(key)}
               >
@@ -244,6 +262,7 @@ export default function FloorsPage() {
               onChange={(e) => setKeyword(e.target.value)}
               placeholder="搜尋樓層（例如 10F）"
               aria-label="搜尋樓層"
+              data-testid="floors-search-input"
               style={{ width: 210 }}
             />
           </div>
@@ -265,12 +284,13 @@ export default function FloorsPage() {
                   <th>區域</th>
                   <th>單位數</th>
                   <th>入住概況</th>
+                  <th>樓層摘要</th>
                   <th>快速操作</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredRows.map((f) => (
-                  <tr key={f.id}>
+                  <tr key={f.id} data-testid="floors-row">
                     <td>
                       <Link href={`/buildings/${id}/floors/${f.id}`} style={{ fontWeight: 700 }}>
                         {f.label}
@@ -283,6 +303,12 @@ export default function FloorsPage() {
                         <StatusChip tone="neutral">空置 {f.vacantCount}</StatusChip>
                         <StatusChip tone="draft">草稿 {f.draftCount}</StatusChip>
                         <StatusChip tone="active">啟用 {f.activeCount}</StatusChip>
+                      </div>
+                    </td>
+                    <td>
+                      <div className="row" style={{ gap: 6 }}>
+                        <StatusChip tone="info">業主 {f.ownerCount}</StatusChip>
+                        <StatusChip tone="draft">修繕 {f.repairCount}</StatusChip>
                       </div>
                     </td>
                     <td>

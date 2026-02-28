@@ -20,6 +20,7 @@ export default function LeasesPage() {
   const searchParams = useSearchParams();
   const id = params.id;
 
+  const [building, setBuilding] = useState<any>(null);
   const [leases, setLeases] = useState<any[]>([]);
   const [tenants, setTenants] = useState<any[]>([]);
   const [units, setUnits] = useState<any[]>([]);
@@ -28,12 +29,14 @@ export default function LeasesPage() {
   const [success, setSuccess] = useState<string | null>(null);
 
   const load = async (bid: string) => {
-    const [ls, ts, fs] = await Promise.all([
+    const [buildingRes, ls, ts, fs] = await Promise.all([
+      apiFetch<any>(`/buildings/${bid}`),
       apiFetch<any[]>(`/buildings/${bid}/leases`),
       apiFetch<any[]>(`/buildings/${bid}/tenants`),
       apiFetch<any[]>(`/buildings/${bid}/floors`),
     ]);
 
+    if (buildingRes.ok) setBuilding(buildingRes.data);
     if (ls.ok) setLeases(ls.data);
     if (ts.ok) setTenants(ts.data);
 
@@ -127,11 +130,11 @@ export default function LeasesPage() {
       />
 
       <SectionBlock title="建立租約" description="依照順序填寫：住戶 → 期間 → 單位。" className="taskCard">
-        <form className="grid" onSubmit={onSubmit} aria-label="create-lease-form">
+        <form className="grid" onSubmit={onSubmit} aria-label="create-lease-form" id="quick-add-lease" data-testid="create-lease-form">
           <div className="split">
             <label>
               住戶
-              <select name="tenantId" required defaultValue={prefillTenant}>
+              <select name="tenantId" required defaultValue={prefillTenant} data-testid="lease-tenant-select">
                 <option value="">選擇住戶</option>
                 {tenants.map((t) => (
                   <option key={t.id} value={t.id}>
@@ -162,7 +165,15 @@ export default function LeasesPage() {
 
           <label>
             管理費（選填）
-            <input name="managementFee" type="number" step="0.01" min={0} placeholder="每坪管理費" />
+            <input
+              name="managementFee"
+              type="number"
+              step="0.01"
+              min={0}
+              placeholder={building?.managementFee ? `留空自動套用預設 ${building.managementFee}` : "每坪管理費"}
+              data-testid="lease-management-fee-input"
+            />
+            <small className="muted">{building?.managementFee ? `留空時會沿用大樓預設管理費：${building.managementFee}` : "留空時會沿用大樓預設（若有設定）。"}</small>
           </label>
 
           <div className="grid" style={{ gridTemplateColumns: "repeat(auto-fill,minmax(150px,1fr))" }}>
@@ -184,7 +195,7 @@ export default function LeasesPage() {
 
           <div className="row" style={{ justifyContent: "space-between" }}>
             <span className="muted">已選 {selected.length} 個單位</span>
-            <button type="submit">建立租約</button>
+            <button type="submit" data-testid="lease-submit">建立租約</button>
           </div>
         </form>
       </SectionBlock>

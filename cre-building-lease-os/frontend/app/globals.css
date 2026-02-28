@@ -429,6 +429,135 @@ button.danger:hover,
   border-color: #bfd2ec;
 }
 
+.navTools {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  position: relative;
+}
+
+.navToolLabel {
+  font-size: 11px;
+  color: #486486;
+  margin-bottom: 2px;
+}
+
+.navSelectWrap {
+  display: grid;
+  gap: 2px;
+  min-width: 170px;
+}
+
+.navSelectWrap select {
+  padding: 7px 10px;
+}
+
+.navSearch {
+  position: relative;
+  width: 310px;
+}
+
+.navSearch input {
+  padding: 8px 10px;
+}
+
+.searchPanel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 40;
+  background: #fff;
+  border: 1px solid #c8d9ee;
+  border-radius: 12px;
+  box-shadow: var(--elevation-2);
+  overflow: hidden;
+}
+
+.searchItem {
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid #e5edf7;
+  border-radius: 0;
+  background: #fff;
+  color: #173a65;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px;
+  align-items: start;
+  text-align: left;
+  padding: 9px 10px;
+}
+
+.searchItem:last-child {
+  border-bottom: none;
+}
+
+.searchItem:hover {
+  background: #f3f8ff;
+}
+
+.searchItem small {
+  color: #5c7697;
+  display: block;
+  margin-top: 2px;
+}
+
+.searchType {
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px solid #c2d4eb;
+  background: #edf5ff;
+  color: #123a70;
+}
+
+.searchEmpty {
+  padding: 10px;
+  color: #6b809a;
+  font-size: var(--font-sm);
+}
+
+.quickAddWrap {
+  position: relative;
+}
+
+.quickAddMenu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 40;
+  min-width: 160px;
+  border: 1px solid #cadbf0;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: var(--elevation-2);
+  display: grid;
+  overflow: hidden;
+}
+
+.quickAddMenu a,
+.quickAddHint {
+  padding: 8px 10px;
+  border-bottom: 1px solid #e4edf8;
+  font-size: var(--font-sm);
+}
+
+.quickAddMenu a:last-child,
+.quickAddHint:last-child {
+  border-bottom: none;
+}
+
+.quickAddMenu a:hover {
+  background: #f2f7ff;
+}
+
+.quickAddHint {
+  color: #6f829c;
+}
+
 .hero {
   position: relative;
   border-radius: var(--radius-lg);
@@ -507,6 +636,28 @@ button.danger:hover,
 
   .summaryGrid {
     grid-template-columns: 1fr;
+  }
+
+  .navTools {
+    width: 100%;
+  }
+
+  .navSelectWrap,
+  .navSearch {
+    width: 100%;
+  }
+
+  .quickAddWrap {
+    width: 100%;
+  }
+
+  .quickAddWrap > button {
+    width: 100%;
+  }
+
+  .quickAddMenu {
+    left: 0;
+    right: 0;
   }
 
   .hero {

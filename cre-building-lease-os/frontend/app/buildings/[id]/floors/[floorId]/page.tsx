@@ -24,6 +24,7 @@ export default function FloorDetailPage() {
   const id = params.id;
   const floorId = params.floorId;
 
+  const [building, setBuilding] = useState<any>(null);
   const [floor, setFloor] = useState<any>(null);
   const [units, setUnits] = useState<any[]>([]);
   const [tenants, setTenants] = useState<any[]>([]);
@@ -33,12 +34,15 @@ export default function FloorDetailPage() {
   const [occupancyByUnit, setOccupancyByUnit] = useState<Map<string, string>>(new Map());
   const [selectedTenant, setSelectedTenant] = useState<Record<string, string>>({});
   const [splitDrafts, setSplitDrafts] = useState<Record<string, SplitDraft>>({});
+  const [batchSplitText, setBatchSplitText] = useState("");
+  const [batchSplitUnitId, setBatchSplitUnitId] = useState("");
 
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
   const load = async () => {
-    const [floorRes, tenantsRes, ownersRes, floorOwnersRes, repairsRes, occRes] = await Promise.all([
+    const [buildingRes, floorRes, tenantsRes, ownersRes, floorOwnersRes, repairsRes, occRes] = await Promise.all([
+      apiFetch<any>(`/buildings/${id}`),
       apiFetch<any>(`/floors/${floorId}`),
       apiFetch<any[]>(`/buildings/${id}/tenants`),
       apiFetch<any[]>(`/buildings/${id}/owners`),
@@ -55,8 +59,12 @@ export default function FloorDetailPage() {
     const floorData = floorRes.data.floor;
     const unitRows = floorRes.data.units || [];
 
+    if (buildingRes.ok) setBuilding(buildingRes.data);
     setFloor(floorData);
     setUnits(unitRows);
+    if (!batchSplitUnitId && unitRows.length > 0) {
+      setBatchSplitUnitId(unitRows[0].id);
+    }
 
     const draftDefaults: Record<string, SplitDraft> = {};
     for (const u of unitRows) {
@@ -144,6 +152,49 @@ export default function FloorDetailPage() {
     }
 
     setSuccess("單位已切分完成。");
+    load();
+  };
+
+  const batchSplit = async () => {
+    setError(null);
+    setSuccess(null);
+
+    if (!batchSplitUnitId) {
+      setError("請先選擇要切分的來源單位。");
+      return;
+    }
+
+    const parts = batchSplitText
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => {
+        const [code, gross, net, balcony] = line.split(",").map((x) => x.trim());
+        return {
+          code,
+          grossArea: Number(gross),
+          netArea: net ? Number(net) : null,
+          balconyArea: balcony ? Number(balcony) : null,
+        };
+      });
+
+    if (parts.length < 2 || parts.some((x) => !x.code || Number.isNaN(x.grossArea))) {
+      setError("貼上格式有誤：每行需為 code,gross,net,balcony，且至少兩行。");
+      return;
+    }
+
+    const r = await apiFetch(`/units/${batchSplitUnitId}/split`, {
+      method: "POST",
+      body: JSON.stringify({ parts }),
+    });
+
+    if (!r.ok) {
+      setError(apiErrorMessage(r.error));
+      return;
+    }
+
+    setBatchSplitText("");
+    setSuccess("批次切分完成。已依貼上內容建立新單位。 ");
     load();
   };
 
@@ -334,10 +385,10 @@ export default function FloorDetailPage() {
       </SectionBlock>
 
       <SectionBlock title="快速建立租約" description="不用跳頁，直接在本層完成指派與租約。" className="card" >
-        <form className="split" onSubmit={createQuickLease} id="quick-lease" aria-label="create-quick-lease-form">
+        <form className="split" onSubmit={createQuickLease} id="quick-lease" aria-label="create-quick-lease-form" data-testid="quick-lease-form">
           <label>
             單位
-            <select name="unitId" required>
+            <select name="unitId" required data-testid="quick-lease-unit-select">
               <option value="">選擇單位</option>
               {units.map((u) => (
                 <option key={u.id} value={u.id}>{u.code}</option>
@@ -346,7 +397,7 @@ export default function FloorDetailPage() {
           </label>
           <label>
             住戶
-            <select name="tenantId" required>
+            <select name="tenantId" required data-testid="quick-lease-tenant-select">
               <option value="">選擇住戶</option>
               {tenants.map((t) => (
                 <option key={t.id} value={t.id}>{t.name}</option>
@@ -355,30 +406,76 @@ export default function FloorDetailPage() {
           </label>
           <label>
             起租日
-            <input name="startDate" type="date" required />
+            <input name="startDate" type="date" required data-testid="quick-lease-start-date" />
           </label>
           <label>
             結束日
-            <input name="endDate" type="date" required />
+            <input name="endDate" type="date" required data-testid="quick-lease-end-date" />
           </label>
           <label>
             管理費（選填）
-            <input name="managementFee" type="number" step="0.01" min={0} placeholder="每坪管理費" />
+            <input
+              name="managementFee"
+              type="number"
+              step="0.01"
+              min={0}
+              placeholder={building?.managementFee ? `留空將沿用大樓預設 ${building.managementFee}` : "每坪管理費"}
+              data-testid="quick-lease-management-fee"
+            />
+            <small className="muted">{building?.managementFee ? `留空時會自動套用大樓預設管理費：${building.managementFee}` : "若留空，將沿用大樓預設值（若有）。"}</small>
           </label>
           <div className="row" style={{ alignItems: "end" }}>
-            <button type="submit">直接建立啟用租約</button>
+            <button type="submit" data-testid="quick-lease-submit">直接建立啟用租約</button>
           </div>
         </form>
       </SectionBlock>
 
       <SectionBlock title="單位作業區" description="可新增、切分單位，並建立草稿入住。" className="card" >
-        <form onSubmit={addUnit} className="row" aria-label="add-unit-form" id="add-unit">
-          <input name="code" placeholder="單位編號（例如 A1）" required />
-          <input name="grossArea" type="number" step="0.01" placeholder="總坪數" required />
+        <form onSubmit={addUnit} className="row" aria-label="add-unit-form" id="add-unit" data-testid="add-unit-form">
+          <input name="code" placeholder="單位編號（例如 A1）" required data-testid="add-unit-code" />
+          <input name="grossArea" type="number" step="0.01" placeholder="總坪數" required data-testid="add-unit-gross" />
           <input name="netArea" type="number" step="0.01" placeholder="室內坪數" />
           <input name="balconyArea" type="number" step="0.01" placeholder="陽台坪數" />
-          <button type="submit">新增單位</button>
+          <button type="submit" data-testid="add-unit-submit">新增單位</button>
         </form>
+
+        <div className="grid" style={{ border: "1px dashed #bfd1ea", borderRadius: 12, padding: 12 }}>
+          <div>
+            <b>批次切分（貼上多列）</b>
+            <p className="muted" style={{ margin: "6px 0 0" }}>
+              格式：code,gross,net,balcony。最少兩列，例如 A1-1,50,40,5。
+            </p>
+          </div>
+          <div className="split">
+            <label>
+              來源單位
+              <select
+                value={batchSplitUnitId}
+                onChange={(e) => setBatchSplitUnitId(e.target.value)}
+                data-testid="batch-split-unit-select"
+              >
+                <option value="">選擇來源單位</option>
+                {units.map((u) => (
+                  <option key={u.id} value={u.id}>{u.code}</option>
+                ))}
+              </select>
+            </label>
+            <label>
+              <span>貼上多列資料</span>
+              <textarea
+                value={batchSplitText}
+                onChange={(e) => setBatchSplitText(e.target.value)}
+                placeholder={"A1-1,50,40,5\nA1-2,50,40,5"}
+                data-testid="batch-split-textarea"
+              />
+            </label>
+          </div>
+          <div className="row" style={{ justifyContent: "flex-end" }}>
+            <button type="button" className="secondary" onClick={batchSplit} data-testid="batch-split-submit">
+              送出批次切分
+            </button>
+          </div>
+        </div>
 
         {units.length === 0 ? (
           <EmptyState
@@ -469,13 +566,19 @@ export default function FloorDetailPage() {
                           onChange={(e) =>
                             setSelectedTenant((prev) => ({ ...prev, [u.id]: e.target.value }))
                           }
+                          data-testid={`floor-tenant-select-${u.id}`}
                         >
                           <option value="">選擇住戶</option>
                           {tenants.map((t) => (
                             <option key={t.id} value={t.id}>{t.name}</option>
                           ))}
                         </select>
-                        <button type="button" className="secondary" onClick={() => assignDraftOccupancy(u.id)}>
+                        <button
+                          type="button"
+                          className="secondary"
+                          onClick={() => assignDraftOccupancy(u.id)}
+                          data-testid={`floor-assign-draft-${u.id}`}
+                        >
                           Assign DRAFT
                         </button>
                       </div>
@@ -543,7 +646,7 @@ export default function FloorDetailPage() {
         </SectionBlock>
 
         <SectionBlock title="樓層修繕" description="修繕入口放在同頁，日常巡檢可快速新增。">
-          <form onSubmit={createRepair} className="grid" aria-label="create-floor-repair-form">
+          <form onSubmit={createRepair} className="grid" aria-label="create-floor-repair-form" id="create-floor-repair-form" data-testid="create-floor-repair-form">
             <input name="item" placeholder="修繕項目（例如：消防檢查）" required />
             <input name="vendorName" placeholder="廠商名稱" required />
             <input name="quoteAmount" type="number" step="0.01" placeholder="預估金額" required />

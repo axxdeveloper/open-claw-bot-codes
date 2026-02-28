@@ -10,11 +10,19 @@ async function forward(req: NextRequest, path: string[]) {
   const headers = new Headers(req.headers);
   headers.delete("host");
   headers.delete("content-length");
+  headers.delete("origin");
+  headers.delete("referer");
+  headers.delete("sec-fetch-site");
+  headers.delete("sec-fetch-mode");
+  headers.delete("sec-fetch-dest");
 
   const init: RequestInit = {
     method: req.method,
     headers,
-    body: req.method === "GET" || req.method === "HEAD" ? undefined : await req.text(),
+    body:
+      req.method === "GET" || req.method === "HEAD"
+        ? undefined
+        : await req.arrayBuffer(),
     cache: "no-store",
   };
 
