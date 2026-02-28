@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import CreateRepairForm from "@/components/CreateRepairForm";
-import CreateVendorForm from "@/components/CreateVendorForm";
+import ManageEntryCta from "@/components/ManageEntryCta";
 
 type SearchParams = {
   status?: string;
@@ -22,11 +21,10 @@ export default async function RepairsPage({
   const { id } = await params;
   const sp = await searchParams;
 
-  const [building, floors, commonAreas, vendors, repairs] = await Promise.all([
+  const [building, floors, commonAreas, repairs] = await Promise.all([
     prisma.building.findUnique({ where: { id } }),
     prisma.floor.findMany({ where: { buildingId: id }, orderBy: { sortIndex: "asc" } }),
     prisma.commonArea.findMany({ where: { buildingId: id }, orderBy: { name: "asc" } }),
-    prisma.vendor.findMany({ where: { buildingId: id }, orderBy: { name: "asc" } }),
     prisma.repairRecord.findMany({
       where: {
         buildingId: id,
@@ -97,13 +95,9 @@ export default async function RepairsPage({
         </form>
       </div>
 
-      <CreateVendorForm buildingId={id} />
-
-      <CreateRepairForm
+      <ManageEntryCta
         buildingId={id}
-        floors={floors.map((f) => ({ id: f.id, label: f.label }))}
-        commonAreas={commonAreas.map((c) => ({ id: c.id, name: c.name }))}
-        vendors={vendors.map((v) => ({ id: v.id, name: v.name }))}
+        hint="新增廠商與維修案件，請到資料維護區；此頁面優先提供查詢與篩選。"
       />
 
       <div className="rounded border bg-white">

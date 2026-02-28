@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import FloorGenerateForm from "@/components/FloorGenerateForm";
+import ManageEntryCta from "@/components/ManageEntryCta";
 
 export default async function BuildingFloorsPage({
   params,
@@ -28,8 +28,8 @@ export default async function BuildingFloorsPage({
 
   return (
     <main className="space-y-4">
-      <h1 className="text-2xl font-semibold">{building.name} - 樓層管理</h1>
-      <FloorGenerateForm buildingId={id} />
+      <h1 className="text-2xl font-semibold">{building.name} - 樓層與單位檢視</h1>
+      <ManageEntryCta buildingId={id} hint="樓層重建、單位拆分/合併與 occupancy 維護，請到資料維護區。" />
       <div className="rounded border bg-white">
         <table className="w-full text-left text-sm">
           <thead className="border-b bg-gray-50">

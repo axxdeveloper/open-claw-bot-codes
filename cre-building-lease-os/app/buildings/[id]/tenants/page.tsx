@@ -1,6 +1,6 @@
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import CreateTenantForm from "@/components/CreateTenantForm";
+import ManageEntryCta from "@/components/ManageEntryCta";
 
 export default async function TenantsPage({
   params,
@@ -17,8 +17,8 @@ export default async function TenantsPage({
 
   return (
     <main className="space-y-4">
-      <h1 className="text-2xl font-semibold">租戶管理</h1>
-      <CreateTenantForm buildingId={id} />
+      <h1 className="text-2xl font-semibold">租戶名單</h1>
+      <ManageEntryCta buildingId={id} hint="新增租戶或修正聯絡資料，請到資料維護區。" />
       <div className="rounded border bg-white">
         <table className="w-full text-sm">
           <thead className="border-b bg-gray-50">

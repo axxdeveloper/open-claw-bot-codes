@@ -1,6 +1,7 @@
 import { OccupancyStatus } from "@prisma/client";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import ManageEntryCta from "@/components/ManageEntryCta";
 
 export default async function StackingPage({
   params,
@@ -32,6 +33,7 @@ export default async function StackingPage({
     <main className="space-y-4">
       <h1 className="text-2xl font-semibold">Stacking 圖 (列表版)</h1>
       <p className="text-sm text-gray-500">僅顯示 ACTIVE occupancy</p>
+      <ManageEntryCta buildingId={id} hint="若需調整租戶/單位資料，請前往資料維護區。" />
 
       <div className="space-y-3">
         {floors.map((floor) => (

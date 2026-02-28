@@ -186,6 +186,25 @@ export const repairFilterSchema = z.object({
   commonAreaId: z.string().optional(),
 });
 
+export const sourceXlsxImportSchema = z
+  .object({
+    filePath: z.string().min(1).optional(),
+    sourcePath: z.string().min(1).optional(),
+    xlsxPath: z.string().min(1).optional(),
+    path: z.string().min(1).optional(),
+    notes: z.string().optional(),
+    sheetNames: z.array(z.string().min(1)).optional(),
+    keepOnlyRequiredTabs: z.boolean().optional().default(false),
+  })
+  .refine(
+    (value) =>
+      !!value.filePath || !!value.sourcePath || !!value.xlsxPath || !!value.path,
+    {
+      message: "請提供 filePath/sourcePath/xlsxPath/path",
+      path: ["filePath"],
+    },
+  );
+
 export const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),

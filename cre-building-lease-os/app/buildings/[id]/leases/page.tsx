@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import CreateLeaseForm from "@/components/CreateLeaseForm";
+import ManageEntryCta from "@/components/ManageEntryCta";
 import { getEffectiveManagementFee } from "@/lib/domain";
 
 export default async function BuildingLeasesPage({
@@ -12,14 +12,8 @@ export default async function BuildingLeasesPage({
   await requireUser();
   const { id } = await params;
 
-  const [building, tenants, units, leases] = await Promise.all([
+  const [building, leases] = await Promise.all([
     prisma.building.findUnique({ where: { id } }),
-    prisma.tenant.findMany({ where: { buildingId: id }, orderBy: { name: "asc" } }),
-    prisma.unit.findMany({
-      where: { buildingId: id, isCurrent: true },
-      include: { floor: true },
-      orderBy: [{ floor: { sortIndex: "asc" } }, { code: "asc" }],
-    }),
     prisma.lease.findMany({
       where: { buildingId: id },
       include: {
@@ -34,12 +28,8 @@ export default async function BuildingLeasesPage({
 
   return (
     <main className="space-y-4">
-      <h1 className="text-2xl font-semibold">租約管理</h1>
-      <CreateLeaseForm
-        buildingId={id}
-        tenants={tenants.map((t) => ({ id: t.id, name: t.name }))}
-        units={units.map((u) => ({ id: u.id, code: u.code, floorLabel: u.floor.label }))}
-      />
+      <h1 className="text-2xl font-semibold">租約列表</h1>
+      <ManageEntryCta buildingId={id} hint="新建租約、變更租約狀態請到資料維護區。" />
 
       <div className="rounded border bg-white">
         <table className="w-full text-sm">

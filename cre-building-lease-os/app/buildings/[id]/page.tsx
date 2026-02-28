@@ -48,16 +48,16 @@ export default async function BuildingOverviewPage({
 
       <div className="grid gap-2 md:grid-cols-3">
         <Link href={`/buildings/${id}/floors`} className="rounded border bg-white p-3 hover:bg-gray-50">
-          樓層與單位
+          樓層與單位（檢視）
         </Link>
         <Link href={`/buildings/${id}/owners`} className="rounded border bg-white p-3 hover:bg-gray-50">
-          樓層業主管理
+          樓層業主
         </Link>
         <Link href={`/buildings/${id}/tenants`} className="rounded border bg-white p-3 hover:bg-gray-50">
-          租戶管理
+          租戶名單
         </Link>
         <Link href={`/buildings/${id}/leases`} className="rounded border bg-white p-3 hover:bg-gray-50">
-          租約管理
+          租約列表
         </Link>
         <Link href={`/buildings/${id}/common-areas`} className="rounded border bg-white p-3 hover:bg-gray-50">
           公共區域
@@ -67,6 +67,9 @@ export default async function BuildingOverviewPage({
         </Link>
         <Link href={`/buildings/${id}/stacking`} className="rounded border bg-white p-3 hover:bg-gray-50">
           Stacking
+        </Link>
+        <Link href={`/buildings/${id}/manage`} className="rounded border border-black bg-black p-3 text-white hover:opacity-90">
+          資料維護（新增/編輯）
         </Link>
       </div>
     </main>

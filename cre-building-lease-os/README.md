@@ -37,6 +37,27 @@
 
 ---
 
+## 新增功能（2026-02）
+
+### 多 tab 原始匯入 + 全資料 CSV 匯出
+
+- 匯入 API：`POST /api/buildings/:id/import/source-xlsx`
+  - 支援 server local path（`filePath/sourcePath/xlsxPath/path`）
+  - 會保存原始資料層：`ImportBatch / SourceSheet / SourceRow`
+  - 同步做結構化匯入（tenant / floor / unit / occupancy）
+- 匯出 API：`GET /api/buildings/:id/export/csv?scope=all`
+  - 一次回傳 ZIP，包含每個 tab 的 CSV + `_summary.csv`
+
+### UI IA 調整（顯示優先，編輯集中）
+
+- 主要頁（`floors/stacking/tenants/leases/repairs`）改為查看與查詢為主
+- 新增「資料維護」專區：`/buildings/:id/manage`
+  - 集中新增/編輯行為（租戶、租約、維修、樓層設定、匯入/匯出）
+
+詳細格式與範例請見：`docs/source-import-export.md`
+
+---
+
 ## 2) 本機啟動
 
 ## A. Docker Compose（建議）

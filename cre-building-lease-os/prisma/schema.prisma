@@ -87,6 +87,9 @@ model Building {
   commonAreas   CommonArea[]
   repairRecords RepairRecord[]
   buildingFiles BuildingFile[]
+  importBatches ImportBatch[]
+  sourceSheets  SourceSheet[]
+  sourceRows    SourceRow[]
 }
 
 model Floor {
@@ -371,4 +374,58 @@ model RepairAttachment {
   repair RepairRecord @relation(fields: [repairId], references: [id], onDelete: Cascade)
 
   @@index([repairId])
+}
+
+model ImportBatch {
+  id         String   @id @default(cuid())
+  buildingId String
+  sourcePath String
+  sourceFile String?
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  building     Building      @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  sourceSheets SourceSheet[]
+  sourceRows   SourceRow[]
+
+  @@index([buildingId, createdAt])
+}
+
+model SourceSheet {
+  id            String   @id @default(cuid())
+  buildingId    String
+  importBatchId String
+  name          String
+  sheetOrder    Int
+  columns       Json
+  headerRow     Int
+  rowCount      Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  building    Building    @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  importBatch ImportBatch @relation(fields: [importBatchId], references: [id], onDelete: Cascade)
+  sourceRows  SourceRow[]
+
+  @@unique([importBatchId, name])
+  @@index([buildingId, name])
+}
+
+model SourceRow {
+  id            String   @id @default(cuid())
+  buildingId    String
+  importBatchId String
+  sourceSheetId String
+  rowIndex      Int
+  rowValues     Json
+  rowObject     Json
+  createdAt     DateTime @default(now())
+
+  building    Building    @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  importBatch ImportBatch @relation(fields: [importBatchId], references: [id], onDelete: Cascade)
+  sourceSheet SourceSheet @relation(fields: [sourceSheetId], references: [id], onDelete: Cascade)
+
+  @@unique([sourceSheetId, rowIndex])
+  @@index([buildingId, importBatchId])
 }
