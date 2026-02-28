@@ -1,6 +1,8 @@
 package com.cre.leaseos.web;
 
 import com.cre.leaseos.common.ApiResponse;
+import com.cre.leaseos.common.PageRequestFactory;
+import com.cre.leaseos.common.PageResponse;
 import com.cre.leaseos.domain.*;
 import com.cre.leaseos.dto.RepairDtos.CommonAreaPatchReq;
 import com.cre.leaseos.dto.RepairDtos.CommonAreaReq;
@@ -22,8 +24,17 @@ public class PartyController {
   private final PartyService partyService;
 
   @GetMapping("/buildings/{id}/tenants")
-  public ApiResponse<List<Tenant>> listTenants(@PathVariable UUID id) {
-    return ApiResponse.ok(partyService.listTenants(id));
+  public ApiResponse<Object> listTenants(
+      @PathVariable UUID id,
+      @RequestParam(required = false) Integer page,
+      @RequestParam(required = false) Integer size,
+      @RequestParam(required = false) String sort) {
+    if (page == null && size == null && sort == null) {
+      return ApiResponse.ok(partyService.listTenants(id));
+    }
+
+    var pageable = PageRequestFactory.build(page, size, sort, "createdAt");
+    return ApiResponse.ok(PageResponse.from(partyService.listTenants(id, pageable)));
   }
 
   @PostMapping("/buildings/{id}/tenants")

@@ -12,9 +12,12 @@ export default function Nav() {
   return (
     <div className="nav">
       <div className="inner">
-        <Link href="/buildings"><b>CRE Lease OS</b></Link>
+        <Link href="/buildings" className="navBrand">
+          宏泰風格商辦租賃台
+        </Link>
         <Link href="/buildings">Buildings</Link>
         <button
+          className="secondary"
           onClick={() => {
             localStorage.removeItem("cre_logged_in");
             router.push("/login");

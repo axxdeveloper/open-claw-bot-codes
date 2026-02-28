@@ -1,6 +1,8 @@
 package com.cre.leaseos.web;
 
 import com.cre.leaseos.common.ApiResponse;
+import com.cre.leaseos.common.PageRequestFactory;
+import com.cre.leaseos.common.PageResponse;
 import com.cre.leaseos.domain.RepairAttachment;
 import com.cre.leaseos.domain.RepairRecord;
 import com.cre.leaseos.domain.Enums.RepairScopeType;
@@ -28,13 +30,22 @@ public class RepairController {
   }
 
   @GetMapping("/buildings/{id}/repairs")
-  public ApiResponse<List<RepairRecord>> listBuildingRepairs(
+  public ApiResponse<Object> listBuildingRepairs(
       @PathVariable UUID id,
       @RequestParam(required = false) RepairStatus status,
       @RequestParam(required = false) RepairScopeType scopeType,
       @RequestParam(required = false) UUID floorId,
-      @RequestParam(required = false) UUID commonAreaId) {
-    return ApiResponse.ok(repairService.listRepairs(id, status, scopeType, floorId, commonAreaId));
+      @RequestParam(required = false) UUID commonAreaId,
+      @RequestParam(required = false) Integer page,
+      @RequestParam(required = false) Integer size,
+      @RequestParam(required = false) String sort) {
+    if (page == null && size == null && sort == null) {
+      return ApiResponse.ok(repairService.listRepairs(id, status, scopeType, floorId, commonAreaId));
+    }
+
+    var pageable = PageRequestFactory.build(page, size, sort, "createdAt");
+    return ApiResponse.ok(
+        PageResponse.from(repairService.listRepairs(id, status, scopeType, floorId, commonAreaId, pageable)));
   }
 
   @GetMapping("/repairs/{id}")

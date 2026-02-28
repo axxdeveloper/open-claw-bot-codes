@@ -17,7 +17,30 @@ export async function apiFetch<T>(
     },
     cache: 'no-store',
   });
-  return res.json();
+
+  const data = await res.json();
+  return data as ApiEnvelope<T>;
+}
+
+export function apiErrorMessage(error: {
+  code?: string;
+  message?: string;
+  details?: any;
+}) {
+  if (!error) return '操作失敗，請稍後再試。';
+
+  const reasonCode = error?.details?.reasonCode;
+  if (reasonCode === 'OVERLAPPING_ACTIVE_LEASE') {
+    return '該單位已有重疊中的 ACTIVE 租約，請調整期間。';
+  }
+  if (reasonCode === 'INVALID_DATE_RANGE') {
+    return '日期區間無效，結束日不可早於開始日。';
+  }
+  if (reasonCode === 'OWNER_SHARE_OVER_ALLOCATED') {
+    return '同時段持分超過 100%，請調整 sharePercent。';
+  }
+
+  return error.message || '操作失敗，請稍後再試。';
 }
 
 export function isLoggedIn() {

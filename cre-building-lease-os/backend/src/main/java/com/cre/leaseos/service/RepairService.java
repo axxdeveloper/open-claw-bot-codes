@@ -19,6 +19,8 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -35,7 +37,25 @@ public class RepairService {
       RepairScopeType scopeType,
       UUID floorId,
       UUID commonAreaId) {
-    return repairRecordRepo.filter(buildingId, status, scopeType, floorId, commonAreaId);
+    return repairRecordRepo
+        .filter(
+            buildingId,
+            status,
+            scopeType,
+            floorId,
+            commonAreaId,
+            org.springframework.data.domain.PageRequest.of(0, 1000))
+        .getContent();
+  }
+
+  public Page<RepairRecord> listRepairs(
+      UUID buildingId,
+      RepairStatus status,
+      RepairScopeType scopeType,
+      UUID floorId,
+      UUID commonAreaId,
+      Pageable pageable) {
+    return repairRecordRepo.filter(buildingId, status, scopeType, floorId, commonAreaId, pageable);
   }
 
   public List<RepairRecord> listFloorRepairs(UUID buildingId, UUID floorId) {

@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface OccupancyRepo extends JpaRepository<Occupancy, UUID> {
   List<Occupancy> findByBuildingIdAndStatus(UUID buildingId, OccupancyStatus status);
 
+  List<Occupancy> findByBuildingIdOrderByCreatedAtDesc(UUID buildingId);
+
   List<Occupancy> findByUnitIdOrderByCreatedAtDesc(UUID unitId);
 
   Occupancy findFirstByUnitIdAndTenantIdAndStatusOrderByCreatedAtDesc(

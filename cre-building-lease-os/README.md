@@ -1,29 +1,12 @@
-# cre-building-lease-os (Add-on Spec v0.2, Java Backend + Next.js Frontend)
+# cre-building-lease-os
 
-本專案已調整為 **前後端分離**：
-
-- `backend/`：Java 21 + Spring Boot 3 + Validation + JPA + Flyway + PostgreSQL
-- `frontend/`：Next.js App Router（僅 UI，透過 REST 呼叫 backend）
-- `docker-compose.yml`：postgres + backend + frontend
-
-> API 回傳契約統一：
->
-> `{ ok: boolean, data?: any, error?: { code, message, details? } }`
+商辦租賃作業系統 MVP（Java Backend + Next.js Frontend，前後端分離）。
 
 ---
 
-## 專案結構
+## 1) 架構
 
-```text
-cre-building-lease-os/
-  backend/    # Spring Boot API
-  frontend/   # Next.js UI (no direct DB access)
-  docker-compose.yml
-```
-
----
-
-## 架構圖（簡述）
+### 系統拓樸
 
 ```text
 [ Next.js Frontend :3000 ]
@@ -37,158 +20,51 @@ cre-building-lease-os/
 [ PostgreSQL :5432 ]
 ```
 
----
+### 子專案
 
-## Backend 功能重點
+- `backend/`: Spring Boot API（JPA, Validation, Flyway）
+- `frontend/`: Next.js App Router UI（僅透過 REST 呼叫 backend）
+- `docs/`: 商用化與資產文件
 
-### 核心流程（可走通）
+### API 回傳契約
 
-1. 建大樓
-2. 產生樓層（B5=-5 ... B1=-1, 1F=1）
-3. 建立/切割/合併單位
-4. 建立 DRAFT occupancy
-5. 建立 ACTIVE lease 後自動促發 occupancy DRAFT -> ACTIVE
-6. 阻擋同一 unit 重疊 ACTIVE 租約
-7. managementFee fallback（lease 為 null 時使用 building）
+```json
+{ "ok": true, "data": {} }
+{ "ok": false, "error": { "code": "VALIDATION|CONFLICT|NOT_FOUND|INTERNAL", "message": "...", "details": {} } }
+```
 
-### Add-on Spec v0.2
-
-- Floor Owners
-  - Owner / FloorOwner
-  - sharePercent + startDate/endDate + notes
-- Repairs History（Floor + Common Area）
-  - Vendor / CommonArea / RepairRecord / RepairAttachment
-  - scope validation
-  - ACCEPTED 驗收欄位驗證 + acceptedAt 自動補值
-
-### Seed
-
-Flyway `V2__seed.sql` 會建立：
-
-- 大樓：宏盛國際金融中心
-- 樓層：B5..20F
-- 單位：5F/6F/9F/10F 的 A1~A6-1
-- 業主：並指派到 5F/9F/10F
-- Common Areas：大廳1F、電梯、停車場B2、機房、公共走廊
-- Vendors
-- Repairs 至少 2 筆（10F floor + 大廳 common area）
+`details.reasonCode` 會帶內部規則碼（例：`OVERLAPPING_ACTIVE_LEASE`）。
 
 ---
 
-## API 端點清單
+## 2) 本機啟動
 
-### Buildings
-- `POST /api/buildings`
-- `GET /api/buildings`
-- `GET /api/buildings/{id}`
-- `PATCH /api/buildings/{id}`
-- `POST /api/buildings/{id}/floors/generate`
-- `GET /api/buildings/{id}/floors`
-
-### Floors / Units
-- `GET /api/floors/{id}`
-- `POST /api/floors/{id}/units`
-- `PATCH /api/units/{id}`
-- `POST /api/units/{id}/split`
-- `POST /api/units/merge`
-
-### Tenants
-- `POST /api/buildings/{id}/tenants`
-- `GET /api/buildings/{id}/tenants`
-- `GET /api/tenants/{id}`
-- `PATCH /api/tenants/{id}`
-
-### Occupancies
-- `POST /api/occupancies`
-- `PATCH /api/occupancies/{id}`
-
-### Leases
-- `POST /api/leases`
-- `GET /api/buildings/{id}/leases`
-- `GET /api/leases/{id}`
-- `PATCH /api/leases/{id}`
-
-### Owners (Add-on A)
-- `POST /api/buildings/{buildingId}/owners`
-- `GET /api/buildings/{buildingId}/owners`
-- `PATCH /api/owners/{ownerId}`
-- `POST /api/floors/{floorId}/owners/assign`
-- `GET /api/floors/{floorId}/owners`
-- `DELETE /api/floor-owners/{floorOwnerId}`
-
-### Vendors / Common Areas / Repairs (Add-on B)
-- Vendors
-  - `POST /api/buildings/{id}/vendors`
-  - `GET /api/buildings/{id}/vendors`
-  - `PATCH /api/vendors/{id}`
-- Common Areas
-  - `POST /api/buildings/{id}/common-areas`
-  - `GET /api/buildings/{id}/common-areas`
-  - `GET /api/common-areas/{id}`
-  - `PATCH /api/common-areas/{id}`
-- Repairs
-  - `POST /api/repairs`
-  - `GET /api/buildings/{id}/repairs?status=&scopeType=&floorId=&commonAreaId=`
-  - `GET /api/repairs/{id}`
-  - `PATCH /api/repairs/{id}`
-- Repair Attachments
-  - `POST multipart /api/repairs/{repairId}/attachments`
-  - `GET /api/repairs/{repairId}/attachments`
-  - `DELETE /api/repair-attachments/{id}`
-
----
-
-## Frontend（Next.js）
-
-已提供基本 UI 路由：
-
-- `/login`
-- `/buildings`
-- `/buildings/new`
-- `/buildings/[id]`
-- `/buildings/[id]/floors`
-- `/buildings/[id]/floors/[floorId]`
-- `/buildings/[id]/stacking`
-- `/buildings/[id]/tenants`
-- `/buildings/[id]/leases`
-- `/leases/[leaseId]`
-- `/buildings/[id]/owners`
-- `/buildings/[id]/common-areas`
-- `/buildings/[id]/common-areas/[commonAreaId]`
-- `/buildings/[id]/repairs`
-
-Frontend 使用 `NEXT_PUBLIC_API_BASE_URL` 呼叫 backend（預設 `http://localhost:8080/api`）。
-
----
-
-## 本機啟動
-
-### 方式 A：Docker Compose（推薦）
+## A. Docker Compose（建議）
 
 ```bash
 docker compose up -d --build
 ```
 
-- Frontend: http://localhost:3000
-- Backend: http://localhost:8080
-- Postgres: localhost:5432
+- Frontend: <http://localhost:3000>
+- Backend: <http://localhost:8080>
+- Postgres: `localhost:5432`
 
-### 方式 B：分開啟動
+## B. 分開啟動（開發）
 
-1) 先起 Postgres（可用 compose 只起 db）：
+1) 啟動 DB（或你自己的 PostgreSQL）
 
 ```bash
 docker compose up -d postgres
 ```
 
-2) 啟動 backend：
+2) 啟 backend
 
 ```bash
 cd backend
 mvn spring-boot:run
 ```
 
-3) 啟動 frontend：
+3) 啟 frontend
 
 ```bash
 cd frontend
@@ -196,35 +72,132 @@ npm install
 npm run dev
 ```
 
+## C. 無 Docker fallback（H2，用於本機/CI 無 Docker 場景）
+
+```bash
+cd backend
+SPRING_PROFILES_ACTIVE=fallback mvn spring-boot:run
+```
+
 ---
 
-## Migration / Seed
+## 3) 測試策略
 
-- Flyway migration + seed 由 backend 啟動時自動執行（`V1__init.sql`, `V2__seed.sql`）。
-
----
-
-## 測試
-
-### Backend（JUnit）
+## Backend 測試
 
 ```bash
 cd backend
 mvn test
 ```
 
-已補測：
-1. 樓層產生
-2. 單位切割
-3. 租約重疊阻擋
-4. Repair scope validation
-5. ACCEPTED 驗收欄位要求
+### 測試層級
 
-另含 Testcontainers smoke test（docker 可用時啟動 postgres container）。
+- **Unit tests（service 規則）**
+  - 樓層產生（B 樓排序）
+  - 單位 split / merge 與歷史保留
+  - ACTIVE 租約 overlap 阻擋
+  - occupancy DRAFT -> ACTIVE 轉換
+  - repair scope / ACCEPTED 必填規則
+  - owner sharePercent / period validation
+
+- **Integration tests（controller + db）**
+  - `CommercialFlowIntegrationTest` 使用 `@SpringBootTest + MockMvc + H2 fallback profile`
+  - `CommercialFlowTestcontainersIT` 保留 Testcontainers 版本（docker 可用時執行）
+
+## Frontend 測試
+
+```bash
+cd frontend
+npm run test:component    # RTL / Vitest
+npm run test:ui           # Playwright E2E + visual snapshots
+npm run test:ui:headed    # 本機可視化除錯
+```
+
+### 已補 happy flows（Playwright）
+
+1. 建大樓 -> 產生樓層 -> floors 可見 B 樓排序
+2. 建單位 -> split -> unit 列表可見新單位
+3. 指派 DRAFT occupancy -> stacking 可見 tenant 名
+4. 建立租約 -> occupancy 轉 ACTIVE（UI 顯示）
+5. Owners / Repairs 各一條 happy path
+
+### CI 建議
+
+- Pipeline 分層：
+  1) backend unit/integration
+  2) frontend build + component test
+  3) UI E2E（需要可啟動 browser）
+- 無 Docker runner：使用 backend `fallback` profile。
+- 有 Docker runner：可加跑 Testcontainers integration。
 
 ---
 
-## 備註
+## 4) 商用化補強（本次）
 
-- 先前 Prisma/Next API 實作仍保留於 repo 作為參考；最終主流程以 `backend/` Java API 為準。
-- Frontend 不直連 DB，僅透過 backend REST。
+- API error code 標準化（VALIDATION / CONFLICT / NOT_FOUND / INTERNAL）
+- 審計欄位（`createdBy`, `updatedBy`）+ `X-Actor-Id` placeholder
+- 分頁參數支援（`page`, `size`, `sort`）：
+  - `GET /api/buildings/{id}/tenants`
+  - `GET /api/buildings/{id}/leases`
+  - `GET /api/buildings/{id}/repairs`
+- 新增 `GET /api/buildings/{id}/occupancies`（供 stacking 顯示 tenant/狀態）
+- 前端關鍵表單增加錯誤提示，降低 silent fail
+
+---
+
+## 5) 視覺系統（宏泰風格參考）
+
+- 深藍 / 灰 / 白為主色
+- 一致化 card / table / button / spacing / focus state
+- 核心頁面（Buildings / Building / Floors / Stacking / Repairs）統一樣式
+- Hero/Banner 已加入：
+  - `/buildings`
+  - `/buildings/[id]`
+  - `/buildings/[id]/stacking`
+
+---
+
+## 6) 品牌資產來源與替換方式
+
+- 圖片資產：`frontend/public/brand`
+- 來源與授權：`docs/ui-assets-sources.md`
+
+### 替換方式
+
+1. 將新圖放到 `frontend/public/brand`
+2. 更新頁面引用（或維持同檔名）
+3. 更新 `docs/ui-assets-sources.md` 的來源/授權
+4. 重新跑 UI snapshot / E2E
+
+---
+
+## 7) 上線前 Checklist（安全 / 備份 / 監控 / 權限）
+
+## 安全
+- [ ] 正式身份驗證（JWT/SSO）
+- [ ] RBAC 權限矩陣（最小權限）
+- [ ] 敏感資訊（DB 密碼、token）改用 secret manager
+- [ ] CORS / rate limit / input validation 完整設定
+
+## 備份與災難復原
+- [ ] DB 自動備份排程
+- [ ] 還原演練（定期）
+- [ ] 定義 RTO / RPO
+- [ ] 異地備份策略
+
+## 監控與可觀測性
+- [ ] 統一應用日誌與 request tracing
+- [ ] Metrics（error rate, p95 latency）
+- [ ] 告警規則（4xx/5xx 異常、DB 連線）
+
+## 權限與稽核
+- [ ] 完整 audit log（誰在何時做了什麼）
+- [ ] 管理操作與資料匯出留痕
+- [ ] 重要操作（刪除/批次更新）需審批或二次確認
+
+---
+
+## 8) 參考文件
+
+- 商用化差距與路線圖：`docs/commercial-readiness.md`
+- UI 素材來源與授權：`docs/ui-assets-sources.md`

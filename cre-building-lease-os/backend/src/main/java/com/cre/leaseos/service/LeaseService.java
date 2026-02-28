@@ -13,6 +13,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,8 +61,16 @@ public class LeaseService {
     return occupancyRepo.save(o);
   }
 
+  public List<Occupancy> listOccupancies(UUID buildingId) {
+    return occupancyRepo.findByBuildingIdOrderByCreatedAtDesc(buildingId);
+  }
+
   public List<Lease> listLeases(UUID buildingId) {
     return leaseRepo.findByBuildingIdOrderByCreatedAtDesc(buildingId);
+  }
+
+  public Page<Lease> listLeases(UUID buildingId, Pageable pageable) {
+    return leaseRepo.findByBuildingId(buildingId, pageable);
   }
 
   public Lease getLease(UUID leaseId) {

@@ -6,9 +6,11 @@ import static org.mockito.Mockito.*;
 import com.cre.leaseos.common.ApiException;
 import com.cre.leaseos.domain.Unit;
 import com.cre.leaseos.dto.UnitDtos.UnitCreateReq;
+import com.cre.leaseos.dto.UnitDtos.UnitMergeReq;
 import com.cre.leaseos.dto.UnitDtos.UnitSplitReq;
 import com.cre.leaseos.repo.UnitRepo;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -42,6 +44,7 @@ class UnitServiceTest {
     List<Unit> units = service.splitUnit(id, req);
     assertEquals(2, units.size());
     assertFalse(src.getIsCurrent());
+    assertEquals(id, units.get(0).getSourceUnitId());
 
     Unit src2 = new Unit();
     src2.setId(id);
@@ -58,5 +61,59 @@ class UnitServiceTest {
                 new UnitCreateReq("A1-2", new BigDecimal("30"), null, null)));
     ApiException ex = assertThrows(ApiException.class, () -> service.splitUnit(id, bad));
     assertEquals("INVALID_AREA", ex.getCode());
+  }
+
+  @Test
+  void mergeUnits_shouldCreateMergedAndPreserveHistory() {
+    UnitRepo unitRepo = mock(UnitRepo.class);
+    BuildingService buildingService = mock(BuildingService.class);
+    UnitService service = new UnitService(unitRepo, buildingService);
+
+    UUID floorId = UUID.randomUUID();
+    UUID buildingId = UUID.randomUUID();
+    Unit u1 = new Unit();
+    u1.setId(UUID.randomUUID());
+    u1.setFloorId(floorId);
+    u1.setBuildingId(buildingId);
+    u1.setGrossArea(new BigDecimal("20.00"));
+    u1.setIsCurrent(true);
+
+    Unit u2 = new Unit();
+    u2.setId(UUID.randomUUID());
+    u2.setFloorId(floorId);
+    u2.setBuildingId(buildingId);
+    u2.setGrossArea(new BigDecimal("30.00"));
+    u2.setIsCurrent(true);
+
+    List<Unit> currentUnits = new ArrayList<>(List.of(u1, u2));
+
+    when(unitRepo.findByIdInAndIsCurrentTrue(anyList())).thenReturn(currentUnits);
+    when(unitRepo.save(any(Unit.class)))
+        .thenAnswer(
+            inv -> {
+              Unit saved = inv.getArgument(0);
+              if (saved.getId() == null) {
+                saved.setId(UUID.randomUUID());
+              }
+              return saved;
+            });
+
+    Unit merged =
+        service.mergeUnits(
+            new UnitMergeReq(
+                List.of(u1.getId(), u2.getId()),
+                "A1-M",
+                null,
+                new BigDecimal("45.00"),
+                null));
+
+    assertEquals("A1-M", merged.getCode());
+    assertEquals(new BigDecimal("50.00"), merged.getGrossArea());
+    assertFalse(u1.getIsCurrent());
+    assertFalse(u2.getIsCurrent());
+    assertNotNull(u1.getReplacedByUnitId());
+    assertNotNull(u2.getReplacedByUnitId());
+    assertEquals(merged.getId(), u1.getReplacedByUnitId());
+    assertEquals(merged.getId(), u2.getReplacedByUnitId());
   }
 }

@@ -8,10 +8,13 @@ import com.cre.leaseos.dto.TenantOwnerVendorDtos.FloorOwnerAssignReq;
 import com.cre.leaseos.dto.TenantOwnerVendorDtos.PartyPatchReq;
 import com.cre.leaseos.dto.TenantOwnerVendorDtos.PartyReq;
 import com.cre.leaseos.repo.*;
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +31,10 @@ public class PartyService {
 
   public List<Tenant> listTenants(UUID buildingId) {
     return tenantRepo.findByBuildingIdOrderByCreatedAtDesc(buildingId);
+  }
+
+  public Page<Tenant> listTenants(UUID buildingId, Pageable pageable) {
+    return tenantRepo.findByBuildingId(buildingId, pageable);
   }
 
   public Tenant createTenant(UUID buildingId, PartyReq req) {
@@ -111,12 +118,34 @@ public class PartyService {
       throw new ApiException("INVALID_OWNER", "業主不屬於此大樓", HttpStatus.BAD_REQUEST);
     }
 
+    if (req.sharePercent().compareTo(BigDecimal.ZERO) <= 0
+        || req.sharePercent().compareTo(new BigDecimal("100")) > 0) {
+      throw new ApiException("INVALID_SHARE_PERCENT", "sharePercent 需介於 0 到 100", HttpStatus.BAD_REQUEST);
+    }
+
+    OffsetDateTime start = req.startDate() == null ? OffsetDateTime.now() : req.startDate();
+    OffsetDateTime end = req.endDate();
+    if (end != null && end.isBefore(start)) {
+      throw new ApiException("INVALID_DATE_RANGE", "endDate 不可早於 startDate", HttpStatus.BAD_REQUEST);
+    }
+
+    BigDecimal overlapShare =
+        floorOwnerRepo.findByFloorIdOrderByStartDateDesc(floorId).stream()
+            .filter(existing -> overlaps(start, end, existing.getStartDate(), existing.getEndDate()))
+            .map(FloorOwner::getSharePercent)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+    if (overlapShare.add(req.sharePercent()).compareTo(new BigDecimal("100")) > 0) {
+      throw new ApiException(
+          "OWNER_SHARE_OVER_ALLOCATED", "同時段樓層持分不可超過 100%", HttpStatus.CONFLICT);
+    }
+
     FloorOwner fo = new FloorOwner();
     fo.setFloorId(floorId);
     fo.setOwnerId(req.ownerId());
     fo.setSharePercent(req.sharePercent());
-    fo.setStartDate(req.startDate() == null ? OffsetDateTime.now() : req.startDate());
-    fo.setEndDate(req.endDate());
+    fo.setStartDate(start);
+    fo.setEndDate(end);
     fo.setNotes(req.notes());
     return floorOwnerRepo.save(fo);
   }
@@ -225,5 +254,12 @@ public class PartyService {
     if (req.description() != null) c.setDescription(req.description());
     if (req.notes() != null) c.setNotes(req.notes());
     return commonAreaRepo.save(c);
+  }
+
+  private boolean overlaps(
+      OffsetDateTime aStart, OffsetDateTime aEnd, OffsetDateTime bStart, OffsetDateTime bEnd) {
+    OffsetDateTime effectiveAEnd = aEnd == null ? OffsetDateTime.MAX : aEnd;
+    OffsetDateTime effectiveBEnd = bEnd == null ? OffsetDateTime.MAX : bEnd;
+    return !aStart.isAfter(effectiveBEnd) && !bStart.isAfter(effectiveAEnd);
   }
 }

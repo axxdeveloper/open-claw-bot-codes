@@ -5,6 +5,8 @@ import com.cre.leaseos.domain.Enums.RepairScopeType;
 import com.cre.leaseos.domain.Enums.RepairStatus;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -18,12 +20,12 @@ public interface RepairRecordRepo extends JpaRepository<RepairRecord, UUID> {
           + " and (:status is null or r.status=:status)"
           + " and (:scopeType is null or r.scopeType=:scopeType)"
           + " and (:floorId is null or r.floorId=:floorId)"
-          + " and (:commonAreaId is null or r.commonAreaId=:commonAreaId)"
-          + " order by r.createdAt desc")
-  List<RepairRecord> filter(
+          + " and (:commonAreaId is null or r.commonAreaId=:commonAreaId)")
+  Page<RepairRecord> filter(
       UUID buildingId,
       RepairStatus status,
       RepairScopeType scopeType,
       UUID floorId,
-      UUID commonAreaId);
+      UUID commonAreaId,
+      Pageable pageable);
 }
