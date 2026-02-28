@@ -2,7 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './tests/ui/e2e',
-  timeout: 90_000,
+  timeout: 30_000,
   expect: {
     timeout: 10_000,
     toHaveScreenshot: {
