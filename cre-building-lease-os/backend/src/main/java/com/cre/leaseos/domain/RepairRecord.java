@@ -42,11 +42,16 @@ public class RepairRecord extends BaseEntity {
   @Column(nullable = false)
   private String vendorName;
 
+  private String vendorTaxId;
+
   @Column(nullable = false, precision = 12, scale = 2)
   private BigDecimal quoteAmount;
 
   @Column(precision = 12, scale = 2)
   private BigDecimal approvedAmount;
+
+  @Column(precision = 12, scale = 2)
+  private BigDecimal finalAmount;
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)

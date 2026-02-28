@@ -90,6 +90,7 @@ export async function PATCH(
       description: parsed.data.description,
       vendorId: parsed.data.vendorId,
       vendorName: parsed.data.vendorName,
+      vendorTaxId: parsed.data.vendorTaxId,
       quoteAmount:
         parsed.data.quoteAmount === undefined
           ? undefined
@@ -100,6 +101,12 @@ export async function PATCH(
           : parsed.data.approvedAmount === null
             ? null
             : new Prisma.Decimal(parsed.data.approvedAmount),
+      finalAmount:
+        parsed.data.finalAmount === undefined
+          ? undefined
+          : parsed.data.finalAmount === null
+            ? null
+            : new Prisma.Decimal(parsed.data.finalAmount),
       status: parsed.data.status,
       acceptanceResult: parsed.data.acceptanceResult,
       inspectorName: parsed.data.inspectorName,

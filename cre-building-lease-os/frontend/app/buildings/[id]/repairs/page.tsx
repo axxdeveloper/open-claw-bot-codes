@@ -29,6 +29,11 @@ function pickDate(row: any) {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
+function displayAmount(value: unknown) {
+  if (value === null || value === undefined || value === "") return "-";
+  return String(value);
+}
+
 export default function RepairsPage() {
   const params = useParams<{ id: string }>();
   const id = params.id;
@@ -162,7 +167,11 @@ export default function RepairsPage() {
         item: String(fd.get("item") || "").trim(),
         vendorId: String(fd.get("vendorId") || "") || null,
         vendorName: String(fd.get("vendorName") || "").trim(),
+        vendorTaxId: String(fd.get("vendorTaxId") || "").trim() || null,
         quoteAmount: Number(fd.get("quoteAmount") || 0),
+        finalAmount: String(fd.get("finalAmount") || "").trim()
+          ? Number(fd.get("finalAmount"))
+          : null,
         status: createStatus,
         acceptanceResult: createStatus === "ACCEPTED" ? acceptanceResult : null,
         inspectorName: createStatus === "ACCEPTED" ? inspectorName.trim() : null,
@@ -429,6 +438,11 @@ export default function RepairsPage() {
               <input name="vendorName" placeholder="廠商名稱（必填）" required />
             </div>
 
+            <div className="split">
+              <input name="vendorTaxId" placeholder="廠商統編（選填）" />
+              <input name="finalAmount" type="number" step="0.01" placeholder="結案金額（選填）" />
+            </div>
+
             {createStatus === "ACCEPTED" ? (
               <div className="split" data-testid="repair-acceptance-fields">
                 <label>
@@ -465,8 +479,10 @@ export default function RepairsPage() {
                   <th>項目</th>
                   <th>範圍</th>
                   <th>廠商</th>
+                  <th>廠商統編</th>
                   <th>狀態</th>
-                  <th>金額</th>
+                  <th>預估金額</th>
+                  <th>結案金額</th>
                   <th>驗收 / 附件</th>
                 </tr>
               </thead>
@@ -479,10 +495,12 @@ export default function RepairsPage() {
                       <td>{r.item}</td>
                       <td>{r.scopeType === "FLOOR" ? "樓層" : "公共區域"}</td>
                       <td>{r.vendorName}</td>
+                      <td>{r.vendorTaxId || "-"}</td>
                       <td>
                         <StatusChip tone={statusTone(r.status)}>{r.status}</StatusChip>
                       </td>
-                      <td>{r.quoteAmount}</td>
+                      <td>{displayAmount(r.quoteAmount)}</td>
+                      <td>{displayAmount(r.finalAmount)}</td>
                       <td>
                         <div className="grid" style={{ minWidth: 300 }}>
                           {r.status === "COMPLETED" ? (

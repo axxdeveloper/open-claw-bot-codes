@@ -39,11 +39,16 @@ export async function POST(req: Request) {
       description: parsed.data.description,
       vendorId: parsed.data.vendorId,
       vendorName: parsed.data.vendorName,
+      vendorTaxId: parsed.data.vendorTaxId,
       quoteAmount: new Prisma.Decimal(parsed.data.quoteAmount),
       approvedAmount:
         parsed.data.approvedAmount === undefined || parsed.data.approvedAmount === null
           ? null
           : new Prisma.Decimal(parsed.data.approvedAmount),
+      finalAmount:
+        parsed.data.finalAmount === undefined || parsed.data.finalAmount === null
+          ? null
+          : new Prisma.Decimal(parsed.data.finalAmount),
       status: parsed.data.status,
       acceptanceResult: parsed.data.acceptanceResult,
       inspectorName: parsed.data.inspectorName,

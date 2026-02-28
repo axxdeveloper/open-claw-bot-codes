@@ -80,8 +80,10 @@ public class RepairService {
     r.setDescription(req.description());
     r.setVendorId(req.vendorId());
     r.setVendorName(req.vendorName());
+    r.setVendorTaxId(req.vendorTaxId());
     r.setQuoteAmount(req.quoteAmount());
     r.setApprovedAmount(req.approvedAmount());
+    r.setFinalAmount(req.finalAmount());
     r.setStatus(req.status() == null ? RepairStatus.DRAFT : req.status());
     r.setAcceptanceResult(req.acceptanceResult());
     r.setInspectorName(req.inspectorName());
@@ -115,8 +117,10 @@ public class RepairService {
     if (req.description() != null) r.setDescription(req.description());
     if (req.vendorId() != null) r.setVendorId(req.vendorId());
     if (req.vendorName() != null) r.setVendorName(req.vendorName());
+    if (req.vendorTaxId() != null) r.setVendorTaxId(req.vendorTaxId());
     if (req.quoteAmount() != null) r.setQuoteAmount(req.quoteAmount());
     if (req.approvedAmount() != null) r.setApprovedAmount(req.approvedAmount());
+    if (req.finalAmount() != null) r.setFinalAmount(req.finalAmount());
     r.setStatus(status);
     if (req.acceptanceResult() != null) r.setAcceptanceResult(req.acceptanceResult());
     if (req.inspectorName() != null) r.setInspectorName(req.inspectorName());

@@ -83,6 +83,55 @@ export async function GET(
     );
   }
 
+  const repairs = await prisma.repairRecord.findMany({
+    where: { buildingId: id },
+    include: {
+      floor: true,
+      commonArea: true,
+    },
+    orderBy: { createdAt: "asc" },
+  });
+
+  const repairHeader = [
+    "id",
+    "scopeType",
+    "floorLabel",
+    "commonAreaName",
+    "item",
+    "vendorName",
+    "vendorTaxId",
+    "quoteAmount",
+    "approvedAmount",
+    "finalAmount",
+    "status",
+    "reportedAt",
+    "completedAt",
+    "acceptedAt",
+  ];
+  const repairLines = [toCsvRow(repairHeader)];
+  for (const repair of repairs) {
+    repairLines.push(
+      toCsvRow([
+        repair.id,
+        repair.scopeType,
+        repair.floor?.label ?? "",
+        repair.commonArea?.name ?? "",
+        repair.item,
+        repair.vendorName,
+        repair.vendorTaxId ?? "",
+        repair.quoteAmount,
+        repair.approvedAmount ?? "",
+        repair.finalAmount ?? "",
+        repair.status,
+        repair.reportedAt,
+        repair.completedAt ?? "",
+        repair.acceptedAt ?? "",
+      ]),
+    );
+  }
+  zip.file("all-data-repairs.csv", `${repairLines.join("\n")}\n`);
+  summaryRows.push(toCsvRow(["all-data", "repairs", repairs.length, "n/a"]));
+
   zip.file("_summary.csv", `${summaryRows.join("\n")}\n`);
 
   const zipBuffer = await zip.generateAsync({

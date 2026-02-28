@@ -19,6 +19,11 @@ type SplitDraft = {
   g2: string;
 };
 
+function displayAmount(value: unknown) {
+  if (value === null || value === undefined || value === "") return "-";
+  return String(value);
+}
+
 export default function FloorDetailPage() {
   const params = useParams<{ id: string; floorId: string }>();
   const id = params.id;
@@ -308,7 +313,11 @@ export default function FloorDetailPage() {
         floorId,
         item: String(fd.get("item") || ""),
         vendorName: String(fd.get("vendorName") || ""),
+        vendorTaxId: String(fd.get("vendorTaxId") || "").trim() || null,
         quoteAmount: Number(fd.get("quoteAmount") || 0),
+        finalAmount: String(fd.get("finalAmount") || "").trim()
+          ? Number(fd.get("finalAmount"))
+          : null,
         status: "DRAFT",
       }),
     });
@@ -647,21 +656,47 @@ export default function FloorDetailPage() {
 
         <SectionBlock title="樓層修繕" description="修繕入口放在同頁，日常巡檢可快速新增。">
           <form onSubmit={createRepair} className="grid" aria-label="create-floor-repair-form" id="create-floor-repair-form" data-testid="create-floor-repair-form">
-            <input name="item" placeholder="修繕項目（例如：消防檢查）" required />
-            <input name="vendorName" placeholder="廠商名稱" required />
-            <input name="quoteAmount" type="number" step="0.01" placeholder="預估金額" required />
+            <div className="split">
+              <input name="item" placeholder="修繕項目（例如：消防檢查）" required />
+              <input name="vendorName" placeholder="廠商名稱" required />
+            </div>
+            <div className="split">
+              <input name="vendorTaxId" placeholder="廠商統編（選填）" />
+              <input name="quoteAmount" type="number" step="0.01" placeholder="預估金額" required />
+            </div>
+            <input name="finalAmount" type="number" step="0.01" placeholder="結案金額（選填）" />
             <button type="submit">新增修繕</button>
           </form>
 
           {summary.repairCount === 0 ? (
             <div className="muted">目前尚無此樓層修繕紀錄。</div>
           ) : (
-            repairs.map((r) => (
-              <div key={r.id} className="row" style={{ justifyContent: "space-between" }}>
-                <span>{r.item} / {r.vendorName}</span>
-                <StatusChip tone="draft">{r.status}</StatusChip>
-              </div>
-            ))
+            <div className="tableWrap">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>項目</th>
+                    <th>廠商</th>
+                    <th>廠商統編</th>
+                    <th>預估金額</th>
+                    <th>結案金額</th>
+                    <th>狀態</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {repairs.map((r) => (
+                    <tr key={r.id}>
+                      <td>{r.item}</td>
+                      <td>{r.vendorName}</td>
+                      <td>{r.vendorTaxId || "-"}</td>
+                      <td>{displayAmount(r.quoteAmount)}</td>
+                      <td>{displayAmount(r.finalAmount)}</td>
+                      <td><StatusChip tone="draft">{r.status}</StatusChip></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </SectionBlock>
       </div>

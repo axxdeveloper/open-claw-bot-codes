@@ -6,6 +6,7 @@ import com.cre.leaseos.domain.Enums.RepairStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
@@ -25,8 +26,10 @@ public class RepairDtos {
       String description,
       UUID vendorId,
       @NotBlank String vendorName,
+      String vendorTaxId,
       @NotNull @Positive BigDecimal quoteAmount,
-      BigDecimal approvedAmount,
+      @PositiveOrZero BigDecimal approvedAmount,
+      @PositiveOrZero BigDecimal finalAmount,
       RepairStatus status,
       AcceptanceResult acceptanceResult,
       String inspectorName,
@@ -44,8 +47,10 @@ public class RepairDtos {
       String description,
       UUID vendorId,
       String vendorName,
-      BigDecimal quoteAmount,
-      BigDecimal approvedAmount,
+      String vendorTaxId,
+      @Positive BigDecimal quoteAmount,
+      @PositiveOrZero BigDecimal approvedAmount,
+      @PositiveOrZero BigDecimal finalAmount,
       RepairStatus status,
       AcceptanceResult acceptanceResult,
       String inspectorName,

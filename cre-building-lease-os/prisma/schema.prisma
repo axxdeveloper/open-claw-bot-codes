@@ -301,8 +301,10 @@ model RepairRecord {
   description      String?
   vendorId         String?
   vendorName       String
+  vendorTaxId      String?
   quoteAmount      Decimal           @db.Decimal(12, 2)
   approvedAmount   Decimal?          @db.Decimal(12, 2)
+  finalAmount      Decimal?          @db.Decimal(12, 2)
   status           RepairStatus      @default(DRAFT)
   acceptanceResult AcceptanceResult?
   inspectorName    String?
