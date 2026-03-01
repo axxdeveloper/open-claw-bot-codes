@@ -51,6 +51,7 @@ export default function Nav() {
   const currentBuildingId = getBuildingId(pathname);
   const effectiveBuildingId =
     currentBuildingId || switcherId || (buildings.length === 1 ? buildings[0].id : null);
+  const showDashboardQuickActions = pathname === "/buildings" || pathname === "/";
 
   const baseItems: NavItem[] = [
     { label: "Dashboard", href: "/buildings" },
@@ -202,16 +203,40 @@ export default function Nav() {
         <Link href="/buildings" className="navBrand" data-testid="nav-brand">
           CRE 物業租賃營運台
         </Link>
-        <button
-          type="button"
-          className="secondary"
-          onClick={() => setMenuOpen((x) => !x)}
-          aria-label="開關選單"
-          title="功能選單"
-          style={{ minWidth: 44, padding: '8px 10px', fontSize: 18, lineHeight: 1 }}
-        >
-          ☰
-        </button>
+        <div className="row" style={{ gap: 8 }}>
+          {showDashboardQuickActions ? (
+            <>
+              <Link
+                href={effectiveBuildingId ? `/buildings/${effectiveBuildingId}/leases?filter=expiring` : "/buildings"}
+                className="secondary"
+                aria-label="到期租約通知"
+                title="到期租約通知"
+                style={{ minWidth: 44, textAlign: "center", padding: "8px 10px" }}
+              >
+                🔔
+              </Link>
+              <Link
+                href={effectiveBuildingId ? `/buildings/${effectiveBuildingId}/repairs?status=IN_PROGRESS` : "/buildings"}
+                className="secondary"
+                aria-label="修繕案件"
+                title="修繕案件"
+                style={{ minWidth: 44, textAlign: "center", padding: "8px 10px" }}
+              >
+                🛠️
+              </Link>
+            </>
+          ) : null}
+          <button
+            type="button"
+            className="secondary"
+            onClick={() => setMenuOpen((x) => !x)}
+            aria-label="開關選單"
+            title="功能選單"
+            style={{ minWidth: 44, padding: '8px 10px', fontSize: 18, lineHeight: 1 }}
+          >
+            ☰
+          </button>
+        </div>
       </div>
 
       {menuOpen ? (
