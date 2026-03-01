@@ -3,6 +3,15 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+
+function normalizeName(value: string | null | undefined) {
+  return String(value || "")
+    .replace(/[\s\n\r]+/g, "")
+    .replace(/臺/g, "台")
+    .replace(/（/g, "(")
+    .replace(/）/g, ")")
+    .toLowerCase();
+}
 import { EmptyState, PageHeader, SectionBlock } from "@/components/TaskLayout";
 import { apiErrorMessage, apiFetch } from "@/lib/api";
 
@@ -25,7 +34,7 @@ export default function BuildingPage() {
   const id = params.id;
 
   const [building, setBuilding] = useState<any>(null);
-  const [floorDirectory, setFloorDirectory] = useState<Array<{ floorId: string; label: string; tenants: Array<{ id: string; name: string; unitCode: string; status: string }> }>>([]);
+  const [floorDirectory, setFloorDirectory] = useState<Array<{ floorId: string; label: string; tenants: Array<{ id: string; name: string; unitCode: string; status: string; address: string; room: string; household: string }> }>>([]);
   const [amenities, setAmenities] = useState<Array<{ id: string; name: string; floorId?: string | null }>>([]);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,12 +42,13 @@ export default function BuildingPage() {
     if (!id) return;
 
     (async () => {
-      const [buildingRes, floorsRes, tenantsRes, occupanciesRes, commonAreasRes] = await Promise.all([
+      const [buildingRes, floorsRes, tenantsRes, occupanciesRes, commonAreasRes, sourceRes] = await Promise.all([
         apiFetch<any>(`/buildings/${id}`),
         apiFetch<any[]>(`/buildings/${id}/floors`),
         apiFetch<any[]>(`/buildings/${id}/tenants`),
         apiFetch<any[]>(`/buildings/${id}/occupancies`),
         apiFetch<any[]>(`/buildings/${id}/common-areas`),
+        fetch('/source113.json').then((r) => r.json()).catch(() => ({ rows: [] })),
       ]);
 
       if (!buildingRes.ok) {
@@ -54,6 +64,30 @@ export default function BuildingPage() {
       const tenantById = new Map<string, { id: string; name: string }>();
       (tenantsRes.ok ? tenantsRes.data : []).forEach((t: any) => tenantById.set(t.id, { id: t.id, name: t.name }));
       const occupancies = occupanciesRes.ok ? occupanciesRes.data : [];
+      const sourceRows: any[] = Array.isArray(sourceRes?.rows) ? sourceRes.rows : [];
+
+      const findSource113 = (tenantName: string, floorLabel: string, unitCode: string) => {
+        const tKey = normalizeName(tenantName);
+        const fKey = String(floorLabel || "").replace(/[\s\n\r]+/g, "").toUpperCase();
+        const uKey = String(unitCode || "").replace(/[\s\n\r]+/g, "").toUpperCase();
+
+        const exact = sourceRows.find((r) => {
+          const merchantKey = normalizeName(r?.merchant);
+          const floorKey = String(r?.floor || "").replace(/[\s\n\r]+/g, "").toUpperCase();
+          const houseKey = String(r?.household || "").replace(/[\s\n\r]+/g, "").toUpperCase();
+          const nameOk = merchantKey.includes(tKey) || tKey.includes(merchantKey);
+          const floorOk = !floorKey || floorKey.includes(fKey) || fKey.includes(floorKey);
+          const unitOk = !houseKey || houseKey.includes(uKey) || uKey.includes(houseKey);
+          return nameOk && floorOk && unitOk;
+        });
+
+        if (exact) return exact;
+
+        return sourceRows.find((r) => {
+          const merchantKey = normalizeName(r?.merchant);
+          return merchantKey.includes(tKey) || tKey.includes(merchantKey);
+        });
+      };
 
       const directory = floorDetails
         .map((d, idx) => {
@@ -72,14 +106,19 @@ export default function BuildingPage() {
             .map((o: any) => {
               const tenant = tenantById.get(o.tenantId);
               if (!tenant) return null;
+              const unitCode = unitCodeById.get(o.unitId) || "未標示單位";
+              const src = findSource113(tenant.name, floor.label, unitCode) || {};
               return {
                 id: tenant.id,
                 name: tenant.name,
-                unitCode: unitCodeById.get(o.unitId) || "未標示單位",
+                unitCode,
                 status: String(o.status || ""),
+                address: String(src.address || ""),
+                room: String(src.room || ""),
+                household: String(src.household || unitCode || ""),
               };
             })
-            .filter(Boolean) as Array<{ id: string; name: string; unitCode: string; status: string }>;
+            .filter(Boolean) as Array<{ id: string; name: string; unitCode: string; status: string; address: string; room: string; household: string }>;
 
           return {
             floorId: floor.id,
@@ -87,7 +126,7 @@ export default function BuildingPage() {
             tenants,
           };
         })
-        .filter(Boolean) as Array<{ floorId: string; label: string; tenants: Array<{ id: string; name: string; unitCode: string; status: string }> }>;
+        .filter(Boolean) as Array<{ floorId: string; label: string; tenants: Array<{ id: string; name: string; unitCode: string; status: string; address: string; room: string; household: string }> }>;
 
       setFloorDirectory(directory);
       setAmenities((commonAreasRes.ok ? commonAreasRes.data : []).map((x: any) => ({ id: x.id, name: x.name, floorId: x.floorId })));
@@ -130,7 +169,7 @@ export default function BuildingPage() {
               <thead>
                 <tr>
                   <th>樓層</th>
-                  <th>公司/住戶（含單位）</th>
+                  <th>住戶明細（門牌 / 室號 / 戶號）</th>
                   <th>公共設施</th>
                   <th>查看</th>
                 </tr>
@@ -147,28 +186,23 @@ export default function BuildingPage() {
                       <td>{row.label}</td>
                       <td>
                         {row.tenants.length ? (
-                          <div className="row" style={{ gap: 6, flexWrap: "wrap" }}>
+                          <div className="grid" style={{ gap: 6 }}>
                             {[...row.tenants]
                               .sort((a, b) => a.unitCode.localeCompare(b.unitCode, "zh-Hant", { numeric: true }))
                               .map((tenant) => (
                               <Link
-                                key={tenant.id}
+                                key={`${tenant.id}-${tenant.unitCode}`}
                                 href={`/buildings/${id}/tenants/${tenant.id}`}
                                 className="badge"
                                 title={`查看 ${tenant.name} 的聯絡人與合約`}
                               >
-                                {tenant.unitCode}｜{tenant.name}{tenant.status === "DRAFT" ? "（草稿）" : ""}
+                                門牌：{tenant.address || "待補"}｜室號：{tenant.room || "-"}｜戶號：{tenant.household || tenant.unitCode || "-"}｜住戶：{tenant.name}
+                                {tenant.status === "DRAFT" ? "（草稿）" : ""}
                               </Link>
                             ))}
                           </div>
                         ) : (
-                          <Link
-                            href={`/buildings/${id}/floors/${row.floorId}#unit-workspace`}
-                            className="badge"
-                            title="前往本層指派用戶"
-                          >
-                            指派用戶
-                          </Link>
+                          <span className="badge">尚無用戶</span>
                         )}
                       </td>
                       <td>
