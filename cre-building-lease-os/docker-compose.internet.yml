@@ -18,7 +18,9 @@ services:
     container_name: cre-frontend
     restart: unless-stopped
     environment:
-      # Same-origin proxy mode
+      # Server-side proxy target (frontend container -> backend container)
+      API_BASE_URL: http://cre-backend:8080/api
+      # Browser-side always call same-origin proxy
       NEXT_PUBLIC_API_BASE_URL_BROWSER: /api-proxy
       # Requested temporary password gate
       AUTH_PAGE_PASSWORD: "0910301562"
