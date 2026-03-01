@@ -47,8 +47,7 @@ export default function Nav() {
   const [searchKeyword, setSearchKeyword] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
 
-  if (pathname === "/login") return null;
-
+  const hideOnLogin = pathname === "/login";
   const currentBuildingId = getBuildingId(pathname);
 
   const baseItems: NavItem[] = [
@@ -182,6 +181,8 @@ export default function Nav() {
       })
       .slice(0, 10);
   }, [searchIndex, searchKeyword]);
+
+  if (hideOnLogin) return null;
 
   return (
     <div className="nav">
