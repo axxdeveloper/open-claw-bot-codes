@@ -55,15 +55,7 @@ export default function CommonAreasPage() {
     const fd = new FormData(e.currentTarget);
     const name = String(fd.get("name") || "").trim();
     const code = String(fd.get("code") || "").trim() || null;
-    const floorId = String(fd.get("floorId") || "").trim() || null;
-    const applyAll = fd.get("applyAll") === "on";
-    const targetFloorIds = applyAll
-      ? floors.map((f) => f.id)
-      : selectedFloorIds.length > 0
-      ? selectedFloorIds
-      : floorId
-      ? [floorId]
-      : [];
+    const targetFloorIds = selectedFloorIds.length > 0 ? selectedFloorIds : [];
 
     if (!name) {
       setError("請先填寫區域名稱");
@@ -71,7 +63,7 @@ export default function CommonAreasPage() {
     }
 
     if (targetFloorIds.length === 0) {
-      setError("請至少指定一個樓層（或勾選套用全部樓層）");
+      setError("請先在下方「全棟樓層設施總覽」勾選至少一個樓層");
       return;
     }
 
@@ -148,6 +140,9 @@ export default function CommonAreasPage() {
       .sort((a, b) => a.name.localeCompare(b.name, "zh-Hant", { numeric: true }));
   }, [areas, sortedFloors]);
 
+  const allFloorIds = useMemo(() => sortedFloors.map((f) => f.id), [sortedFloors]);
+  const allSelected = allFloorIds.length > 0 && allFloorIds.every((fid) => selectedFloorIds.includes(fid));
+
   if (!id) return null;
 
   return (
@@ -170,43 +165,7 @@ export default function CommonAreasPage() {
             </label>
           </div>
 
-          <label>
-            單一樓層（快速指定）
-            <select name="floorId" defaultValue="">
-              <option value="">不指定（改用下方多樓層）</option>
-              {sortedFloors.map((f) => (
-                <option key={f.id} value={f.id}>{f.label}</option>
-              ))}
-            </select>
-          </label>
-
-          <div className="grid" style={{ gap: 8 }}>
-            <span className="muted">指定樓層（可複選）</span>
-            <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
-              {sortedFloors.map((f) => {
-                const checked = selectedFloorIds.includes(f.id);
-                return (
-                  <label key={f.id} className="badge" style={{ cursor: "pointer" }}>
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={(e) =>
-                        setSelectedFloorIds((prev) =>
-                          e.target.checked ? [...prev, f.id] : prev.filter((x) => x !== f.id),
-                        )
-                      }
-                    />{" "}
-                    {f.label}
-                  </label>
-                );
-              })}
-            </div>
-          </div>
-
-          <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <input type="checkbox" name="applyAll" />
-            套用到全部樓層（例如：廁所、管道間、樓梯、茶水室）
-          </label>
+          <div className="muted">樓層勾選已整合到下方「全棟樓層設施總覽」（含全選）。</div>
 
           <div className="row" style={{ justifyContent: "space-between", alignItems: "center" }}>
             <span className="muted">建立後可在下方直接調整名稱、代碼、樓層。</span>
@@ -218,7 +177,7 @@ export default function CommonAreasPage() {
       {error ? <div className="errorBox">{error}</div> : null}
       {success ? <div className="successBox">{success}</div> : null}
 
-      <SectionBlock title="全棟樓層設施總覽" description="列出這棟大樓每一層目前有哪些公共設施。">
+      <SectionBlock title="全棟樓層設施總覽" description="在這裡勾選要套用新設施的樓層（可全選）。">
         {sortedFloors.length === 0 ? (
           <EmptyState title="尚無樓層資料" description="請先建立樓層後再管理設施。" />
         ) : (
@@ -226,9 +185,18 @@ export default function CommonAreasPage() {
             <table className="table">
               <thead>
                 <tr>
+                  <th>
+                    <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <input
+                        type="checkbox"
+                        checked={allSelected}
+                        onChange={(e) => setSelectedFloorIds(e.target.checked ? allFloorIds : [])}
+                      />
+                      全選
+                    </label>
+                  </th>
                   <th>樓層</th>
                   <th>公共設施</th>
-                  <th>操作</th>
                 </tr>
               </thead>
               <tbody>
@@ -236,6 +204,17 @@ export default function CommonAreasPage() {
                   const floorAreas = areas.filter((a) => a.floorId === f.id);
                   return (
                     <tr key={f.id}>
+                      <td>
+                        <input
+                          type="checkbox"
+                          checked={selectedFloorIds.includes(f.id)}
+                          onChange={(e) =>
+                            setSelectedFloorIds((prev) =>
+                              e.target.checked ? [...prev, f.id] : prev.filter((x) => x !== f.id),
+                            )
+                          }
+                        />
+                      </td>
                       <td>{f.label}</td>
                       <td>
                         {floorAreas.length === 0 ? (
@@ -249,9 +228,6 @@ export default function CommonAreasPage() {
                             ))}
                           </div>
                         )}
-                      </td>
-                      <td>
-                        <Link href={`/buildings/${id}/common-areas?floorId=${f.id}`} className="badge">管理此樓層</Link>
                       </td>
                     </tr>
                   );
