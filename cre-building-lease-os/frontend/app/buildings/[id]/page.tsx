@@ -31,6 +31,15 @@ function floorTokens(rawFloor: string | null | undefined) {
   return tokens.map((t) => canonicalFloor(t));
 }
 
+function normalizeName(value: string | null | undefined) {
+  return String(value || "")
+    .replace(/[\s\n\r]+/g, "")
+    .replace(/臺/g, "台")
+    .replace(/（/g, "(")
+    .replace(/）/g, ")")
+    .toLowerCase();
+}
+
 export default function BuildingPage() {
   const params = useParams<{ id: string }>();
   const id = params.id;
@@ -64,9 +73,16 @@ export default function BuildingPage() {
       const floorDetails = await Promise.all(floors.map((f) => apiFetch<any>(`/floors/${f.id}`)));
 
       const tenantById = new Map<string, { id: string; name: string }>();
-      (tenantsRes.ok ? tenantsRes.data : []).forEach((t: any) => tenantById.set(t.id, { id: t.id, name: t.name }));
+      const tenantIdByNormalizedName = new Map<string, string>();
+      (tenantsRes.ok ? tenantsRes.data : []).forEach((t: any) => {
+        tenantById.set(t.id, { id: t.id, name: t.name });
+        tenantIdByNormalizedName.set(normalizeName(t.name), t.id);
+      });
       const occupancies = occupanciesRes.ok ? occupanciesRes.data : [];
       const sourceRows: any[] = Array.isArray(sourceRes?.rows) ? sourceRes.rows : [];
+      const fallbackAddresses = Array.from(
+        new Set(String(buildingRes.data?.address || "").match(/\d+號/g) || []),
+      );
 
       const floorUnitsByFloorId = new Map<string, any[]>();
       floorDetails.forEach((d, idx) => {
@@ -98,10 +114,20 @@ export default function BuildingPage() {
           })
           .filter(Boolean) as Array<{ tenantId: string; tenantName: string; unitCode: string; status: string }>;
 
-        const floorSourceRows = sourceRows.filter((r) => {
+        let floorSourceRows = sourceRows.filter((r) => {
           const tokens = floorTokens(r?.floor);
           return tokens.includes(canonicalFloor(floor.label));
         });
+
+        if (floorSourceRows.length === 0 && fallbackAddresses.length > 0) {
+          floorSourceRows = fallbackAddresses.map((addr, i) => ({
+            row: `fallback-${floor.label}-${i}`,
+            address: addr,
+            room: "",
+            household: "",
+            merchant: "",
+          }));
+        }
 
         const entries = floorSourceRows.map((r: any, idx: number) => {
           const house = String(r.household || "").trim();
@@ -111,14 +137,16 @@ export default function BuildingPage() {
             if (!hu || !hs) return false;
             return hu === hs || hu.includes(hs) || hs.includes(hu);
           });
+          const sourceTenantName = String(r.merchant || "").trim();
+          const sourceTenantId = tenantIdByNormalizedName.get(normalizeName(sourceTenantName)) || null;
           return {
             key: `src-${r.row || idx}`,
             address: String(r.address || ""),
             room: String(r.room || ""),
             household: house,
             unitCode: house,
-            tenantId: matched?.tenantId || null,
-            tenantName: matched?.tenantName || null,
+            tenantId: matched?.tenantId || sourceTenantId,
+            tenantName: matched?.tenantName || sourceTenantName || null,
             status: matched?.status || null,
           };
         });
@@ -236,8 +264,9 @@ export default function BuildingPage() {
                                   ),
                                 )
                                 .map((entry) => {
-                                  const hasTenant = Boolean(entry.tenantId && entry.tenantName);
-                                  const rowStyle = hasTenant
+                                  const hasTenantName = Boolean(entry.tenantName);
+                                  const canClickTenant = Boolean(entry.tenantId && entry.tenantName);
+                                  const rowStyle = hasTenantName
                                     ? undefined
                                     : ({ background: "#f8fafc", color: "#64748b" } as const);
 
@@ -247,7 +276,7 @@ export default function BuildingPage() {
                                       <td>{entry.room || "-"}</td>
                                       <td>{entry.household || entry.unitCode || "-"}</td>
                                       <td>
-                                        {hasTenant ? (
+                                        {canClickTenant ? (
                                           <Link
                                             href={`/buildings/${id}/tenants/${entry.tenantId}`}
                                             title={`查看 ${entry.tenantName} 的聯絡人與合約`}
@@ -256,6 +285,11 @@ export default function BuildingPage() {
                                             {entry.tenantName}
                                             {entry.status === "DRAFT" ? "（草稿）" : ""}
                                           </Link>
+                                        ) : hasTenantName ? (
+                                          <span style={{ color: "#0f2f59", fontWeight: 700 }}>
+                                            {entry.tenantName}
+                                            {entry.status === "DRAFT" ? "（草稿）" : ""}
+                                          </span>
                                         ) : (
                                           <span>尚無住戶</span>
                                         )}
