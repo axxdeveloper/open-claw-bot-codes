@@ -11,6 +11,7 @@ import com.cre.leaseos.domain.Occupancy;
 import com.cre.leaseos.domain.Enums.LeaseStatus;
 import com.cre.leaseos.domain.Enums.OccupancyStatus;
 import com.cre.leaseos.dto.OccupancyLeaseDtos.LeaseCreateReq;
+import com.cre.leaseos.repo.LeaseAttachmentRepo;
 import com.cre.leaseos.repo.LeaseRepo;
 import com.cre.leaseos.repo.LeaseUnitRepo;
 import com.cre.leaseos.repo.OccupancyRepo;
@@ -27,8 +28,10 @@ class LeaseServiceTest {
     LeaseRepo leaseRepo = mock(LeaseRepo.class);
     LeaseUnitRepo leaseUnitRepo = mock(LeaseUnitRepo.class);
     OccupancyRepo occupancyRepo = mock(OccupancyRepo.class);
+    LeaseAttachmentRepo leaseAttachmentRepo = mock(LeaseAttachmentRepo.class);
 
-    LeaseService service = new LeaseService(buildingService, leaseRepo, leaseUnitRepo, occupancyRepo);
+    LeaseService service =
+        new LeaseService(buildingService, leaseRepo, leaseUnitRepo, occupancyRepo, leaseAttachmentRepo);
 
     Lease existing = new Lease();
     existing.setId(UUID.randomUUID());
@@ -61,8 +64,10 @@ class LeaseServiceTest {
     LeaseRepo leaseRepo = mock(LeaseRepo.class);
     LeaseUnitRepo leaseUnitRepo = mock(LeaseUnitRepo.class);
     OccupancyRepo occupancyRepo = mock(OccupancyRepo.class);
+    LeaseAttachmentRepo leaseAttachmentRepo = mock(LeaseAttachmentRepo.class);
 
-    LeaseService service = new LeaseService(buildingService, leaseRepo, leaseUnitRepo, occupancyRepo);
+    LeaseService service =
+        new LeaseService(buildingService, leaseRepo, leaseUnitRepo, occupancyRepo, leaseAttachmentRepo);
 
     UUID buildingId = UUID.randomUUID();
     UUID unitId = UUID.randomUUID();

@@ -9,6 +9,10 @@ import com.cre.leaseos.dto.OccupancyLeaseDtos.LeasePatchReq;
 import com.cre.leaseos.dto.OccupancyLeaseDtos.OccupancyPatchReq;
 import com.cre.leaseos.dto.OccupancyLeaseDtos.OccupancyReq;
 import com.cre.leaseos.repo.*;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -18,6 +22,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +31,7 @@ public class LeaseService {
   private final LeaseRepo leaseRepo;
   private final LeaseUnitRepo leaseUnitRepo;
   private final OccupancyRepo occupancyRepo;
+  private final LeaseAttachmentRepo leaseAttachmentRepo;
 
   public Occupancy createOccupancy(OccupancyReq req) {
     Occupancy occupancy = new Occupancy();
@@ -159,6 +165,38 @@ public class LeaseService {
   public java.math.BigDecimal effectiveManagementFee(Lease lease) {
     Building b = buildingService.getBuilding(lease.getBuildingId());
     return lease.getManagementFee() != null ? lease.getManagementFee() : b.getManagementFee();
+  }
+
+  public LeaseAttachment addAttachment(UUID leaseId, MultipartFile file) {
+    getLease(leaseId);
+    if (file.isEmpty()) {
+      throw new ApiException("VALIDATION_ERROR", "空檔案", HttpStatus.BAD_REQUEST);
+    }
+
+    try {
+      Path dir = Path.of("uploads", "leases");
+      Files.createDirectories(dir);
+      String filename = UUID.randomUUID() + "-" + file.getOriginalFilename();
+      Path target = dir.resolve(filename);
+      Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
+
+      LeaseAttachment a = new LeaseAttachment();
+      a.setLeaseId(leaseId);
+      a.setFileName(file.getOriginalFilename());
+      a.setFileUrl("/uploads/leases/" + filename);
+      a.setContentType(file.getContentType() == null ? "application/octet-stream" : file.getContentType());
+      return leaseAttachmentRepo.save(a);
+    } catch (IOException e) {
+      throw new ApiException("UPLOAD_FAILED", "附件上傳失敗", HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+    }
+  }
+
+  public List<LeaseAttachment> listAttachments(UUID leaseId) {
+    return leaseAttachmentRepo.findByLeaseIdOrderByCreatedAtDesc(leaseId);
+  }
+
+  public void deleteAttachment(UUID attachmentId) {
+    leaseAttachmentRepo.deleteById(attachmentId);
   }
 
   private boolean overlap(LocalDate aStart, LocalDate aEnd, LocalDate bStart, LocalDate bEnd) {

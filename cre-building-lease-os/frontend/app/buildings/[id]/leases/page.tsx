@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { EmptyState, PageHeader, SectionBlock, StatusChip, SummaryCards } from "@/components/TaskLayout";
+import { EmptyState, PageHeader, SectionBlock, StatusChip } from "@/components/TaskLayout";
 import { apiErrorMessage, apiFetch } from "@/lib/api";
 
 function isExpiringSoon(endDate?: string) {
@@ -71,9 +71,16 @@ export default function LeasesPage() {
     if (fs.ok) {
       const floorData = await Promise.all(fs.data.map((f: any) => apiFetch<any>(`/floors/${f.id}`)));
       const allUnits = floorData
-        .filter((x) => x.ok)
-        .flatMap((x) => x.data.units || [])
-        .map((u: any) => ({ id: u.id, code: u.code }));
+        .flatMap((x) => {
+          if (!x.ok) return [];
+          const floorLabel = x.data?.floor?.label || "?F";
+          return (x.data.units || []).map((u: any) => ({
+            id: u.id,
+            code: u.code,
+            floorLabel,
+            display: `${floorLabel}-${u.code}`,
+          }));
+        });
       setUnits(allUnits);
     }
   };
@@ -123,19 +130,6 @@ export default function LeasesPage() {
     load(id);
   };
 
-  const summary = useMemo(() => {
-    const active = leases.filter((x) => x?.lease?.status === "ACTIVE").length;
-    const draft = leases.filter((x) => x?.lease?.status === "DRAFT").length;
-    const expiringSoon = leases.filter((x) => x?.lease?.status === "ACTIVE" && isExpiringSoon(x?.lease?.endDate)).length;
-
-    return {
-      total: leases.length,
-      active,
-      draft,
-      expiringSoon,
-    };
-  }, [leases]);
-
   const prefillTenant = searchParams.get("tenantId") || "";
   const tenantFilter = searchParams.get("tenantId") || "";
   const unitFilter = searchParams.get("unitId") || "";
@@ -148,7 +142,7 @@ export default function LeasesPage() {
 
   const unitCodeById = useMemo(() => {
     const map = new Map<string, string>();
-    units.forEach((u) => map.set(u.id, u.code));
+    units.forEach((u) => map.set(u.id, u.display || u.code));
     return map;
   }, [units]);
 
@@ -185,38 +179,6 @@ export default function LeasesPage() {
         action={<Link href={`/buildings/${id}/tenants`} className="btn secondary">回住戶管理</Link>}
       />
 
-      <SummaryCards
-        items={[
-          {
-            label: "租約總數",
-            value: summary.total,
-            hint: "含草稿與啟用",
-            href: `/buildings/${id}/leases`,
-            testId: "drilldown-link-leases-summary-total",
-          },
-          {
-            label: "啟用租約",
-            value: summary.active,
-            hint: "正在履約",
-            href: `/buildings/${id}/leases?filter=active`,
-            testId: "drilldown-link-leases-summary-active",
-          },
-          {
-            label: "草稿租約",
-            value: summary.draft,
-            hint: "待確認",
-            href: `/buildings/${id}/leases?filter=draft`,
-            testId: "drilldown-link-leases-summary-draft",
-          },
-          {
-            label: "90天內到期",
-            value: summary.expiringSoon,
-            hint: "建議提早續約",
-            href: `/buildings/${id}/leases?filter=expiring`,
-            testId: "drilldown-link-leases-summary-expiring",
-          },
-        ]}
-      />
 
       <SectionBlock title="建立租約" description="依照順序填寫：住戶 → 期間 → 單位。" className="taskCard">
         <form className="grid" onSubmit={onSubmit} aria-label="create-lease-form" id="quick-add-lease" data-testid="create-lease-form">
@@ -277,7 +239,7 @@ export default function LeasesPage() {
                     )
                   }
                 />{" "}
-                {u.code}
+                {u.display || u.code}
               </label>
             ))}
           </div>

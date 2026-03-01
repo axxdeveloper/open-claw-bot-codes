@@ -4,6 +4,7 @@ import com.cre.leaseos.common.ApiResponse;
 import com.cre.leaseos.common.PageRequestFactory;
 import com.cre.leaseos.common.PageResponse;
 import com.cre.leaseos.domain.Lease;
+import com.cre.leaseos.domain.LeaseAttachment;
 import com.cre.leaseos.domain.LeaseUnit;
 import com.cre.leaseos.domain.Occupancy;
 import com.cre.leaseos.dto.OccupancyLeaseDtos.LeaseCreateReq;
@@ -21,6 +22,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api")
@@ -81,6 +83,7 @@ public class LeaseController {
     payload.put("lease", lease);
     payload.put("leaseUnits", leaseUnits);
     payload.put("occupancies", occupancies);
+    payload.put("attachments", leaseService.listAttachments(id));
     payload.put("effectiveManagementFee", leaseService.effectiveManagementFee(lease));
     return ApiResponse.ok(payload);
   }
@@ -88,6 +91,23 @@ public class LeaseController {
   @PatchMapping("/leases/{id}")
   public ApiResponse<Lease> patchLease(@PathVariable UUID id, @RequestBody LeasePatchReq req) {
     return ApiResponse.ok(leaseService.patchLease(id, req));
+  }
+
+  @PostMapping("/leases/{leaseId}/attachments")
+  public ResponseEntity<ApiResponse<LeaseAttachment>> uploadLeaseAttachment(
+      @PathVariable UUID leaseId, @RequestPart("file") MultipartFile file) {
+    return ResponseEntity.status(201).body(ApiResponse.ok(leaseService.addAttachment(leaseId, file)));
+  }
+
+  @GetMapping("/leases/{leaseId}/attachments")
+  public ApiResponse<List<LeaseAttachment>> listLeaseAttachments(@PathVariable UUID leaseId) {
+    return ApiResponse.ok(leaseService.listAttachments(leaseId));
+  }
+
+  @DeleteMapping("/lease-attachments/{id}")
+  public ApiResponse<Object> deleteLeaseAttachment(@PathVariable UUID id) {
+    leaseService.deleteAttachment(id);
+    return ApiResponse.ok(java.util.Map.of("deleted", true));
   }
 
   private Map<String, Object> toLeaseRow(Lease lease) {
