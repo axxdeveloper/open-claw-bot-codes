@@ -25,7 +25,7 @@ export default function BuildingPage() {
   const id = params.id;
 
   const [building, setBuilding] = useState<any>(null);
-  const [floorDirectory, setFloorDirectory] = useState<Array<{ floorId: string; label: string; unitCount: number; tenants: Array<{ id: string; name: string; unitCode: string }> }>>([]);
+  const [floorDirectory, setFloorDirectory] = useState<Array<{ floorId: string; label: string; tenants: Array<{ id: string; name: string; unitCode: string; status: string }> }>>([]);
   const [amenities, setAmenities] = useState<Array<{ id: string; name: string; floorId?: string | null }>>([]);
   const [error, setError] = useState<string | null>(null);
 
@@ -64,26 +64,30 @@ export default function BuildingPage() {
           units.forEach((u: any) => unitCodeById.set(u.id, u.code));
 
           const tenants = occupancies
-            .filter((o: any) => units.some((u: any) => u.id === o.unitId) && o.status === "ACTIVE")
+            .filter(
+              (o: any) =>
+                units.some((u: any) => u.id === o.unitId) &&
+                (o.status === "ACTIVE" || o.status === "DRAFT"),
+            )
             .map((o: any) => {
               const tenant = tenantById.get(o.tenantId);
               if (!tenant) return null;
               return {
                 id: tenant.id,
                 name: tenant.name,
-                unitCode: unitCodeById.get(o.unitId) || "-",
+                unitCode: unitCodeById.get(o.unitId) || "未標示單位",
+                status: String(o.status || ""),
               };
             })
-            .filter(Boolean) as Array<{ id: string; name: string; unitCode: string }>;
+            .filter(Boolean) as Array<{ id: string; name: string; unitCode: string; status: string }>;
 
           return {
             floorId: floor.id,
             label: floor.label,
-            unitCount: units.length,
             tenants,
           };
         })
-        .filter(Boolean) as Array<{ floorId: string; label: string; unitCount: number; tenants: Array<{ id: string; name: string; unitCode: string }> }>;
+        .filter(Boolean) as Array<{ floorId: string; label: string; tenants: Array<{ id: string; name: string; unitCode: string; status: string }> }>;
 
       setFloorDirectory(directory);
       setAmenities((commonAreasRes.ok ? commonAreasRes.data : []).map((x: any) => ({ id: x.id, name: x.name, floorId: x.floorId })));
@@ -126,8 +130,7 @@ export default function BuildingPage() {
               <thead>
                 <tr>
                   <th>樓層</th>
-                  <th>單位數</th>
-                  <th>公司/住戶</th>
+                  <th>公司/住戶（含單位）</th>
                   <th>公共設施</th>
                   <th>查看</th>
                 </tr>
@@ -142,7 +145,6 @@ export default function BuildingPage() {
                   .map((row) => (
                     <tr key={row.floorId}>
                       <td>{row.label}</td>
-                      <td>{row.unitCount}</td>
                       <td>
                         {row.tenants.length ? (
                           <div className="row" style={{ gap: 6, flexWrap: "wrap" }}>
@@ -155,7 +157,7 @@ export default function BuildingPage() {
                                 className="badge"
                                 title={`查看 ${tenant.name} 的聯絡人與合約`}
                               >
-                                {tenant.unitCode}｜{tenant.name}
+                                {tenant.unitCode}｜{tenant.name}{tenant.status === "DRAFT" ? "（草稿）" : ""}
                               </Link>
                             ))}
                           </div>
