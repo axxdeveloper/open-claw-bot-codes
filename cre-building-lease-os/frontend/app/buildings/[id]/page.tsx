@@ -25,7 +25,7 @@ export default function BuildingPage() {
   const id = params.id;
 
   const [building, setBuilding] = useState<any>(null);
-  const [floorDirectory, setFloorDirectory] = useState<Array<{ floorId: string; label: string; unitCount: number; tenantNames: string[] }>>([]);
+  const [floorDirectory, setFloorDirectory] = useState<Array<{ floorId: string; label: string; unitCount: number; tenants: Array<{ id: string; name: string }> }>>([]);
   const [amenities, setAmenities] = useState<Array<{ id: string; name: string; floorId?: string | null }>>([]);
   const [error, setError] = useState<string | null>(null);
 
@@ -51,8 +51,8 @@ export default function BuildingPage() {
       const floors = floorsRes.ok ? floorsRes.data : [];
       const floorDetails = await Promise.all(floors.map((f) => apiFetch<any>(`/floors/${f.id}`)));
 
-      const tenantNameById = new Map<string, string>();
-      (tenantsRes.ok ? tenantsRes.data : []).forEach((t: any) => tenantNameById.set(t.id, t.name));
+      const tenantById = new Map<string, { id: string; name: string }>();
+      (tenantsRes.ok ? tenantsRes.data : []).forEach((t: any) => tenantById.set(t.id, { id: t.id, name: t.name }));
       const occupancies = occupanciesRes.ok ? occupanciesRes.data : [];
 
       const directory = floorDetails
@@ -60,23 +60,23 @@ export default function BuildingPage() {
           if (!d.ok) return null;
           const floor = floors[idx];
           const units = d.data.units || [];
-          const tenantNames = Array.from(
-            new Set(
-              occupancies
-                .filter((o: any) => units.some((u: any) => u.id === o.unitId) && o.status === "ACTIVE")
-                .map((o: any) => tenantNameById.get(o.tenantId) || "")
-                .filter(Boolean),
-            ),
-          );
+          const tenantMap = new Map<string, { id: string; name: string }>();
+          occupancies
+            .filter((o: any) => units.some((u: any) => u.id === o.unitId) && o.status === "ACTIVE")
+            .forEach((o: any) => {
+              const tenant = tenantById.get(o.tenantId);
+              if (tenant) tenantMap.set(tenant.id, tenant);
+            });
+          const tenants = Array.from(tenantMap.values());
 
           return {
             floorId: floor.id,
             label: floor.label,
             unitCount: units.length,
-            tenantNames,
+            tenants,
           };
         })
-        .filter(Boolean) as Array<{ floorId: string; label: string; unitCount: number; tenantNames: string[] }>;
+        .filter(Boolean) as Array<{ floorId: string; label: string; unitCount: number; tenants: Array<{ id: string; name: string }> }>;
 
       setFloorDirectory(directory);
       setAmenities((commonAreasRes.ok ? commonAreasRes.data : []).map((x: any) => ({ id: x.id, name: x.name, floorId: x.floorId })));
@@ -133,7 +133,24 @@ export default function BuildingPage() {
                     <tr key={row.floorId}>
                       <td>{row.label}</td>
                       <td>{row.unitCount}</td>
-                      <td>{row.tenantNames.length ? row.tenantNames.join("、") : "尚未指派住戶"}</td>
+                      <td>
+                        {row.tenants.length ? (
+                          <div className="row" style={{ gap: 6, flexWrap: "wrap" }}>
+                            {row.tenants.map((tenant) => (
+                              <Link
+                                key={tenant.id}
+                                href={`/buildings/${id}/tenants/${tenant.id}`}
+                                className="badge"
+                                title={`查看 ${tenant.name} 的聯絡人與合約`}
+                              >
+                                {tenant.name}
+                              </Link>
+                            ))}
+                          </div>
+                        ) : (
+                          "尚未指派住戶"
+                        )}
+                      </td>
                       <td>
                         {(amenitiesByFloor[row.floorId] || []).length === 0 ? (
                           <span className="muted">本層尚無公共設施</span>
