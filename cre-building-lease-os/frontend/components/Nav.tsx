@@ -49,20 +49,22 @@ export default function Nav() {
 
   const hideOnLogin = pathname === "/login";
   const currentBuildingId = getBuildingId(pathname);
+  const effectiveBuildingId =
+    currentBuildingId || switcherId || (buildings.length === 1 ? buildings[0].id : null);
 
   const baseItems: NavItem[] = [
     { label: "Dashboard", href: "/buildings" },
     {
       label: "空間管理",
-      href: currentBuildingId ? `/buildings/${currentBuildingId}/floors` : "/buildings",
+      href: effectiveBuildingId ? `/buildings/${effectiveBuildingId}/floors` : "/buildings",
     },
     {
       label: "客戶與合約",
-      href: currentBuildingId ? `/buildings/${currentBuildingId}/tenants` : "/buildings",
+      href: effectiveBuildingId ? `/buildings/${effectiveBuildingId}/tenants` : "/buildings",
     },
     {
       label: "維運管理",
-      href: currentBuildingId ? `/buildings/${currentBuildingId}/repairs` : "/buildings",
+      href: effectiveBuildingId ? `/buildings/${effectiveBuildingId}/repairs` : "/buildings",
     },
     { label: "收件匣", href: "/inbox", testId: "inbox-link" },
     { label: "報表/匯入", href: "/reports" },
@@ -278,31 +280,31 @@ export default function Nav() {
             </button>
             {quickAddOpen ? (
               <div className="quickAddMenu" data-testid="quick-add-menu">
-                {currentBuildingId ? (
+                {effectiveBuildingId ? (
                   <>
                     <Link
-                      href={`/buildings/${currentBuildingId}/tenants#quick-add-tenant`}
+                      href={`/buildings/${effectiveBuildingId}/tenants#quick-add-tenant`}
                       data-testid="quick-add-tenant"
                       onClick={() => setQuickAddOpen(false)}
                     >
                       新增住戶
                     </Link>
                     <Link
-                      href={`/buildings/${currentBuildingId}/leases#quick-add-lease`}
+                      href={`/buildings/${effectiveBuildingId}/leases#quick-add-lease`}
                       data-testid="quick-add-lease"
                       onClick={() => setQuickAddOpen(false)}
                     >
                       新增租約
                     </Link>
                     <Link
-                      href={`/buildings/${currentBuildingId}/repairs#quick-add-repair`}
+                      href={`/buildings/${effectiveBuildingId}/repairs#quick-add-repair`}
                       data-testid="quick-add-repair"
                       onClick={() => setQuickAddOpen(false)}
                     >
                       新增修繕
                     </Link>
                     <Link
-                      href={`/buildings/${currentBuildingId}/repairs#quick-add-vendor`}
+                      href={`/buildings/${effectiveBuildingId}/repairs#quick-add-vendor`}
                       data-testid="quick-add-vendor"
                       onClick={() => setQuickAddOpen(false)}
                     >
