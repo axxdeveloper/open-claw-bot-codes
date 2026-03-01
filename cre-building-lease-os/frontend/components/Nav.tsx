@@ -216,14 +216,16 @@ export default function Nav() {
 
   const breadcrumbs = useMemo(() => {
     const parts = pathname.split("/").filter(Boolean);
-    if (parts.length === 0) return [{ label: "首頁", href: "/buildings" }];
+    if (parts.length === 0) return [{ label: "大樓總覽", href: "/buildings" }];
 
-    const items: Array<{ label: string; href: string }> = [{ label: "Dashboard", href: "/buildings" }];
+    const items: Array<{ label: string; href: string }> = [{ label: "大樓總覽", href: "/buildings" }];
     let acc = "";
 
     for (let i = 0; i < parts.length; i++) {
       const seg = parts[i];
       acc += `/${seg}`;
+
+      if (i === 0 && seg === "buildings") continue;
 
       let label = segmentLabel(seg);
       if (i === 1 && parts[0] === "buildings") {
