@@ -270,7 +270,7 @@ export default function TenantsPage() {
                   return (
                     <tr key={t.id}>
                       <td>
-                        <Link href={`/buildings/${id}/leases?tenantId=${t.id}`} data-testid={`drilldown-link-tenant-name-${t.id}`}>
+                        <Link href={`/buildings/${id}/tenants/${t.id}`} data-testid={`drilldown-link-tenant-name-${t.id}`}>
                           {t.name}
                         </Link>
                       </td>
@@ -289,9 +289,14 @@ export default function TenantsPage() {
                         )}
                       </td>
                       <td>
-                        <Link href={`/buildings/${id}/leases?tenantId=${t.id}`} className="badge" data-testid={`drilldown-link-tenant-create-lease-${t.id}`}>
-                          建立租約
-                        </Link>
+                        <div className="row" style={{ gap: 6 }}>
+                          <Link href={`/buildings/${id}/tenants/${t.id}`} className="badge" data-testid={`drilldown-link-tenant-detail-${t.id}`}>
+                            住戶詳情
+                          </Link>
+                          <Link href={`/buildings/${id}/leases?tenantId=${t.id}`} className="badge" data-testid={`drilldown-link-tenant-create-lease-${t.id}`}>
+                            建立租約
+                          </Link>
+                        </div>
                       </td>
                     </tr>
                   );

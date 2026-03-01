@@ -76,10 +76,34 @@ export default function BuildingPage() {
 
       <SummaryCards
         items={[
-          { label: "樓層數", value: stats.floorCount, hint: "地下/地上合計" },
-          { label: "單位數", value: stats.unitCount, hint: "可租賃/可管理空間" },
-          { label: "住戶數", value: stats.tenantCount, hint: "目前已建立資料" },
-          { label: "進行中修繕", value: stats.repairOpen, hint: "需持續追蹤" },
+          {
+            label: "樓層數",
+            value: stats.floorCount,
+            hint: "地下/地上合計（點擊看樓層細節）",
+            href: `/buildings/${id}/floors`,
+            testId: "drilldown-link-building-floors",
+          },
+          {
+            label: "單位數",
+            value: stats.unitCount,
+            hint: "可租賃/可管理空間（點擊看樓層單位）",
+            href: `/buildings/${id}/floors?filter=configured`,
+            testId: "drilldown-link-building-units",
+          },
+          {
+            label: "住戶數",
+            value: stats.tenantCount,
+            hint: "點擊看住戶細節與聯絡方式",
+            href: `/buildings/${id}/tenants`,
+            testId: "drilldown-link-building-tenants",
+          },
+          {
+            label: "進行中修繕",
+            value: stats.repairOpen,
+            hint: "需持續追蹤（點擊看修繕明細）",
+            href: `/buildings/${id}/repairs?status=IN_PROGRESS`,
+            testId: "drilldown-link-building-repairs",
+          },
         ]}
       />
 
