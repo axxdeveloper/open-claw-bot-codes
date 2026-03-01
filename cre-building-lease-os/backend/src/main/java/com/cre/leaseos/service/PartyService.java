@@ -28,6 +28,7 @@ public class PartyService {
   private final FloorOwnerRepo floorOwnerRepo;
   private final VendorRepo vendorRepo;
   private final CommonAreaRepo commonAreaRepo;
+  private final RepairRecordRepo repairRecordRepo;
 
   public List<Tenant> listTenants(UUID buildingId) {
     return tenantRepo.findByBuildingIdOrderByCreatedAtDesc(buildingId);
@@ -254,6 +255,17 @@ public class PartyService {
     if (req.description() != null) c.setDescription(req.description());
     if (req.notes() != null) c.setNotes(req.notes());
     return commonAreaRepo.save(c);
+  }
+
+  public void deleteCommonArea(UUID id) {
+    CommonArea c = getCommonArea(id);
+    if (repairRecordRepo.existsByCommonAreaId(id)) {
+      throw new ApiException(
+          "COMMON_AREA_IN_USE",
+          "此公共設施已有修繕紀錄，無法直接刪除",
+          HttpStatus.CONFLICT);
+    }
+    commonAreaRepo.delete(c);
   }
 
   private boolean overlaps(

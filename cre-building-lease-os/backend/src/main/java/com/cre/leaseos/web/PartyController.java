@@ -124,4 +124,10 @@ public class PartyController {
       @PathVariable UUID id, @RequestBody CommonAreaPatchReq req) {
     return ApiResponse.ok(partyService.patchCommonArea(id, req));
   }
+
+  @DeleteMapping("/common-areas/{id}")
+  public ApiResponse<Object> deleteCommonArea(@PathVariable UUID id) {
+    partyService.deleteCommonArea(id);
+    return ApiResponse.ok(java.util.Map.of("deleted", true));
+  }
 }

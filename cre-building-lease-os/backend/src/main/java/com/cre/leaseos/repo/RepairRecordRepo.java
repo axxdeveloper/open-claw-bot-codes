@@ -28,4 +28,6 @@ public interface RepairRecordRepo extends JpaRepository<RepairRecord, UUID> {
       UUID floorId,
       UUID commonAreaId,
       Pageable pageable);
+
+  boolean existsByCommonAreaId(UUID commonAreaId);
 }

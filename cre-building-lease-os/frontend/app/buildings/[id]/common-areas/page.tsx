@@ -92,16 +92,18 @@ export default function CommonAreasPage() {
     load(id);
   };
 
-  const updateArea = async (areaId: string, patch: Record<string, any>) => {
-    const res = await apiFetch(`/common-areas/${areaId}`, {
-      method: "PATCH",
-      body: JSON.stringify(patch),
-    });
+  const deleteArea = async (areaId: string, name: string) => {
+    if (!confirm(`確定刪除「${name}」？`)) return;
+    setError(null);
+    setSuccess(null);
+
+    const res = await apiFetch(`/common-areas/${areaId}`, { method: "DELETE" });
     if (!res.ok) {
       setError(apiErrorMessage(res.error));
       return;
     }
-    setSuccess("公共區域已更新");
+
+    setSuccess(`已刪除「${name}」`);
     load(id);
   };
 
@@ -114,31 +116,6 @@ export default function CommonAreasPage() {
       }),
     [floors],
   );
-
-  const facilityDistribution = useMemo(() => {
-    const floorLabelById = new Map<string, string>();
-    sortedFloors.forEach((f) => floorLabelById.set(f.id, f.label));
-
-    const grouped = new Map<string, string[]>();
-    areas.forEach((a) => {
-      const key = String(a.name || "未命名設施");
-      const floorLabel = floorLabelById.get(a.floorId) || "未指定";
-      const list = grouped.get(key) || [];
-      if (!list.includes(floorLabel)) list.push(floorLabel);
-      grouped.set(key, list);
-    });
-
-    return Array.from(grouped.entries())
-      .map(([name, floors]) => ({
-        name,
-        floors: floors.sort((x, y) => {
-          const diff = floorOrder(x) - floorOrder(y);
-          if (diff !== 0) return diff;
-          return x.localeCompare(y, "zh-Hant", { numeric: true });
-        }),
-      }))
-      .sort((a, b) => a.name.localeCompare(b.name, "zh-Hant", { numeric: true }));
-  }, [areas, sortedFloors]);
 
   const allFloorIds = useMemo(() => sortedFloors.map((f) => f.id), [sortedFloors]);
   const allSelected = allFloorIds.length > 0 && allFloorIds.every((fid) => selectedFloorIds.includes(fid));
@@ -222,9 +199,20 @@ export default function CommonAreasPage() {
                         ) : (
                           <div className="row" style={{ gap: 6, flexWrap: "wrap" }}>
                             {floorAreas.map((a) => (
-                              <Link key={a.id} href={`/buildings/${id}/common-areas/${a.id}`} className="badge">
-                                {a.name}
-                              </Link>
+                              <span key={a.id} className="row" style={{ gap: 4 }}>
+                                <Link href={`/buildings/${id}/common-areas/${a.id}`} className="badge">
+                                  {a.name}
+                                </Link>
+                                <button
+                                  type="button"
+                                  className="secondary"
+                                  style={{ padding: "2px 8px", minWidth: 0 }}
+                                  title={`刪除 ${a.name}`}
+                                  onClick={() => deleteArea(a.id, a.name)}
+                                >
+                                  ×
+                                </button>
+                              </span>
                             ))}
                           </div>
                         )}

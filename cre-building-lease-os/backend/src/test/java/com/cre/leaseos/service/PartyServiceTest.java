@@ -28,6 +28,7 @@ class PartyServiceTest {
     FloorOwnerRepo floorOwnerRepo = mock(FloorOwnerRepo.class);
     VendorRepo vendorRepo = mock(VendorRepo.class);
     CommonAreaRepo commonAreaRepo = mock(CommonAreaRepo.class);
+    RepairRecordRepo repairRecordRepo = mock(RepairRecordRepo.class);
 
     PartyService service =
         new PartyService(
@@ -37,7 +38,8 @@ class PartyServiceTest {
             ownerRepo,
             floorOwnerRepo,
             vendorRepo,
-            commonAreaRepo);
+            commonAreaRepo,
+            repairRecordRepo);
 
     UUID floorId = UUID.randomUUID();
     UUID buildingId = UUID.randomUUID();
@@ -84,6 +86,7 @@ class PartyServiceTest {
     FloorOwnerRepo floorOwnerRepo = mock(FloorOwnerRepo.class);
     VendorRepo vendorRepo = mock(VendorRepo.class);
     CommonAreaRepo commonAreaRepo = mock(CommonAreaRepo.class);
+    RepairRecordRepo repairRecordRepo = mock(RepairRecordRepo.class);
 
     PartyService service =
         new PartyService(
@@ -93,7 +96,8 @@ class PartyServiceTest {
             ownerRepo,
             floorOwnerRepo,
             vendorRepo,
-            commonAreaRepo);
+            commonAreaRepo,
+            repairRecordRepo);
 
     UUID floorId = UUID.randomUUID();
     UUID buildingId = UUID.randomUUID();

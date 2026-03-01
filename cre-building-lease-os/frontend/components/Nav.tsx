@@ -34,6 +34,25 @@ function hitTypeLabel(type: SearchHit["type"]) {
   return "修繕";
 }
 
+function segmentLabel(seg: string) {
+  const map: Record<string, string> = {
+    buildings: "大樓",
+    floors: "樓層",
+    tenants: "住戶",
+    leases: "租約",
+    repairs: "修繕",
+    "common-areas": "公共區域",
+    owners: "業主",
+    vendors: "廠商",
+    reports: "報表匯入",
+    inbox: "收件匣",
+    stacking: "堆疊圖",
+    login: "登入",
+    new: "新增",
+  };
+  return map[seg] || seg;
+}
+
 export default function Nav() {
   const pathname = usePathname();
   const router = useRouter();
@@ -195,6 +214,33 @@ export default function Nav() {
       .slice(0, 10);
   }, [searchIndex, searchKeyword]);
 
+  const breadcrumbs = useMemo(() => {
+    const parts = pathname.split("/").filter(Boolean);
+    if (parts.length === 0) return [{ label: "首頁", href: "/buildings" }];
+
+    const items: Array<{ label: string; href: string }> = [{ label: "Dashboard", href: "/buildings" }];
+    let acc = "";
+
+    for (let i = 0; i < parts.length; i++) {
+      const seg = parts[i];
+      acc += `/${seg}`;
+
+      let label = segmentLabel(seg);
+      if (i === 1 && parts[0] === "buildings") {
+        const b = buildings.find((x) => x.id === seg);
+        if (b) label = b.name;
+      }
+
+      if (/^[0-9a-f-]{8,}$/i.test(seg) && !(i === 1 && parts[0] === "buildings")) {
+        label = "詳細";
+      }
+
+      items.push({ label, href: acc });
+    }
+
+    return items;
+  }, [pathname, buildings]);
+
   if (hideOnLogin) return null;
 
   return (
@@ -236,6 +282,21 @@ export default function Nav() {
           >
             ☰
           </button>
+        </div>
+      </div>
+
+      <div className="inner" style={{ paddingTop: 0, paddingBottom: 8 }}>
+        <div className="row" style={{ gap: 6 }}>
+          {breadcrumbs.map((b, idx) => (
+            <span key={`${b.href}-${idx}`} className="muted" style={{ display: "inline-flex", gap: 6, alignItems: "center" }}>
+              {idx > 0 ? <span>/</span> : null}
+              {idx === breadcrumbs.length - 1 ? (
+                <span style={{ fontWeight: 700, color: "#1c3e6a" }}>{b.label}</span>
+              ) : (
+                <Link href={b.href} style={{ color: "#355a86" }}>{b.label}</Link>
+              )}
+            </span>
+          ))}
         </div>
       </div>
 
