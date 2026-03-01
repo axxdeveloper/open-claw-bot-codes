@@ -216,24 +216,55 @@ export default function BuildingPage() {
                     <tr key={row.floorId}>
                       <td>{row.label}</td>
                       <td>
-                        <div className="grid" style={{ gap: 6 }}>
-                          {[...row.entries]
-                            .sort((a, b) => String(a.household || a.unitCode || "").localeCompare(String(b.household || b.unitCode || ""), "zh-Hant", { numeric: true }))
-                            .map((entry) => {
-                              const label = `門牌：${entry.address || "待補"}｜室號：${entry.room || "-"}｜戶號：${entry.household || entry.unitCode || "-"}｜住戶：${entry.tenantName || "尚無住戶"}${entry.status === "DRAFT" ? "（草稿）" : ""}`;
-                              return entry.tenantId ? (
-                                <Link
-                                  key={entry.key}
-                                  href={`/buildings/${id}/tenants/${entry.tenantId}`}
-                                  className="badge"
-                                  title={`查看 ${entry.tenantName} 的聯絡人與合約`}
-                                >
-                                  {label}
-                                </Link>
-                              ) : (
-                                <span key={entry.key} className="badge">{label}</span>
-                              );
-                            })}
+                        <div className="tableWrap" style={{ maxWidth: 760 }}>
+                          <table className="table" style={{ margin: 0 }}>
+                            <thead>
+                              <tr>
+                                <th style={{ width: 120 }}>門牌</th>
+                                <th style={{ width: 120 }}>室號</th>
+                                <th style={{ width: 120 }}>戶號</th>
+                                <th>住戶</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {[...row.entries]
+                                .sort((a, b) =>
+                                  String(a.household || a.unitCode || "").localeCompare(
+                                    String(b.household || b.unitCode || ""),
+                                    "zh-Hant",
+                                    { numeric: true },
+                                  ),
+                                )
+                                .map((entry) => {
+                                  const hasTenant = Boolean(entry.tenantId && entry.tenantName);
+                                  const rowStyle = hasTenant
+                                    ? undefined
+                                    : ({ background: "#f8fafc", color: "#64748b" } as const);
+
+                                  return (
+                                    <tr key={entry.key} style={rowStyle}>
+                                      <td>{entry.address || "待補"}</td>
+                                      <td>{entry.room || "-"}</td>
+                                      <td>{entry.household || entry.unitCode || "-"}</td>
+                                      <td>
+                                        {hasTenant ? (
+                                          <Link
+                                            href={`/buildings/${id}/tenants/${entry.tenantId}`}
+                                            title={`查看 ${entry.tenantName} 的聯絡人與合約`}
+                                            style={{ color: "#0f2f59", fontWeight: 700 }}
+                                          >
+                                            {entry.tenantName}
+                                            {entry.status === "DRAFT" ? "（草稿）" : ""}
+                                          </Link>
+                                        ) : (
+                                          <span>尚無住戶</span>
+                                        )}
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
+                            </tbody>
+                          </table>
                         </div>
                       </td>
                       <td>
