@@ -16,6 +16,21 @@ const REPAIR_STATUS_LIST = [
   "REJECTED",
 ];
 
+const REPAIR_STATUS_LABEL: Record<string, string> = {
+  DRAFT: "草稿",
+  QUOTED: "已報價",
+  APPROVED: "已核准",
+  IN_PROGRESS: "進行中",
+  COMPLETED: "已完工",
+  ACCEPTED: "已驗收",
+  REJECTED: "已退回",
+  DONE: "已完工＋已驗收",
+};
+
+function statusLabel(status: string) {
+  return REPAIR_STATUS_LABEL[status] || status;
+}
+
 function statusTone(status: string): "neutral" | "active" | "draft" | "risk" {
   if (status === "COMPLETED" || status === "ACCEPTED") return "active";
   if (status === "REJECTED") return "risk";
@@ -362,9 +377,9 @@ export default function RepairsPage() {
               狀態
               <select name="status" defaultValue={filters.status} data-testid="repairs-filter-status">
                 <option value="">全部狀態</option>
-                <option value="DONE">COMPLETED + ACCEPTED</option>
+                <option value="DONE">{statusLabel("DONE")}</option>
                 {REPAIR_STATUS_LIST.map((s) => (
-                  <option key={s} value={s}>{s}</option>
+                  <option key={s} value={s}>{statusLabel(s)}</option>
                 ))}
               </select>
             </label>
@@ -476,7 +491,7 @@ export default function RepairsPage() {
                   data-testid="repair-status-select"
                 >
                   {REPAIR_STATUS_LIST.map((s) => (
-                    <option key={s} value={s}>{s}</option>
+                    <option key={s} value={s}>{statusLabel(s)}</option>
                   ))}
                 </select>
               </label>
@@ -584,7 +599,7 @@ export default function RepairsPage() {
                       <td>{r.vendorTaxId || "-"}</td>
                       <td>
                         <Link href={`/buildings/${id}/repairs?status=${r.status}`} data-testid={`drilldown-link-repair-status-${r.id}`}>
-                          <StatusChip tone={statusTone(r.status)}>{r.status}</StatusChip>
+                          <StatusChip tone={statusTone(r.status)}>{statusLabel(r.status)}</StatusChip>
                         </Link>
                       </td>
                       <td>{displayAmount(r.quoteAmount)}</td>
@@ -605,8 +620,8 @@ export default function RepairsPage() {
                                   data-testid={`acceptance-result-${r.id}`}
                                 >
                                   <option value="">驗收結果</option>
-                                  <option value="PASS">PASS</option>
-                                  <option value="FAIL">FAIL</option>
+                                  <option value="PASS">通過</option>
+                                  <option value="FAIL">不通過</option>
                                 </select>
                                 <input
                                   value={draft.inspectorName}
@@ -621,7 +636,7 @@ export default function RepairsPage() {
                                 />
                               </div>
                               <button type="button" className="secondary" onClick={() => markAccepted(r.id)} data-testid={`accept-repair-${r.id}`}>
-                                標記 ACCEPTED
+                                標記為已驗收
                               </button>
                             </>
                           ) : (
