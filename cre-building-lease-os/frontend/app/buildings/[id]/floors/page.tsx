@@ -244,35 +244,35 @@ export default function FloorsPage() {
             label: "地下層數",
             value: summary.basement,
             hint: "B1、B2...",
-            href: `/buildings/${id}/floors?filter=basement`,
+            href: `/buildings/${id}/floors?filter=basement#floor-list`,
             testId: "drilldown-link-floor-summary-basement",
           },
           {
             label: "地上層數",
             value: summary.above,
             hint: "1F、2F...",
-            href: `/buildings/${id}/floors?filter=above`,
+            href: `/buildings/${id}/floors?filter=above#floor-list`,
             testId: "drilldown-link-floor-summary-above",
           },
           {
             label: "總樓層",
             value: summary.total,
             hint: "本棟目前樓層",
-            href: `/buildings/${id}/floors?filter=all`,
+            href: `/buildings/${id}/floors?filter=all#floor-list`,
             testId: "drilldown-link-floor-summary-total",
           },
           {
             label: "已配置樓層",
             value: summary.configured,
             hint: "已建立單位",
-            href: `/buildings/${id}/floors?filter=configured`,
+            href: `/buildings/${id}/floors?filter=configured#floor-list`,
             testId: "drilldown-link-floor-summary-configured",
           },
           {
             label: "草稿入住",
             value: summary.draftOccupancies,
             hint: "待轉正式租約",
-            href: `/buildings/${id}/stacking?filter=draft`,
+            href: `/buildings/${id}/stacking?filter=draft#stacking-list`,
             testId: "drilldown-link-floor-summary-draft-occupancies",
           },
           {
@@ -315,6 +315,7 @@ export default function FloorsPage() {
       {error ? <div className="errorBox">{error}</div> : null}
       {success ? <div className="successBox">{success}</div> : null}
 
+      <div id="floor-list">
       <SectionBlock
         title="樓層清單"
         description="可直接查看每層配置與入住狀況，不顯示工程欄位。"
@@ -431,6 +432,7 @@ export default function FloorsPage() {
 
         {detailLoading ? <div className="muted">正在更新單位數與入住概況...</div> : null}
       </SectionBlock>
+      </div>
     </main>
   );
 }

@@ -210,8 +210,8 @@ function BuildingsPageContent() {
           {
             label: "大樓數",
             value: totals.buildings,
-            hint: "管理中的案場",
-            href: "/buildings",
+            hint: "點擊進入大樓詳情",
+            href: items.length === 1 ? `/buildings/${items[0].id}` : "/buildings",
             testId: "drilldown-link-dashboard-buildings",
             valueTestId: "dashboard-kpi-buildings",
           },
