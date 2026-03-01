@@ -109,7 +109,11 @@ export default function BuildingPage() {
 
       {error ? <div className="errorBox">{error}</div> : null}
 
-      <SectionBlock title="樓層與公司總覽" description="直接看每層有哪些公司與單位，不用先切頁。">
+      <SectionBlock
+        title="樓層與公司總覽"
+        description="直接看每層有哪些公司與單位，不用先切頁。"
+        action={<Link href={`/buildings/${id}/common-areas`} className="btn secondary">設施管理</Link>}
+      >
         {floorDirectory.length === 0 ? (
           <EmptyState
             title="目前沒有樓層明細資料"
@@ -181,7 +185,6 @@ export default function BuildingPage() {
                       <td>
                         <div className="row" style={{ gap: 6 }}>
                           <Link href={`/buildings/${id}/floors/${row.floorId}`} className="badge">樓層管理</Link>
-                          <Link href={`/buildings/${id}/common-areas?floorId=${row.floorId}`} className="badge">設施管理</Link>
                         </div>
                       </td>
                     </tr>
