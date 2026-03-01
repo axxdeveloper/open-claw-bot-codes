@@ -15,6 +15,15 @@ function statusLabel(status: string | null | undefined) {
   return status || "-";
 }
 
+function normalizeName(value: string | null | undefined) {
+  return String(value || "")
+    .replace(/[\s\n\r]+/g, "")
+    .replace(/臺/g, "台")
+    .replace(/（/g, "(")
+    .replace(/）/g, ")")
+    .toLowerCase();
+}
+
 export default function TenantDetailPage() {
   const params = useParams<{ id: string; tenantId: string }>();
   const buildingId = params.id;
@@ -24,6 +33,7 @@ export default function TenantDetailPage() {
   const [occupancies, setOccupancies] = useState<any[]>([]);
   const [leases, setLeases] = useState<any[]>([]);
   const [unitMap, setUnitMap] = useState<Record<string, { floorLabel: string; unitCode: string }>>({});
+  const [sourceRows, setSourceRows] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -68,6 +78,9 @@ export default function TenantDetailPage() {
         });
         setUnitMap(map);
       }
+
+      const sourceRes = await fetch('/source113.json').then((r) => r.json()).catch(() => ({ rows: [] }));
+      setSourceRows(Array.isArray(sourceRes?.rows) ? sourceRes.rows : []);
     })();
   }, [buildingId, tenantId]);
 
@@ -122,6 +135,15 @@ export default function TenantDetailPage() {
     setTenant(r.data);
     setSuccess("住戶資料已更新");
   };
+
+  const source113Records = useMemo(() => {
+    if (!tenant?.name) return [];
+    const tenantKey = normalizeName(tenant.name);
+    return sourceRows.filter((r) => {
+      const merchantKey = normalizeName(r.merchant);
+      return merchantKey.includes(tenantKey) || tenantKey.includes(merchantKey);
+    });
+  }, [sourceRows, tenant]);
 
   if (!buildingId || !tenantId) return null;
 
@@ -186,6 +208,43 @@ export default function TenantDetailPage() {
                 <button type="submit" data-testid="tenant-save">儲存住戶資料</button>
               </div>
             </form>
+          </SectionBlock>
+
+          <SectionBlock title="來源 113 明細" description="地址、室號、戶號與聯絡資訊（由 Excel 113 匯入）。">
+            {source113Records.length === 0 ? (
+              <div className="muted">此住戶目前沒有來源 113 明細</div>
+            ) : (
+              <div className="tableWrap">
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th>樓層</th>
+                      <th>地址</th>
+                      <th>室號</th>
+                      <th>戶號</th>
+                      <th>公司電話</th>
+                      <th>主要聯絡人</th>
+                      <th>分機</th>
+                      <th>手機</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {source113Records.map((r, idx) => (
+                      <tr key={`${r.row || idx}-${idx}`}>
+                        <td>{r.floor || "-"}</td>
+                        <td>{r.address || "-"}</td>
+                        <td>{r.room || "-"}</td>
+                        <td>{r.household || "-"}</td>
+                        <td>{r.companyPhone || "-"}</td>
+                        <td>{r.contact || "-"}</td>
+                        <td>{r.extension || "-"}</td>
+                        <td>{r.mobile || "-"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </SectionBlock>
 
           <SectionBlock title="進駐樓層/單位" description="住戶目前或歷史進駐位置">
