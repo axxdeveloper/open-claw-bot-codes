@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { EmptyState, PageHeader, SectionBlock, StatusChip, SummaryCards } from "@/components/TaskLayout";
+import { EmptyState, PageHeader, SectionBlock, StatusChip } from "@/components/TaskLayout";
 import { API_BASE, apiErrorMessage, apiFetch } from "@/lib/api";
 
 const REPAIR_STATUS_LIST = [
@@ -59,8 +59,6 @@ function normalizeStatusFilter(raw: string | null) {
 
 export default function RepairsPage() {
   const params = useParams<{ id: string }>();
-  const router = useRouter();
-  const pathname = usePathname();
   const searchParams = useSearchParams();
 
   const id = params.id;
@@ -90,17 +88,6 @@ export default function RepairsPage() {
 
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-
-  const applyQuery = (patch: Record<string, string | null | undefined>) => {
-    const next = new URLSearchParams(searchParams.toString());
-    Object.entries(patch).forEach(([key, value]) => {
-      if (!value) next.delete(key);
-      else next.set(key, value);
-    });
-
-    const q = next.toString();
-    router.replace(q ? `${pathname}?${q}` : pathname);
-  };
 
   useEffect(() => {
     setFilters({
@@ -180,10 +167,6 @@ export default function RepairsPage() {
       return true;
     });
   }, [rows, filters, floors]);
-
-  const quickFilter = (status: string) => {
-    applyQuery({ status: status || null });
-  };
 
   const createRepair = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -288,20 +271,6 @@ export default function RepairsPage() {
     }
   };
 
-  const summary = useMemo(() => {
-    const inProgress = filteredRows.filter((r) => r.status === "IN_PROGRESS").length;
-    const completed = filteredRows.filter((r) => r.status === "COMPLETED" || r.status === "ACCEPTED").length;
-    const floorScope = filteredRows.filter((r) => r.scopeType === "FLOOR").length;
-
-    return {
-      total: filteredRows.length,
-      inProgress,
-      completed,
-      floorScope,
-    };
-  }, [filteredRows]);
-
-  const filterFormKey = useMemo(() => JSON.stringify(filters), [filters]);
 
   if (!id) return null;
 
@@ -312,139 +281,8 @@ export default function RepairsPage() {
         description="集中追蹤樓層與公共區域的修繕進度，並補齊驗收與附件紀錄。"
       />
 
-      <SummaryCards
-        items={[
-          {
-            label: "案件總數",
-            value: summary.total,
-            hint: "目前清單",
-            href: `/buildings/${id}/repairs`,
-            testId: "drilldown-link-repairs-summary-total",
-          },
-          {
-            label: "進行中",
-            value: summary.inProgress,
-            hint: "需追蹤進度",
-            href: `/buildings/${id}/repairs?status=IN_PROGRESS`,
-            testId: "drilldown-link-repairs-summary-in-progress",
-          },
-          {
-            label: "已完成",
-            value: summary.completed,
-            hint: "可驗收結案",
-            href: `/buildings/${id}/repairs?status=DONE`,
-            testId: "drilldown-link-repairs-summary-completed",
-          },
-          {
-            label: "樓層範圍",
-            value: summary.floorScope,
-            hint: "其餘為公共區域",
-            href: `/buildings/${id}/repairs?scope=FLOOR`,
-            testId: "drilldown-link-repairs-summary-floor",
-          },
-        ]}
-      />
-
-      <SectionBlock title="快速篩選" description="支援範圍/廠商/日期，便於稽核追蹤。" className="taskCard">
-        <div className="row">
-          <button type="button" className="secondary" onClick={() => quickFilter("")} data-testid="filter-chip-repairs-all">全部</button>
-          <button type="button" className="secondary" onClick={() => quickFilter("IN_PROGRESS")} data-testid="filter-chip-repairs-in-progress">僅進行中</button>
-          <button type="button" className="secondary" onClick={() => quickFilter("DRAFT")} data-testid="filter-chip-repairs-draft">僅草稿</button>
-          <button type="button" className="secondary" onClick={() => quickFilter("DONE")} data-testid="filter-chip-repairs-done">僅已完成</button>
-        </div>
-
-        <form
-          key={filterFormKey}
-          className="grid"
-          onSubmit={(e) => {
-            e.preventDefault();
-            const fd = new FormData(e.currentTarget);
-            applyQuery({
-              status: String(fd.get("status") || "") || null,
-              scope: String(fd.get("scopeType") || "") || null,
-              floorId: String(fd.get("floorId") || "") || null,
-              commonAreaId: String(fd.get("commonAreaId") || "") || null,
-              vendorId: String(fd.get("vendorId") || "") || null,
-              dateFrom: String(fd.get("dateFrom") || "") || null,
-              dateTo: String(fd.get("dateTo") || "") || null,
-              search: String(fd.get("search") || "").trim() || null,
-            });
-          }}
-          data-testid="repairs-filter-form"
-        >
-          <div className="split">
-            <label>
-              狀態
-              <select name="status" defaultValue={filters.status} data-testid="repairs-filter-status">
-                <option value="">全部狀態</option>
-                <option value="DONE">{statusLabel("DONE")}</option>
-                {REPAIR_STATUS_LIST.map((s) => (
-                  <option key={s} value={s}>{statusLabel(s)}</option>
-                ))}
-              </select>
-            </label>
-            <label>
-              範圍
-              <select name="scopeType" defaultValue={filters.scopeType} data-testid="repairs-filter-scope">
-                <option value="">全部範圍</option>
-                <option value="FLOOR">樓層</option>
-                <option value="COMMON_AREA">公共區域</option>
-              </select>
-            </label>
-          </div>
-
-          <div className="split">
-            <label>
-              樓層
-              <select name="floorId" defaultValue={filters.floorId}>
-                <option value="">全部樓層</option>
-                {floors.map((f) => (
-                  <option key={f.id} value={f.id}>{f.label}</option>
-                ))}
-              </select>
-            </label>
-            <label>
-              公共區域
-              <select name="commonAreaId" defaultValue={filters.commonAreaId}>
-                <option value="">全部公共區域</option>
-                {areas.map((a) => (
-                  <option key={a.id} value={a.id}>{a.name}</option>
-                ))}
-              </select>
-            </label>
-          </div>
-
-          <div className="split">
-            <label>
-              廠商
-              <select name="vendorId" defaultValue={filters.vendorId} data-testid="repairs-filter-vendor">
-                <option value="">全部廠商</option>
-                {vendors.map((v) => (
-                  <option key={v.id} value={v.id}>{v.name}</option>
-                ))}
-              </select>
-            </label>
-            <label>
-              關鍵字
-              <input name="search" defaultValue={filters.search} placeholder="搜尋修繕項目 / 廠商 / 狀態" />
-            </label>
-          </div>
-
-          <div className="split">
-            <label>
-              日期起
-              <input name="dateFrom" type="date" defaultValue={filters.dateFrom} data-testid="repairs-filter-date-from" />
-            </label>
-            <label>
-              日期迄
-              <input name="dateTo" type="date" defaultValue={filters.dateTo} data-testid="repairs-filter-date-to" />
-            </label>
-          </div>
-
-          <div className="row" style={{ justifyContent: "flex-end" }}>
-            <button type="submit" data-testid="repairs-filter-submit">套用篩選</button>
-          </div>
-        </form>
+      <SectionBlock title="修繕作業" description="先建立案件，再在每筆案件裡追蹤與驗收；先暫時不做集中報表篩選。" className="taskCard">
+        <span className="muted">已先簡化頁面：移除集中式統計與複雜篩選。</span>
       </SectionBlock>
 
       <SectionBlock
