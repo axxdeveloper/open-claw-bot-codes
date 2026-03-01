@@ -207,8 +207,10 @@ export default function Nav() {
           className="secondary"
           onClick={() => setMenuOpen((x) => !x)}
           aria-label="開關選單"
+          title="功能選單"
+          style={{ minWidth: 44, padding: '8px 10px', fontSize: 18, lineHeight: 1 }}
         >
-          功能選單
+          ☰
         </button>
       </div>
 

@@ -117,6 +117,16 @@ function BuildingsPageContent() {
     })();
   }, []);
 
+  const primaryBuildingId = items[0]?.id || null;
+  const expiringCount = useMemo(
+    () => Object.values(statsById).reduce((acc, x) => acc + (x.expiringSoon || 0), 0),
+    [statsById],
+  );
+  const inProgressRepairs = useMemo(
+    () => Object.values(statsById).reduce((acc, x) => acc + (x.openRepairs || 0), 0),
+    [statsById],
+  );
+
   const filtered = useMemo(() => {
     let list = items;
 
@@ -148,6 +158,32 @@ function BuildingsPageContent() {
       <PageHeader
         title="大樓總覽"
         description="直接查看各大樓的樓層、公司與維運狀態。"
+        action={
+          <div className="row" style={{ gap: 8 }}>
+            {primaryBuildingId ? (
+              <Link
+                href={`/buildings/${primaryBuildingId}/leases?filter=expiring`}
+                className="secondary"
+                title={expiringCount > 0 ? `有 ${expiringCount} 筆 90 天內到期租約` : "目前無 90 天內到期租約"}
+                aria-label="到期租約通知"
+                style={{ minWidth: 44, textAlign: "center" }}
+              >
+                🔔{expiringCount > 0 ? ` ${expiringCount}` : ""}
+              </Link>
+            ) : null}
+            {primaryBuildingId ? (
+              <Link
+                href={`/buildings/${primaryBuildingId}/repairs?status=IN_PROGRESS`}
+                className="secondary"
+                title={inProgressRepairs > 0 ? `有 ${inProgressRepairs} 筆修繕進行中` : "目前無進行中修繕"}
+                aria-label="修繕案件"
+                style={{ minWidth: 44, textAlign: "center" }}
+              >
+                🛠️{inProgressRepairs > 0 ? ` ${inProgressRepairs}` : ""}
+              </Link>
+            ) : null}
+          </div>
+        }
       />
 
       <SectionBlock
