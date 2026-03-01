@@ -98,7 +98,6 @@ export default function BuildingPage() {
       <PageHeader
         title={building?.name || "大樓作業中心"}
         description={building?.address || "尚未填寫地址，建議補齊，方便櫃台與維運查詢。"}
-        action={<Link href={`/buildings/${id}/floors`} className="btn">繼續空間配置</Link>}
       />
 
       {error ? <div className="errorBox">{error}</div> : null}
@@ -148,7 +147,13 @@ export default function BuildingPage() {
                             ))}
                           </div>
                         ) : (
-                          "尚未指派住戶"
+                          <Link
+                            href={`/buildings/${id}/floors/${row.floorId}#unit-workspace`}
+                            className="badge"
+                            title="前往本層指派用戶"
+                          >
+                            指派用戶
+                          </Link>
                         )}
                       </td>
                       <td>
