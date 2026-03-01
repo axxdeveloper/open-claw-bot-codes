@@ -40,7 +40,7 @@ export default function Nav() {
 
   const [buildings, setBuildings] = useState<BuildingLite[]>([]);
   const [switcherId, setSwitcherId] = useState("");
-  const [quickAddOpen, setQuickAddOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchIndex, setSearchIndex] = useState<SearchHit[]>([]);
@@ -93,6 +93,11 @@ export default function Nav() {
       setSwitcherId(buildings[0].id);
     }
   }, [buildings, currentBuildingId, switcherId]);
+
+  useEffect(() => {
+    setMenuOpen(false);
+    setSearchOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     if (!switcherId) {
@@ -193,25 +198,35 @@ export default function Nav() {
 
   return (
     <div className="nav">
-      <div className="inner">
+      <div className="inner" style={{ justifyContent: "space-between" }}>
         <Link href="/buildings" className="navBrand" data-testid="nav-brand">
           CRE 物業租賃營運台
         </Link>
+        <button
+          type="button"
+          className="secondary"
+          onClick={() => setMenuOpen((x) => !x)}
+          aria-label="開關選單"
+        >
+          功能選單
+        </button>
+      </div>
 
-        <div className="navGroup">
-          {baseItems.map((item) => (
-            <Link
-              key={item.label}
-              href={item.href}
-              data-testid={item.testId}
-              className={`navLink ${isActive(pathname, item.href) ? "navLinkActive" : ""}`.trim()}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </div>
+      {menuOpen ? (
+        <div className="inner" style={{ display: "grid", gap: 10 }}>
+          <div className="navGroup">
+            {baseItems.map((item) => (
+              <Link
+                key={item.label}
+                href={item.href}
+                data-testid={item.testId}
+                className={`navLink ${isActive(pathname, item.href) ? "navLinkActive" : ""}`.trim()}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
 
-        <div className="navTools">
           <label className="navSelectWrap" data-testid="building-switcher-wrap">
             <span className="navToolLabel">大樓切換</span>
             <select
@@ -274,67 +289,20 @@ export default function Nav() {
             ) : null}
           </div>
 
-          <div className="quickAddWrap">
+          <div className="row" style={{ justifyContent: "flex-end" }}>
             <button
-              type="button"
               className="secondary"
-              data-testid="quick-add-button"
-              onClick={() => setQuickAddOpen((x) => !x)}
+              onClick={async () => {
+                await fetch("/api/auth/logout", { method: "POST" });
+                router.push("/login");
+                router.refresh();
+              }}
             >
-              快速新增
+              登出
             </button>
-            {quickAddOpen ? (
-              <div className="quickAddMenu" data-testid="quick-add-menu">
-                {effectiveBuildingId ? (
-                  <>
-                    <Link
-                      href={`/buildings/${effectiveBuildingId}/tenants#quick-add-tenant`}
-                      data-testid="quick-add-tenant"
-                      onClick={() => setQuickAddOpen(false)}
-                    >
-                      新增住戶
-                    </Link>
-                    <Link
-                      href={`/buildings/${effectiveBuildingId}/leases#quick-add-lease`}
-                      data-testid="quick-add-lease"
-                      onClick={() => setQuickAddOpen(false)}
-                    >
-                      新增租約
-                    </Link>
-                    <Link
-                      href={`/buildings/${effectiveBuildingId}/repairs#quick-add-repair`}
-                      data-testid="quick-add-repair"
-                      onClick={() => setQuickAddOpen(false)}
-                    >
-                      新增修繕
-                    </Link>
-                    <Link
-                      href={`/buildings/${effectiveBuildingId}/repairs#quick-add-vendor`}
-                      data-testid="quick-add-vendor"
-                      onClick={() => setQuickAddOpen(false)}
-                    >
-                      新增廠商
-                    </Link>
-                  </>
-                ) : (
-                  <span className="quickAddHint">請先切換到任一大樓</span>
-                )}
-              </div>
-            ) : null}
           </div>
-
-          <button
-            className="secondary"
-            onClick={async () => {
-              await fetch("/api/auth/logout", { method: "POST" });
-              router.push("/login");
-              router.refresh();
-            }}
-          >
-            登出
-          </button>
         </div>
-      </div>
+      ) : null}
     </div>
   );
 }
