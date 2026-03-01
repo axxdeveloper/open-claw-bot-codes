@@ -3,12 +3,17 @@ import { NextRequest, NextResponse } from "next/server";
 const COOKIE_NAME = "cre_auth";
 const DEFAULT_PASSWORD = "0910301562";
 
+function isAllowedPassword(password: string) {
+  const main = process.env.AUTH_PAGE_PASSWORD || DEFAULT_PASSWORD;
+  const test = process.env.AUTH_PAGE_PASSWORD_TEST || "";
+  return password === main || (!!test && password === test);
+}
+
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
   const password = String(body?.password || "").trim();
-  const expected = process.env.AUTH_PAGE_PASSWORD || DEFAULT_PASSWORD;
 
-  if (!password || password !== expected) {
+  if (!password || !isAllowedPassword(password)) {
     return NextResponse.json(
       {
         ok: false,
