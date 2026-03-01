@@ -54,6 +54,7 @@ export default function BuildingPage() {
   const [building, setBuilding] = useState<any>(null);
   const [floorDirectory, setFloorDirectory] = useState<Array<{ floorId: string; label: string; entries: Array<{ key: string; address: string; room: string; household: string; unitCode: string; tenantId: string | null; tenantName: string | null; status: string | null }> }>>([]);
   const [entryDrafts, setEntryDrafts] = useState<Record<string, { address: string; room: string; household: string; tenantName: string }>>({});
+  const [editingEntries, setEditingEntries] = useState<Record<string, boolean>>({});
   const [amenities, setAmenities] = useState<Array<{ id: string; name: string; floorId?: string | null }>>([]);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -222,6 +223,32 @@ export default function BuildingPage() {
     })();
   }, [id]);
 
+  const beginInlineEdit = (entry: any) => {
+    setEntryDrafts((prev) => ({
+      ...prev,
+      [entry.key]: {
+        address: prev[entry.key]?.address ?? entry.address ?? "",
+        room: prev[entry.key]?.room ?? entry.room ?? "",
+        household: prev[entry.key]?.household ?? entry.household ?? entry.unitCode ?? "",
+        tenantName: prev[entry.key]?.tenantName ?? entry.tenantName ?? "",
+      },
+    }));
+    setEditingEntries((prev) => ({ ...prev, [entry.key]: true }));
+  };
+
+  const cancelInlineEdit = (entry: any) => {
+    setEntryDrafts((prev) => ({
+      ...prev,
+      [entry.key]: {
+        address: entry.address ?? "",
+        room: entry.room ?? "",
+        household: entry.household ?? entry.unitCode ?? "",
+        tenantName: entry.tenantName ?? "",
+      },
+    }));
+    setEditingEntries((prev) => ({ ...prev, [entry.key]: false }));
+  };
+
   const saveInline = async (entry: any) => {
     const draft = entryDrafts[entry.key];
     if (!draft) return;
@@ -278,6 +305,7 @@ export default function BuildingPage() {
         ),
       })),
     );
+    setEditingEntries((prev) => ({ ...prev, [entry.key]: false }));
   };
 
   const amenitiesByFloor = amenities.reduce<Record<string, Array<{ id: string; name: string }>>>((acc, item) => {
@@ -361,80 +389,104 @@ export default function BuildingPage() {
 
                                   return (
                                     <tr key={entry.key} style={rowStyle}>
-                                      <td>
-                                        <input
-                                          value={entryDrafts[entry.key]?.address ?? ""}
-                                          placeholder="待補"
-                                          onChange={(e) =>
-                                            setEntryDrafts((prev) => ({
-                                              ...prev,
-                                              [entry.key]: {
-                                                ...(prev[entry.key] || { address: "", room: "", household: "", tenantName: "" }),
-                                                address: e.target.value,
-                                              },
-                                            }))
-                                          }
-                                        />
-                                      </td>
-                                      <td>
-                                        <input
-                                          value={entryDrafts[entry.key]?.room ?? ""}
-                                          placeholder="-"
-                                          onChange={(e) =>
-                                            setEntryDrafts((prev) => ({
-                                              ...prev,
-                                              [entry.key]: {
-                                                ...(prev[entry.key] || { address: "", room: "", household: "", tenantName: "" }),
-                                                room: e.target.value,
-                                              },
-                                            }))
-                                          }
-                                        />
-                                      </td>
-                                      <td>
-                                        <input
-                                          value={entryDrafts[entry.key]?.household ?? ""}
-                                          placeholder="-"
-                                          onChange={(e) =>
-                                            setEntryDrafts((prev) => ({
-                                              ...prev,
-                                              [entry.key]: {
-                                                ...(prev[entry.key] || { address: "", room: "", household: "", tenantName: "" }),
-                                                household: e.target.value,
-                                              },
-                                            }))
-                                          }
-                                        />
-                                      </td>
-                                      <td>
-                                        <div className="row" style={{ gap: 6 }}>
-                                          <input
-                                            value={entryDrafts[entry.key]?.tenantName ?? ""}
-                                            placeholder="尚無住戶"
-                                            onChange={(e) =>
-                                              setEntryDrafts((prev) => ({
-                                                ...prev,
-                                                [entry.key]: {
-                                                  ...(prev[entry.key] || { address: "", room: "", household: "", tenantName: "" }),
-                                                  tenantName: e.target.value,
-                                                },
-                                              }))
-                                            }
-                                          />
-                                          <button type="button" className="secondary" onClick={() => saveInline(entry)}>
-                                            儲存
-                                          </button>
-                                          {canClickTenant ? (
-                                            <Link
-                                              href={`/buildings/${id}/tenants/${entry.tenantId}`}
-                                              title={`查看 ${entry.tenantName} 的聯絡人與合約`}
-                                              className="badge"
-                                            >
-                                              詳情
-                                            </Link>
-                                          ) : null}
-                                        </div>
-                                      </td>
+                                      {editingEntries[entry.key] ? (
+                                        <>
+                                          <td>
+                                            <input
+                                              value={entryDrafts[entry.key]?.address ?? ""}
+                                              placeholder="待補"
+                                              onChange={(e) =>
+                                                setEntryDrafts((prev) => ({
+                                                  ...prev,
+                                                  [entry.key]: {
+                                                    ...(prev[entry.key] || { address: "", room: "", household: "", tenantName: "" }),
+                                                    address: e.target.value,
+                                                  },
+                                                }))
+                                              }
+                                            />
+                                          </td>
+                                          <td>
+                                            <input
+                                              value={entryDrafts[entry.key]?.room ?? ""}
+                                              placeholder="-"
+                                              onChange={(e) =>
+                                                setEntryDrafts((prev) => ({
+                                                  ...prev,
+                                                  [entry.key]: {
+                                                    ...(prev[entry.key] || { address: "", room: "", household: "", tenantName: "" }),
+                                                    room: e.target.value,
+                                                  },
+                                                }))
+                                              }
+                                            />
+                                          </td>
+                                          <td>
+                                            <input
+                                              value={entryDrafts[entry.key]?.household ?? ""}
+                                              placeholder="-"
+                                              onChange={(e) =>
+                                                setEntryDrafts((prev) => ({
+                                                  ...prev,
+                                                  [entry.key]: {
+                                                    ...(prev[entry.key] || { address: "", room: "", household: "", tenantName: "" }),
+                                                    household: e.target.value,
+                                                  },
+                                                }))
+                                              }
+                                            />
+                                          </td>
+                                          <td>
+                                            <div className="row" style={{ gap: 6 }}>
+                                              <input
+                                                value={entryDrafts[entry.key]?.tenantName ?? ""}
+                                                placeholder="尚無住戶"
+                                                onChange={(e) =>
+                                                  setEntryDrafts((prev) => ({
+                                                    ...prev,
+                                                    [entry.key]: {
+                                                      ...(prev[entry.key] || { address: "", room: "", household: "", tenantName: "" }),
+                                                      tenantName: e.target.value,
+                                                    },
+                                                  }))
+                                                }
+                                              />
+                                              <button type="button" className="secondary" onClick={() => saveInline(entry)}>
+                                                儲存
+                                              </button>
+                                              <button type="button" className="secondary" onClick={() => cancelInlineEdit(entry)}>
+                                                取消
+                                              </button>
+                                            </div>
+                                          </td>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <td>{entry.address || "待補"}</td>
+                                          <td>{entry.room || "-"}</td>
+                                          <td>{entry.household || entry.unitCode || "-"}</td>
+                                          <td>
+                                            <div className="row" style={{ gap: 6, justifyContent: "space-between" }}>
+                                              {canClickTenant ? (
+                                                <Link
+                                                  href={`/buildings/${id}/tenants/${entry.tenantId}`}
+                                                  title={`查看 ${entry.tenantName} 的聯絡人與合約`}
+                                                  style={{ color: "#0f2f59", fontWeight: 700 }}
+                                                >
+                                                  {entry.tenantName}
+                                                </Link>
+                                              ) : hasTenantName ? (
+                                                <span style={{ color: "#0f2f59", fontWeight: 700 }}>{currentTenantName}</span>
+                                              ) : (
+                                                <span>尚無住戶</span>
+                                              )}
+                                              <button type="button" className="secondary" onClick={() => beginInlineEdit(entry)}>
+                                                編輯
+                                              </button>
+                                            </div>
+                                          </td>
+                                        </>
+                                      )}
                                     </tr>
                                   );
                                 })}
