@@ -51,7 +51,7 @@ export default function Nav() {
   const currentBuildingId = getBuildingId(pathname);
   const effectiveBuildingId =
     currentBuildingId || switcherId || (buildings.length === 1 ? buildings[0].id : null);
-  const showDashboardQuickActions = pathname === "/buildings" || pathname === "/";
+  const showDashboardQuickActions = true;
 
   const baseItems: NavItem[] = [
     { label: "Dashboard", href: "/buildings" },
