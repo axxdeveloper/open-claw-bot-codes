@@ -84,6 +84,13 @@ export default function BuildingPage() {
     })();
   }, [id]);
 
+  const amenitiesByFloor = amenities.reduce<Record<string, Array<{ id: string; name: string }>>>((acc, item) => {
+    if (!item.floorId) return acc;
+    if (!acc[item.floorId]) acc[item.floorId] = [];
+    acc[item.floorId].push({ id: item.id, name: item.name });
+    return acc;
+  }, {});
+
   if (!id) return null;
 
   return (
@@ -111,6 +118,7 @@ export default function BuildingPage() {
                   <th>樓層</th>
                   <th>單位數</th>
                   <th>公司/住戶</th>
+                  <th>公共設施</th>
                   <th>查看</th>
                 </tr>
               </thead>
@@ -127,6 +135,19 @@ export default function BuildingPage() {
                       <td>{row.unitCount}</td>
                       <td>{row.tenantNames.length ? row.tenantNames.join("、") : "尚未指派住戶"}</td>
                       <td>
+                        {(amenitiesByFloor[row.floorId] || []).length === 0 ? (
+                          <span className="muted">本層尚無公共設施</span>
+                        ) : (
+                          <div className="row" style={{ gap: 6 }}>
+                            {(amenitiesByFloor[row.floorId] || []).map((a) => (
+                              <Link key={a.id} href={`/buildings/${id}/common-areas/${a.id}`} className="badge">
+                                {a.name}
+                              </Link>
+                            ))}
+                          </div>
+                        )}
+                      </td>
+                      <td>
                         <div className="row" style={{ gap: 6 }}>
                           <Link href={`/buildings/${id}/floors/${row.floorId}`} className="badge">樓層管理</Link>
                           <Link href={`/buildings/${id}/common-areas?floorId=${row.floorId}`} className="badge">設施管理</Link>
@@ -140,27 +161,6 @@ export default function BuildingPage() {
         )}
       </SectionBlock>
 
-      <SectionBlock title="大樓設施（公共區域）" description="直接看有哪些設施，點進去可看修繕歷史；廠商管理請走獨立頁面。">
-        <div className="row" style={{ marginBottom: 8 }}>
-          <Link href={`/buildings/${id}/vendors`} className="badge">廠商管理</Link>
-          <Link href={`/buildings/${id}/repairs`} className="badge">修繕需求單</Link>
-        </div>
-        {amenities.length === 0 ? (
-          <EmptyState
-            title="尚未建立公共區域"
-            description="可先建立大廳、電梯、停車場、機房等設施。"
-            action={<Link href={`/buildings/${id}/common-areas`} className="btn">前往公共區域</Link>}
-          />
-        ) : (
-          <div className="row" style={{ gap: 8 }}>
-            {amenities.map((a) => (
-              <Link key={a.id} href={`/buildings/${id}/common-areas/${a.id}`} className="badge">
-                {a.name}{a.floorId ? `（樓層綁定）` : ""}
-              </Link>
-            ))}
-          </div>
-        )}
-      </SectionBlock>
 
       {!building ? (
         <EmptyState
