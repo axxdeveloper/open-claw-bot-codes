@@ -119,26 +119,17 @@ function BuildingsPageContent() {
 
   const totals = useMemo(() => {
     const stats = Object.values(statsById);
-    const pendingSetup = stats.filter((x) => x.totalFloors === 0 || x.configuredFloors < x.totalFloors).length;
+    const configuredBuildings = stats.filter((x) => x.totalFloors > 0 && x.configuredFloors === x.totalFloors).length;
     const expiringSoon = stats.reduce((acc, x) => acc + x.expiringSoon, 0);
     const openRepairs = stats.reduce((acc, x) => acc + x.openRepairs, 0);
 
     return {
       buildings: items.length,
-      pendingSetup,
+      configuredBuildings,
       expiringSoon,
       openRepairs,
     };
   }, [items.length, statsById]);
-
-  const pendingBuildingId = useMemo(
-    () => items.find((b) => {
-      const s = statsById[b.id];
-      if (!s) return false;
-      return s.totalFloors === 0 || s.configuredFloors < s.totalFloors;
-    })?.id,
-    [items, statsById],
-  );
 
   const expiringBuildingId = useMemo(
     () => items.find((b) => (statsById[b.id]?.expiringSoon || 0) > 0)?.id,
@@ -195,14 +186,12 @@ function BuildingsPageContent() {
             valueTestId: "dashboard-kpi-buildings",
           },
           {
-            label: "待完成配置",
-            value: totals.pendingSetup,
-            hint: "樓層或單位尚未完整",
-            href: pendingBuildingId
-              ? `/buildings/${pendingBuildingId}/floors?filter=unconfigured`
-              : "/buildings?scope=unconfigured",
-            testId: "drilldown-link-dashboard-unconfigured",
-            valueTestId: "dashboard-kpi-unconfigured",
+            label: "已完整配置大樓",
+            value: totals.configuredBuildings,
+            hint: "樓層與單位都已完成",
+            href: "/buildings?scope=unconfigured",
+            testId: "drilldown-link-dashboard-configured-buildings",
+            valueTestId: "dashboard-kpi-configured-buildings",
           },
           {
             label: "90天內到期租約",
