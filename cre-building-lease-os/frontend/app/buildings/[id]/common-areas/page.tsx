@@ -28,6 +28,7 @@ export default function CommonAreasPage() {
   const [floors, setFloors] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [selectedFloorIds, setSelectedFloorIds] = useState<string[]>([]);
 
   const load = async (bid: string) => {
     const [a, f] = await Promise.all([
@@ -56,59 +57,59 @@ export default function CommonAreasPage() {
     const code = String(fd.get("code") || "").trim() || null;
     const floorId = String(fd.get("floorId") || "").trim() || null;
     const applyAll = fd.get("applyAll") === "on";
+    const targetFloorIds = applyAll
+      ? floors.map((f) => f.id)
+      : selectedFloorIds.length > 0
+      ? selectedFloorIds
+      : floorId
+      ? [floorId]
+      : [];
 
     if (!name) {
       setError("請先填寫區域名稱");
       return;
     }
 
-    if (applyAll) {
-      if (floors.length === 0) {
-        setError("目前沒有樓層可套用");
-        return;
-      }
-
-      const results = await Promise.all(
-        floors.map((f) =>
-          apiFetch(`/buildings/${id}/common-areas`, {
-            method: "POST",
-            body: JSON.stringify({
-              name,
-              code,
-              floorId: f.id,
-            }),
-          }),
-        ),
-      );
-
-      const okCount = results.filter((x) => x.ok).length;
-      if (okCount === 0) {
-        setError("套用全部樓層失敗，請稍後重試");
-        return;
-      }
-
-      setSuccess(`已套用「${name}」到 ${okCount} 個樓層`);
-      (e.target as HTMLFormElement).reset();
-      load(id);
+    if (targetFloorIds.length === 0) {
+      setError("請至少指定一個樓層（或勾選套用全部樓層）");
       return;
     }
 
-    const res = await apiFetch(`/buildings/${id}/common-areas`, {
-      method: "POST",
-      body: JSON.stringify({
-        name,
-        code,
-        floorId,
-      }),
-    });
+    const results = await Promise.all(
+      targetFloorIds.map((fid) =>
+        apiFetch(`/buildings/${id}/common-areas`, {
+          method: "POST",
+          body: JSON.stringify({
+            name,
+            code,
+            floorId: fid,
+          }),
+        }),
+      ),
+    );
 
+    const okCount = results.filter((x) => x.ok).length;
+    if (okCount === 0) {
+      setError("建立失敗，請稍後重試");
+      return;
+    }
+
+    setSuccess(`已建立「${name}」到 ${okCount} 個樓層`);
+    (e.target as HTMLFormElement).reset();
+    setSelectedFloorIds([]);
+    load(id);
+  };
+
+  const updateArea = async (areaId: string, patch: Record<string, any>) => {
+    const res = await apiFetch(`/common-areas/${areaId}`, {
+      method: "PATCH",
+      body: JSON.stringify(patch),
+    });
     if (!res.ok) {
       setError(apiErrorMessage(res.error));
       return;
     }
-
-    setSuccess("公共區域已建立。");
-    (e.target as HTMLFormElement).reset();
+    setSuccess("公共區域已更新");
     load(id);
   };
 
@@ -122,40 +123,93 @@ export default function CommonAreasPage() {
     [floors],
   );
 
+  const facilityDistribution = useMemo(() => {
+    const floorLabelById = new Map<string, string>();
+    sortedFloors.forEach((f) => floorLabelById.set(f.id, f.label));
+
+    const grouped = new Map<string, string[]>();
+    areas.forEach((a) => {
+      const key = String(a.name || "未命名設施");
+      const floorLabel = floorLabelById.get(a.floorId) || "未指定";
+      const list = grouped.get(key) || [];
+      if (!list.includes(floorLabel)) list.push(floorLabel);
+      grouped.set(key, list);
+    });
+
+    return Array.from(grouped.entries())
+      .map(([name, floors]) => ({
+        name,
+        floors: floors.sort((x, y) => {
+          const diff = floorOrder(x) - floorOrder(y);
+          if (diff !== 0) return diff;
+          return x.localeCompare(y, "zh-Hant", { numeric: true });
+        }),
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name, "zh-Hant", { numeric: true }));
+  }, [areas, sortedFloors]);
+
   if (!id) return null;
 
   return (
     <main className="page">
       <PageHeader
         title="公共區域管理"
-        description="管理梯廳、機房、會議區等公共區域，方便修繕與責任劃分。"
-        action={<Link href={`/buildings/${id}/repairs`} className="btn">前往修繕管理</Link>}
+        description="針對各樓層管理公共區域，重點是設施配置與分布。"
       />
 
-      <SectionBlock title="新增公共區域" description="可建立單層設施，或一次套用到全棟所有樓層。" className="taskCard">
-        <form className="split" onSubmit={createArea} aria-label="create-common-area-form">
+      <SectionBlock title="新增公共區域" description="可套用到單層、多層或全部樓層。" className="taskCard">
+        <form className="grid" onSubmit={createArea} aria-label="create-common-area-form">
+          <div className="split">
+            <label>
+              區域名稱
+              <input name="name" placeholder="例如：廁所" required />
+            </label>
+            <label>
+              區域代碼
+              <input name="code" placeholder="例如：WC" />
+            </label>
+          </div>
+
           <label>
-            區域名稱
-            <input name="name" placeholder="例如：B1 停車場" required />
-          </label>
-          <label>
-            區域代碼
-            <input name="code" placeholder="例如：PARK-B1" />
-          </label>
-          <label>
-            所屬樓層
+            單一樓層（快速指定）
             <select name="floorId" defaultValue="">
-              <option value="">未指定</option>
+              <option value="">不指定（改用下方多樓層）</option>
               {sortedFloors.map((f) => (
                 <option key={f.id} value={f.id}>{f.label}</option>
               ))}
             </select>
           </label>
+
+          <div className="grid" style={{ gap: 8 }}>
+            <span className="muted">指定樓層（可複選）</span>
+            <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
+              {sortedFloors.map((f) => {
+                const checked = selectedFloorIds.includes(f.id);
+                return (
+                  <label key={f.id} className="badge" style={{ cursor: "pointer" }}>
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={(e) =>
+                        setSelectedFloorIds((prev) =>
+                          e.target.checked ? [...prev, f.id] : prev.filter((x) => x !== f.id),
+                        )
+                      }
+                    />{" "}
+                    {f.label}
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+
           <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <input type="checkbox" name="applyAll" />
             套用到全部樓層（例如：廁所、管道間、樓梯、茶水室）
           </label>
-          <div className="row" style={{ alignItems: "end" }}>
+
+          <div className="row" style={{ justifyContent: "space-between", alignItems: "center" }}>
+            <span className="muted">建立後可在下方直接調整名稱、代碼、樓層。</span>
             <button type="submit">建立公共區域</button>
           </div>
         </form>
@@ -208,7 +262,40 @@ export default function CommonAreasPage() {
         )}
       </SectionBlock>
 
-      <SectionBlock title="區域清單" description="點擊可查看區域細節與後續維運資訊。">
+      <SectionBlock title="公共設施分布（by 設施）" description="以公共設施為主軸，顯示目前分布在哪些樓層。">
+        {facilityDistribution.length === 0 ? (
+          <EmptyState title="尚無公共設施" description="先在上方建立設施後，這裡會顯示分布。" />
+        ) : (
+          <div className="tableWrap">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>公共設施</th>
+                  <th>分布樓層</th>
+                  <th>涵蓋層數</th>
+                </tr>
+              </thead>
+              <tbody>
+                {facilityDistribution.map((item) => (
+                  <tr key={item.name}>
+                    <td>{item.name}</td>
+                    <td>
+                      <div className="row" style={{ gap: 6, flexWrap: "wrap" }}>
+                        {item.floors.map((f) => (
+                          <span key={`${item.name}-${f}`} className="badge">{f}</span>
+                        ))}
+                      </div>
+                    </td>
+                    <td>{item.floors.length}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </SectionBlock>
+
+      <SectionBlock title="區域清單（CRUD）" description="可直接更新名稱、代碼、樓層；刪除請到詳情頁（避免誤刪）。">
         {areas.length === 0 ? (
           <EmptyState title="尚無公共區域" description="建議先建立常用區域，修繕追蹤會更清楚。" />
         ) : (
@@ -219,7 +306,7 @@ export default function CommonAreasPage() {
                   <th>區域名稱</th>
                   <th>代碼</th>
                   <th>樓層</th>
-                  <th>詳情</th>
+                  <th>操作</th>
                 </tr>
               </thead>
               <tbody>
@@ -227,12 +314,40 @@ export default function CommonAreasPage() {
                   const floor = floors.find((f) => f.id === a.floorId);
                   return (
                     <tr key={a.id}>
-                      <td>{a.name}</td>
-                      <td>{a.code || "-"}</td>
-                      <td>{floor?.label || "未指定"}</td>
+                      <td>
+                        <input
+                          defaultValue={a.name}
+                          onBlur={(e) => {
+                            const value = e.target.value.trim();
+                            if (value && value !== a.name) updateArea(a.id, { name: value });
+                          }}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          defaultValue={a.code || ""}
+                          placeholder="未設定"
+                          onBlur={(e) => {
+                            const value = e.target.value.trim();
+                            if (value !== String(a.code || "")) updateArea(a.id, { code: value || null });
+                          }}
+                        />
+                      </td>
+                      <td>
+                        <select
+                          defaultValue={a.floorId || ""}
+                          onChange={(e) => updateArea(a.id, { floorId: e.target.value || null })}
+                        >
+                          <option value="">未指定</option>
+                          {sortedFloors.map((f) => (
+                            <option key={f.id} value={f.id}>{f.label}</option>
+                          ))}
+                        </select>
+                        <div className="muted" style={{ fontSize: 12 }}>{floor?.label || "未指定"}</div>
+                      </td>
                       <td>
                         <Link href={`/buildings/${id}/common-areas/${a.id}`} className="badge">
-                          查看
+                          詳情
                         </Link>
                       </td>
                     </tr>
