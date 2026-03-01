@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { EmptyState, PageHeader, SectionBlock, StatusChip, SummaryCards } from "@/components/TaskLayout";
+import { EmptyState, PageHeader, SectionBlock, SummaryCards } from "@/components/TaskLayout";
 import { apiErrorMessage, apiFetch } from "@/lib/api";
 
 export default function BuildingPage() {
@@ -18,18 +18,22 @@ export default function BuildingPage() {
     activeLeases: 0,
     repairOpen: 0,
   });
+  const [floorDirectory, setFloorDirectory] = useState<Array<{ floorId: string; label: string; unitCount: number; tenantNames: string[] }>>([]);
+  const [amenities, setAmenities] = useState<Array<{ id: string; name: string; floorId?: string | null }>>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
 
     (async () => {
-      const [buildingRes, floorsRes, tenantsRes, leasesRes, repairsRes] = await Promise.all([
+      const [buildingRes, floorsRes, tenantsRes, leasesRes, repairsRes, occupanciesRes, commonAreasRes] = await Promise.all([
         apiFetch<any>(`/buildings/${id}`),
         apiFetch<any[]>(`/buildings/${id}/floors`),
         apiFetch<any[]>(`/buildings/${id}/tenants`),
         apiFetch<any[]>(`/buildings/${id}/leases`),
         apiFetch<any[]>(`/buildings/${id}/repairs?status=IN_PROGRESS`),
+        apiFetch<any[]>(`/buildings/${id}/occupancies`),
+        apiFetch<any[]>(`/buildings/${id}/common-areas`),
       ]);
 
       if (!buildingRes.ok) {
@@ -54,6 +58,37 @@ export default function BuildingPage() {
         activeLeases: leases.filter((x) => x?.lease?.status === "ACTIVE").length,
         repairOpen: repairsRes.ok ? repairsRes.data.length : 0,
       });
+
+      const tenantNameById = new Map<string, string>();
+      (tenantsRes.ok ? tenantsRes.data : []).forEach((t: any) => tenantNameById.set(t.id, t.name));
+      const occupancies = occupanciesRes.ok ? occupanciesRes.data : [];
+
+      const directory = floorDetails
+        .map((d, idx) => {
+          if (!d.ok) return null;
+          const floor = floors[idx];
+          const units = d.data.units || [];
+          const tenantNames = Array.from(
+            new Set(
+              occupancies
+                .filter((o: any) => units.some((u: any) => u.id === o.unitId) && o.status === "ACTIVE")
+                .map((o: any) => tenantNameById.get(o.tenantId) || "")
+                .filter(Boolean),
+            ),
+          );
+
+          return {
+            floorId: floor.id,
+            label: floor.label,
+            unitCount: units.length,
+            tenantNames,
+          };
+        })
+        .filter(Boolean) as Array<{ floorId: string; label: string; unitCount: number; tenantNames: string[] }>;
+
+      setFloorDirectory(directory);
+      setAmenities((commonAreasRes.ok ? commonAreasRes.data : []).map((x: any) => ({ id: x.id, name: x.name, floorId: x.floorId })));
+
     })();
   }, [id]);
 
@@ -126,39 +161,60 @@ export default function BuildingPage() {
         </div>
       </SectionBlock>
 
-      <div className="split">
-        <SectionBlock title="空間管理" description="先把空間資料建完整，後續流程會更順。">
-          <div className="row" style={{ justifyContent: "space-between" }}>
-            <span>樓層與單位配置</span>
-            <Link href={`/buildings/${id}/floors`} className="btn secondary">前往</Link>
+      <SectionBlock title="樓層與公司總覽" description="直接看每層有哪些公司與單位，不用先切頁。">
+        {floorDirectory.length === 0 ? (
+          <EmptyState
+            title="目前沒有樓層明細資料"
+            description="請先到樓層頁建立單位，或匯入住戶資料。"
+            action={<Link href={`/buildings/${id}/floors`} className="btn">前往樓層配置</Link>}
+          />
+        ) : (
+          <div className="tableWrap">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>樓層</th>
+                  <th>單位數</th>
+                  <th>公司/住戶</th>
+                  <th>查看</th>
+                </tr>
+              </thead>
+              <tbody>
+                {floorDirectory
+                  .filter((r) => r.unitCount > 0 || r.tenantNames.length > 0)
+                  .sort((a, b) => a.label.localeCompare(b.label, "zh-Hant", { numeric: true }))
+                  .map((row) => (
+                    <tr key={row.floorId}>
+                      <td>{row.label}</td>
+                      <td>{row.unitCount}</td>
+                      <td>{row.tenantNames.length ? row.tenantNames.join("、") : "尚未指派住戶"}</td>
+                      <td>
+                        <Link href={`/buildings/${id}/floors/${row.floorId}`} className="badge">樓層細節</Link>
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
           </div>
-          <div className="row" style={{ justifyContent: "space-between" }}>
-            <span>堆疊圖（空置/入住）</span>
-            <Link href={`/buildings/${id}/stacking`} className="btn secondary">前往</Link>
-          </div>
-        </SectionBlock>
+        )}
+      </SectionBlock>
 
-        <SectionBlock title="客戶與合約" description="住戶資料與租約狀態請維持一致。">
-          <div className="row" style={{ justifyContent: "space-between" }}>
-            <span>住戶管理</span>
-            <Link href={`/buildings/${id}/tenants`} className="btn secondary">前往</Link>
+      <SectionBlock title="大樓設施（公共區域）" description="直接看有哪些設施，點進去可看修繕歷史。">
+        {amenities.length === 0 ? (
+          <EmptyState
+            title="尚未建立公共區域"
+            description="可先建立大廳、電梯、停車場、機房等設施。"
+            action={<Link href={`/buildings/${id}/common-areas`} className="btn">前往公共區域</Link>}
+          />
+        ) : (
+          <div className="row" style={{ gap: 8 }}>
+            {amenities.map((a) => (
+              <Link key={a.id} href={`/buildings/${id}/common-areas/${a.id}`} className="badge">
+                {a.name}{a.floorId ? `（樓層綁定）` : ""}
+              </Link>
+            ))}
           </div>
-          <div className="row" style={{ justifyContent: "space-between" }}>
-            <span>租約管理</span>
-            <div className="row">
-              {stats.activeLeases > 0 ? <StatusChip tone="active">{stats.activeLeases} 筆啟用</StatusChip> : null}
-              <Link href={`/buildings/${id}/leases`} className="btn secondary">前往</Link>
-            </div>
-          </div>
-        </SectionBlock>
-      </div>
-
-      <SectionBlock title="維運管理" description="業主、公共區域與修繕請在同一區域管理，避免資訊分散。">
-        <div className="row" style={{ gap: 8 }}>
-          <Link href={`/buildings/${id}/owners`} className="badge">業主與持分</Link>
-          <Link href={`/buildings/${id}/common-areas`} className="badge">公共區域</Link>
-          <Link href={`/buildings/${id}/repairs`} className="badge">修繕管理</Link>
-        </div>
+        )}
       </SectionBlock>
 
       {!building ? (
