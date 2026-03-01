@@ -44,6 +44,20 @@ function parseFilter(raw: string | null): FloorFilter {
   return "all";
 }
 
+function floorOrder(label: string) {
+  const normalized = String(label || "").trim().toUpperCase();
+
+  const basement = normalized.match(/^B\s*(\d+)(?:F)?$/);
+  if (basement) return -Number(basement[1]);
+
+  const above = normalized.match(/^(\d+)(?:F)?$/);
+  if (above) return Number(above[1]);
+
+  if (normalized === "RF") return 1000;
+
+  return Number.MAX_SAFE_INTEGER;
+}
+
 export default function FloorsPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
@@ -213,7 +227,11 @@ export default function FloorsPage() {
     const term = keyword.trim().toUpperCase();
     if (term) list = list.filter((x) => x.label.toUpperCase().includes(term));
 
-    return list;
+    return [...list].sort((a, b) => {
+      const diff = floorOrder(a.label) - floorOrder(b.label);
+      if (diff !== 0) return diff;
+      return a.label.localeCompare(b.label, "zh-Hant", { numeric: true });
+    });
   }, [rows, filter, keyword]);
 
   const firstUnconfigured = rows.find((x) => !x.configured);
