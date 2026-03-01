@@ -297,7 +297,7 @@ export default function CommonAreasPage() {
 
       <SectionBlock title="區域清單（CRUD）" description="可直接更新名稱、代碼、樓層；刪除請到詳情頁（避免誤刪）。">
         {areas.length === 0 ? (
-          <EmptyState title="尚無公共區域" description="建議先建立常用區域，修繕追蹤會更清楚。" />
+          <EmptyState title="尚無公共區域" description="請先建立公共區域。" />
         ) : (
           <div className="tableWrap">
             <table className="table">
