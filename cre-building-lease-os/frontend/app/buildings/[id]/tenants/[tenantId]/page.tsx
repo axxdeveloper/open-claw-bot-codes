@@ -2,9 +2,18 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { EmptyState, PageHeader, SectionBlock, SummaryCards } from "@/components/TaskLayout";
 import { apiErrorMessage, apiFetch } from "@/lib/api";
+
+function statusLabel(status: string | null | undefined) {
+  if (status === "ACTIVE") return "啟用中";
+  if (status === "DRAFT") return "草稿";
+  if (status === "INACTIVE") return "停用";
+  if (status === "TERMINATED") return "已終止";
+  if (status === "EXPIRED") return "已到期";
+  return status || "-";
+}
 
 export default function TenantDetailPage() {
   const params = useParams<{ id: string; tenantId: string }>();
@@ -16,6 +25,14 @@ export default function TenantDetailPage() {
   const [leases, setLeases] = useState<any[]>([]);
   const [unitMap, setUnitMap] = useState<Record<string, { floorLabel: string; unitCode: string }>>({});
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  const [name, setName] = useState("");
+  const [taxId, setTaxId] = useState("");
+  const [contactName, setContactName] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [notes, setNotes] = useState("");
 
   useEffect(() => {
     if (!buildingId || !tenantId) return;
@@ -65,6 +82,47 @@ export default function TenantDetailPage() {
     };
   }, [leases, occupancies]);
 
+  useEffect(() => {
+    if (!tenant) return;
+    setName(tenant.name || "");
+    setTaxId(tenant.taxId || "");
+    setContactName(tenant.contactName || "");
+    setContactPhone(tenant.contactPhone || "");
+    setContactEmail(tenant.contactEmail || "");
+    setNotes(tenant.notes || "");
+  }, [tenant]);
+
+  const saveTenant = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(null);
+    setSuccess(null);
+
+    if (!name.trim()) {
+      setError("住戶名稱不可空白");
+      return;
+    }
+
+    const r = await apiFetch(`/tenants/${tenantId}`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        name: name.trim(),
+        taxId: taxId.trim() || null,
+        contactName: contactName.trim() || null,
+        contactPhone: contactPhone.trim() || null,
+        contactEmail: contactEmail.trim() || null,
+        notes: notes.trim() || null,
+      }),
+    });
+
+    if (!r.ok) {
+      setError(apiErrorMessage(r.error));
+      return;
+    }
+
+    setTenant(r.data);
+    setSuccess("住戶資料已更新");
+  };
+
   if (!buildingId || !tenantId) return null;
 
   return (
@@ -76,6 +134,7 @@ export default function TenantDetailPage() {
       />
 
       {error ? <div className="errorBox">{error}</div> : null}
+      {success ? <div className="successBox">{success}</div> : null}
 
       {tenant ? (
         <>
@@ -83,24 +142,50 @@ export default function TenantDetailPage() {
             items={[
               { label: "租約數", value: summary.leases, hint: "此住戶相關租約" },
               { label: "啟用租約", value: summary.activeLease, hint: "目前生效中" },
-              { label: "進駐紀錄", value: summary.occupancies, hint: "含 Draft/Active" },
-              { label: "Draft 進駐", value: summary.draftOcc, hint: "待補租約" },
+              { label: "進駐紀錄", value: summary.occupancies, hint: "含草稿/啟用" },
+              { label: "草稿進駐", value: summary.draftOcc, hint: "待補租約" },
             ]}
           />
 
-          <SectionBlock title="基本資料" description="聯絡方式與統編資訊">
-            <div className="tableWrap">
-              <table className="table">
-                <tbody>
-                  <tr><th style={{ width: 180 }}>住戶名稱</th><td>{tenant.name || "-"}</td></tr>
-                  <tr><th>統編</th><td>{tenant.taxId || "未填寫"}</td></tr>
-                  <tr><th>聯絡人</th><td>{tenant.contactName || "未填寫"}</td></tr>
-                  <tr><th>聯絡電話</th><td>{tenant.contactPhone || "未填寫"}</td></tr>
-                  <tr><th>Email</th><td>{tenant.contactEmail || "未填寫"}</td></tr>
-                  <tr><th>備註</th><td>{tenant.notes || "-"}</td></tr>
-                </tbody>
-              </table>
-            </div>
+          <SectionBlock title="基本資料" description="可直接在此頁編輯住戶聯絡與統編資訊。">
+            <form className="grid" onSubmit={saveTenant} aria-label="edit-tenant-form" data-testid="edit-tenant-form">
+              <div className="split">
+                <label>
+                  住戶名稱
+                  <input value={name} onChange={(e) => setName(e.target.value)} required />
+                </label>
+                <label>
+                  統編
+                  <input value={taxId} onChange={(e) => setTaxId(e.target.value)} placeholder="未填寫" />
+                </label>
+              </div>
+
+              <div className="split">
+                <label>
+                  聯絡人
+                  <input value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder="未填寫" />
+                </label>
+                <label>
+                  聯絡電話
+                  <input value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} placeholder="未填寫" />
+                </label>
+              </div>
+
+              <div className="split">
+                <label>
+                  電子郵件
+                  <input type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} placeholder="未填寫" />
+                </label>
+                <label>
+                  備註
+                  <input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="可補充來源與說明" />
+                </label>
+              </div>
+
+              <div className="row" style={{ justifyContent: "flex-end" }}>
+                <button type="submit" data-testid="tenant-save">儲存住戶資料</button>
+              </div>
+            </form>
           </SectionBlock>
 
           <SectionBlock title="進駐樓層/單位" description="住戶目前或歷史進駐位置">
@@ -129,7 +214,7 @@ export default function TenantDetailPage() {
                         <tr key={o.id}>
                           <td>{m.floorLabel}</td>
                           <td>{m.unitCode}</td>
-                          <td>{o.status}</td>
+                          <td>{statusLabel(o.status)}</td>
                           <td>{o.startDate || "-"}</td>
                           <td>{o.endDate || "-"}</td>
                         </tr>

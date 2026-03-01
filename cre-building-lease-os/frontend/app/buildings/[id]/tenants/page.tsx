@@ -283,8 +283,8 @@ export default function TenantsPage() {
                           </Link>
                         ) : (
                           <div className="row" style={{ gap: 6 }}>
-                            {meta.active > 0 ? <Link href={`/buildings/${id}/leases?filter=active&tenantId=${t.id}`} data-testid={`drilldown-link-tenant-status-active-${t.id}`}>ACTIVE {meta.active}</Link> : null}
-                            {meta.draft > 0 ? <Link href={`/buildings/${id}/leases?filter=draft&tenantId=${t.id}`} data-testid={`drilldown-link-tenant-status-draft-${t.id}`}>DRAFT {meta.draft}</Link> : null}
+                            {meta.active > 0 ? <Link href={`/buildings/${id}/leases?filter=active&tenantId=${t.id}`} data-testid={`drilldown-link-tenant-status-active-${t.id}`}>啟用中 {meta.active}</Link> : null}
+                            {meta.draft > 0 ? <Link href={`/buildings/${id}/leases?filter=draft&tenantId=${t.id}`} data-testid={`drilldown-link-tenant-status-draft-${t.id}`}>草稿 {meta.draft}</Link> : null}
                           </div>
                         )}
                       </td>
