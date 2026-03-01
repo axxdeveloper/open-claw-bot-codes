@@ -167,8 +167,8 @@ export default function CommonAreasPage() {
 
           <div className="muted">樓層勾選已整合到下方「全棟樓層設施總覽」（含全選）。</div>
 
-          <div className="row" style={{ justifyContent: "space-between", alignItems: "center" }}>
-            <span className="muted">建立後可在下方直接調整名稱、代碼、樓層。</span>
+          <span className="muted">建立後可在下方直接調整名稱、代碼、樓層。</span>
+          <div className="row" style={{ justifyContent: "flex-end" }}>
             <button type="submit">建立公共區域</button>
           </div>
         </form>
