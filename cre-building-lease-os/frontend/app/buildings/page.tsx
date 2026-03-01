@@ -210,8 +210,6 @@ function BuildingsPageContent() {
               <thead>
                 <tr>
                   <th>大樓</th>
-                  <th>空間配置進度</th>
-                  <th>租約風險</th>
                   <th>維運狀態</th>
                 </tr>
               </thead>
@@ -225,8 +223,6 @@ function BuildingsPageContent() {
                     openRepairs: 0,
                   };
 
-                  const setupDone = stats.totalFloors > 0 && stats.configuredFloors === stats.totalFloors;
-
                   return (
                     <tr key={b.id}>
                       <td>
@@ -237,28 +233,7 @@ function BuildingsPageContent() {
                           <span className="muted">{b.address || "尚未填寫地址"}</span>
                         </div>
                       </td>
-                      <td>
-                        <Link
-                          href={`/buildings/${b.id}/floors?filter=${setupDone ? "all" : "unconfigured"}`}
-                          data-testid={`drilldown-link-building-setup-${b.id}`}
-                        >
-                          <StatusChip tone={setupDone ? "active" : "draft"}>
-                            {stats.configuredFloors}/{stats.totalFloors} 樓層已配置
-                          </StatusChip>
-                        </Link>
-                      </td>
-                      <td>
-                        <Link
-                          href={`/buildings/${b.id}/leases?filter=${stats.expiringSoon > 0 ? "expiring" : "active"}`}
-                          data-testid={`drilldown-link-building-lease-risk-${b.id}`}
-                        >
-                          {stats.expiringSoon > 0 ? (
-                            <StatusChip tone="risk">{stats.expiringSoon} 筆即將到期</StatusChip>
-                          ) : (
-                            <StatusChip tone="active">目前無到期風險</StatusChip>
-                          )}
-                        </Link>
-                      </td>
+
                       <td>
                         <Link
                           href={`/buildings/${b.id}/repairs?status=${stats.openRepairs > 0 ? "IN_PROGRESS" : "COMPLETED"}`}
