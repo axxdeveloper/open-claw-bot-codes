@@ -187,30 +187,8 @@ function BuildingsPageContent() {
       />
 
       <SectionBlock
-        title="大樓清單與下一步"
-        description="每棟大樓都提供空間、合約、維運三條主路徑，直接進入當下任務。"
-        action={
-          <div className="row">
-            {(Object.keys(SCOPE_LABELS) as DashboardScope[]).map((key) => (
-              <button
-                key={key}
-                type="button"
-                data-testid={`filter-chip-scope-${key}`}
-                className={scope === key ? "" : "secondary"}
-                onClick={() => applyQuery({ scope: key === "all" ? null : key })}
-              >
-                {SCOPE_LABELS[key]}
-              </button>
-            ))}
-            <input
-              value={keyword}
-              onChange={(e) => applyQuery({ search: e.target.value.trim() || null })}
-              placeholder="搜尋大樓或地址"
-              aria-label="搜尋大樓"
-              style={{ width: 240 }}
-            />
-          </div>
-        }
+        title="大樓清單"
+        description="直接點選大樓名稱查看內容。"
       >
         {error ? <div className="errorBox">{error}</div> : null}
         {loading ? (
@@ -235,7 +213,6 @@ function BuildingsPageContent() {
                   <th>空間配置進度</th>
                   <th>租約風險</th>
                   <th>維運狀態</th>
-                  <th>快速入口</th>
                 </tr>
               </thead>
               <tbody>
@@ -294,19 +271,7 @@ function BuildingsPageContent() {
                           )}
                         </Link>
                       </td>
-                      <td>
-                        <div className="row" style={{ gap: 6 }}>
-                          <Link className="badge" href={`/buildings/${b.id}/floors`}>
-                            空間管理
-                          </Link>
-                          <Link className="badge" href={`/buildings/${b.id}/leases`}>
-                            合約
-                          </Link>
-                          <Link className="badge" href={`/buildings/${b.id}/repairs`}>
-                            維運
-                          </Link>
-                        </div>
-                      </td>
+
                     </tr>
                   );
                 })}
