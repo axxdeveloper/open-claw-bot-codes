@@ -170,27 +170,6 @@ export default function RepairsPage() {
     applyQuery({ status: status || null });
   };
 
-  const createVendor = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError(null);
-    setSuccess(null);
-
-    const fd = new FormData(e.currentTarget);
-    const r = await apiFetch(`/buildings/${id}/vendors`, {
-      method: "POST",
-      body: JSON.stringify({ name: String(fd.get("name") || "").trim() }),
-    });
-
-    if (!r.ok) {
-      setError(apiErrorMessage(r.error));
-      return;
-    }
-
-    setSuccess("廠商已新增，可直接建立修繕案件。");
-    (e.target as HTMLFormElement).reset();
-    load(id);
-  };
-
   const createRepair = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
@@ -453,15 +432,11 @@ export default function RepairsPage() {
         </form>
       </SectionBlock>
 
-      <div className="split">
-        <SectionBlock title="新增廠商" description="先建立廠商，再選用於修繕案件。">
-          <form className="row" onSubmit={createVendor} aria-label="create-vendor-form" id="quick-add-vendor" data-testid="create-vendor-form">
-            <input name="name" placeholder="廠商名稱" required data-testid="vendor-name-input" />
-            <button type="submit" data-testid="vendor-submit">新增廠商</button>
-          </form>
-        </SectionBlock>
-
-        <SectionBlock title="新增修繕案件" description="可選樓層或公共區域，建立後即可追蹤。">
+      <SectionBlock
+        title="新增修繕案件"
+        description="維修提報先建案件，再指派既有廠商。若要新增/維護廠商，請用獨立廠商管理。"
+        action={<Link href={`/buildings/${id}/vendors`} className="btn secondary">前往廠商管理</Link>}
+      >
           <form className="grid" onSubmit={createRepair} aria-label="create-repair-form" id="quick-add-repair" data-testid="create-repair-form">
             <div className="split">
               <label>
@@ -546,8 +521,7 @@ export default function RepairsPage() {
 
             <button type="submit" data-testid="repair-submit">建立修繕案件</button>
           </form>
-        </SectionBlock>
-      </div>
+      </SectionBlock>
 
       {error ? <div className="errorBox">{error}</div> : null}
       {success ? <div className="successBox">{success}</div> : null}

@@ -119,13 +119,13 @@ function BuildingsPageContent() {
 
   const totals = useMemo(() => {
     const stats = Object.values(statsById);
-    const configuredBuildings = stats.filter((x) => x.totalFloors > 0 && x.configuredFloors === x.totalFloors).length;
+    const activeLeases = stats.reduce((acc, x) => acc + x.activeLeases, 0);
     const expiringSoon = stats.reduce((acc, x) => acc + x.expiringSoon, 0);
     const openRepairs = stats.reduce((acc, x) => acc + x.openRepairs, 0);
 
     return {
       buildings: items.length,
-      configuredBuildings,
+      activeLeases,
       expiringSoon,
       openRepairs,
     };
@@ -186,12 +186,12 @@ function BuildingsPageContent() {
             valueTestId: "dashboard-kpi-buildings",
           },
           {
-            label: "已完整配置大樓",
-            value: totals.configuredBuildings,
-            hint: "樓層與單位都已完成",
-            href: "/buildings?scope=unconfigured",
-            testId: "drilldown-link-dashboard-configured-buildings",
-            valueTestId: "dashboard-kpi-configured-buildings",
+            label: "啟用租約",
+            value: totals.activeLeases,
+            hint: "目前生效中的租約",
+            href: items.length === 1 ? `/buildings/${items[0].id}/leases` : "/buildings",
+            testId: "drilldown-link-dashboard-active-leases",
+            valueTestId: "dashboard-kpi-active-leases",
           },
           {
             label: "90天內到期租約",

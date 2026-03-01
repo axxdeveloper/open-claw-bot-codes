@@ -199,7 +199,11 @@ export default function BuildingPage() {
         )}
       </SectionBlock>
 
-      <SectionBlock title="大樓設施（公共區域）" description="直接看有哪些設施，點進去可看修繕歷史。">
+      <SectionBlock title="大樓設施（公共區域）" description="直接看有哪些設施，點進去可看修繕歷史；廠商管理請走獨立頁面。">
+        <div className="row" style={{ marginBottom: 8 }}>
+          <Link href={`/buildings/${id}/vendors`} className="badge">廠商管理</Link>
+          <Link href={`/buildings/${id}/repairs`} className="badge">修繕需求單</Link>
+        </div>
         {amenities.length === 0 ? (
           <EmptyState
             title="尚未建立公共區域"

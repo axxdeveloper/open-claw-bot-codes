@@ -66,6 +66,11 @@ export default function Nav() {
       label: "維運管理",
       href: effectiveBuildingId ? `/buildings/${effectiveBuildingId}/repairs` : "/buildings",
     },
+    {
+      label: "廠商管理",
+      href: effectiveBuildingId ? `/buildings/${effectiveBuildingId}/vendors` : "/buildings",
+      testId: "nav-vendors",
+    },
     { label: "收件匣", href: "/inbox", testId: "inbox-link" },
     { label: "報表/匯入", href: "/reports" },
   ];
