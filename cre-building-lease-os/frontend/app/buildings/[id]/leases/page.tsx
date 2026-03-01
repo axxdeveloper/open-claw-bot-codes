@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { EmptyState, PageHeader, SectionBlock, StatusChip, SummaryCards } from "@/components/TaskLayout";
 import { apiErrorMessage, apiFetch } from "@/lib/api";
@@ -15,9 +15,19 @@ function isExpiringSoon(endDate?: string) {
   return end >= now && end <= d90;
 }
 
+type LeaseFilter = "all" | "active" | "draft" | "expiring";
+
+function parseFilter(raw: string | null): LeaseFilter {
+  if (raw === "active" || raw === "draft" || raw === "expiring") return raw;
+  return "all";
+}
+
 export default function LeasesPage() {
   const params = useParams<{ id: string }>();
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
   const id = params.id;
 
   const [building, setBuilding] = useState<any>(null);
@@ -27,6 +37,24 @@ export default function LeasesPage() {
   const [selected, setSelected] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [filter, setFilter] = useState<LeaseFilter>("all");
+  const [keyword, setKeyword] = useState("");
+
+  const applyQuery = (patch: Record<string, string | null | undefined>) => {
+    const next = new URLSearchParams(searchParams.toString());
+    Object.entries(patch).forEach(([key, value]) => {
+      if (!value) next.delete(key);
+      else next.set(key, value);
+    });
+
+    const q = next.toString();
+    router.replace(q ? `${pathname}?${q}` : pathname);
+  };
+
+  useEffect(() => {
+    setFilter(parseFilter(searchParams.get("filter")));
+    setKeyword(searchParams.get("search") || "");
+  }, [searchParams]);
 
   const load = async (bid: string) => {
     const [buildingRes, ls, ts, fs] = await Promise.all([
@@ -109,6 +137,43 @@ export default function LeasesPage() {
   }, [leases]);
 
   const prefillTenant = searchParams.get("tenantId") || "";
+  const tenantFilter = searchParams.get("tenantId") || "";
+  const unitFilter = searchParams.get("unitId") || "";
+
+  const tenantNameById = useMemo(() => {
+    const map = new Map<string, string>();
+    tenants.forEach((t) => map.set(t.id, t.name));
+    return map;
+  }, [tenants]);
+
+  const unitCodeById = useMemo(() => {
+    const map = new Map<string, string>();
+    units.forEach((u) => map.set(u.id, u.code));
+    return map;
+  }, [units]);
+
+  const filteredLeases = useMemo(() => {
+    let list = leases;
+
+    if (filter === "active") list = list.filter((x) => x?.lease?.status === "ACTIVE");
+    if (filter === "draft") list = list.filter((x) => x?.lease?.status === "DRAFT");
+    if (filter === "expiring") list = list.filter((x) => x?.lease?.status === "ACTIVE" && isExpiringSoon(x?.lease?.endDate));
+
+    if (tenantFilter) list = list.filter((x) => x?.lease?.tenantId === tenantFilter);
+    if (unitFilter) list = list.filter((x) => (x?.unitIds || []).includes(unitFilter));
+
+    const term = keyword.trim().toLowerCase();
+    if (term) {
+      list = list.filter((x) => {
+        const unitCodes = (x?.unitIds || []).map((uid: string) => unitCodeById.get(uid) || uid).join(" ");
+        const tenantName = tenantNameById.get(x?.lease?.tenantId || "") || "";
+        const text = `${x?.lease?.id || ""} ${x?.lease?.status || ""} ${x?.lease?.startDate || ""} ${x?.lease?.endDate || ""} ${tenantName} ${unitCodes}`;
+        return text.toLowerCase().includes(term);
+      });
+    }
+
+    return list;
+  }, [filter, keyword, leases, tenantFilter, tenantNameById, unitCodeById, unitFilter]);
 
   if (!id) return null;
 
@@ -122,10 +187,34 @@ export default function LeasesPage() {
 
       <SummaryCards
         items={[
-          { label: "租約總數", value: summary.total, hint: "含草稿與啟用" },
-          { label: "啟用租約", value: summary.active, hint: "正在履約" },
-          { label: "草稿租約", value: summary.draft, hint: "待確認" },
-          { label: "90天內到期", value: summary.expiringSoon, hint: "建議提早續約" },
+          {
+            label: "租約總數",
+            value: summary.total,
+            hint: "含草稿與啟用",
+            href: `/buildings/${id}/leases`,
+            testId: "drilldown-link-leases-summary-total",
+          },
+          {
+            label: "啟用租約",
+            value: summary.active,
+            hint: "正在履約",
+            href: `/buildings/${id}/leases?filter=active`,
+            testId: "drilldown-link-leases-summary-active",
+          },
+          {
+            label: "草稿租約",
+            value: summary.draft,
+            hint: "待確認",
+            href: `/buildings/${id}/leases?filter=draft`,
+            testId: "drilldown-link-leases-summary-draft",
+          },
+          {
+            label: "90天內到期",
+            value: summary.expiringSoon,
+            hint: "建議提早續約",
+            href: `/buildings/${id}/leases?filter=expiring`,
+            testId: "drilldown-link-leases-summary-expiring",
+          },
         ]}
       />
 
@@ -203,12 +292,36 @@ export default function LeasesPage() {
       {error ? <div className="errorBox">{error}</div> : null}
       {success ? <div className="successBox">{success}</div> : null}
 
-      <SectionBlock title="租約清單" description="重點顯示狀態與到期風險。">
+      <SectionBlock
+        title="租約清單"
+        description="重點顯示狀態與到期風險。"
+        action={
+          <div className="row">
+            <button type="button" className={filter === "all" ? "" : "secondary"} onClick={() => applyQuery({ filter: null })} data-testid="filter-chip-leases-all">全部</button>
+            <button type="button" className={filter === "active" ? "" : "secondary"} onClick={() => applyQuery({ filter: "active" })} data-testid="filter-chip-leases-active">啟用</button>
+            <button type="button" className={filter === "draft" ? "" : "secondary"} onClick={() => applyQuery({ filter: "draft" })} data-testid="filter-chip-leases-draft">草稿</button>
+            <button type="button" className={filter === "expiring" ? "" : "secondary"} onClick={() => applyQuery({ filter: "expiring" })} data-testid="filter-chip-leases-expiring">90天到期</button>
+            <input
+              value={keyword}
+              onChange={(e) => applyQuery({ search: e.target.value.trim() || null })}
+              placeholder="搜尋租約 / 住戶 / 單位"
+              aria-label="搜尋租約"
+              style={{ width: 220 }}
+            />
+          </div>
+        }
+      >
         {leases.length === 0 ? (
           <EmptyState
             title="尚無租約"
             description="可先到住戶頁建立住戶，再回來建立第一筆租約。"
             action={<Link href={`/buildings/${id}/tenants`} className="btn">前往住戶頁</Link>}
+          />
+        ) : filteredLeases.length === 0 ? (
+          <EmptyState
+            title="目前沒有符合篩選的租約"
+            description="可清除篩選條件，或調整搜尋關鍵字。"
+            action={<Link href={`/buildings/${id}/leases`} className="btn secondary" data-testid="drilldown-link-leases-reset-filter">清除篩選</Link>}
           />
         ) : (
           <div className="tableWrap">
@@ -216,6 +329,8 @@ export default function LeasesPage() {
               <thead>
                 <tr>
                   <th>租約</th>
+                  <th>住戶</th>
+                  <th>單位</th>
                   <th>期間</th>
                   <th>狀態</th>
                   <th>風險提醒</th>
@@ -223,31 +338,57 @@ export default function LeasesPage() {
                 </tr>
               </thead>
               <tbody>
-                {leases.map((x: any) => (
-                  <tr key={x.lease.id}>
-                    <td>{x.lease.id.slice(0, 8)}</td>
-                    <td>
-                      {x.lease.startDate} ~ {x.lease.endDate}
-                    </td>
-                    <td>
-                      {x.lease.status === "ACTIVE" ? (
-                        <StatusChip tone="active">啟用</StatusChip>
-                      ) : (
-                        <StatusChip tone="draft">草稿</StatusChip>
-                      )}
-                    </td>
-                    <td>
-                      {isExpiringSoon(x.lease.endDate) ? (
-                        <StatusChip tone="risk">90天內到期</StatusChip>
-                      ) : (
-                        <StatusChip tone="neutral">目前正常</StatusChip>
-                      )}
-                    </td>
-                    <td>
-                      <Link href={`/leases/${x.lease.id}`} className="badge">查看詳情</Link>
-                    </td>
-                  </tr>
-                ))}
+                {filteredLeases.map((x: any) => {
+                  const tenantName = tenantNameById.get(x?.lease?.tenantId || "") || "未知住戶";
+                  const unitCodes = (x?.unitIds || []).map((uid: string) => unitCodeById.get(uid) || uid);
+
+                  return (
+                    <tr key={x.lease.id}>
+                      <td>
+                        <Link href={`/leases/${x.lease.id}`} data-testid={`drilldown-link-lease-${x.lease.id}`}>
+                          {x.lease.id.slice(0, 8)}
+                        </Link>
+                      </td>
+                      <td>
+                        <Link href={`/buildings/${id}/tenants?search=${encodeURIComponent(tenantName)}`} data-testid={`drilldown-link-lease-tenant-${x.lease.id}`}>
+                          {tenantName}
+                        </Link>
+                      </td>
+                      <td>
+                        <Link href={`/buildings/${id}/leases?unitId=${x?.unitIds?.[0] || ""}`} data-testid={`drilldown-link-lease-unit-${x.lease.id}`}>
+                          {unitCodes.join("、") || "-"}
+                        </Link>
+                      </td>
+                      <td>
+                        {x.lease.startDate} ~ {x.lease.endDate}
+                      </td>
+                      <td>
+                        <Link href={`/buildings/${id}/leases?filter=${x.lease.status === "ACTIVE" ? "active" : "draft"}`} data-testid={`drilldown-link-lease-status-${x.lease.id}`}>
+                          {x.lease.status === "ACTIVE" ? (
+                            <StatusChip tone="active">啟用</StatusChip>
+                          ) : (
+                            <StatusChip tone="draft">草稿</StatusChip>
+                          )}
+                        </Link>
+                      </td>
+                      <td>
+                        <Link
+                          href={`/buildings/${id}/leases?filter=${isExpiringSoon(x.lease.endDate) ? "expiring" : "active"}`}
+                          data-testid={`drilldown-link-lease-risk-${x.lease.id}`}
+                        >
+                          {isExpiringSoon(x.lease.endDate) ? (
+                            <StatusChip tone="risk">90天內到期</StatusChip>
+                          ) : (
+                            <StatusChip tone="neutral">目前正常</StatusChip>
+                          )}
+                        </Link>
+                      </td>
+                      <td>
+                        <Link href={`/leases/${x.lease.id}`} className="badge">查看詳情</Link>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

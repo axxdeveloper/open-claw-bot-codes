@@ -109,6 +109,17 @@ textarea:focus-visible {
   box-shadow: var(--elevation-1);
 }
 
+.summaryCardLink {
+  display: block;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.summaryCardLink:hover {
+  transform: translateY(-1px);
+  border-color: #9fb9dd;
+  box-shadow: var(--elevation-2);
+}
+
 .summaryCard .label {
   color: var(--muted);
   font-size: var(--font-sm);

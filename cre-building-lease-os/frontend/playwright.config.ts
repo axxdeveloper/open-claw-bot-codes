@@ -1,5 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const frontendPort = Number(process.env.PLAYWRIGHT_FRONTEND_PORT || 3000);
+const frontendBaseUrl = `http://127.0.0.1:${frontendPort}`;
+
 export default defineConfig({
   testDir: './tests/ui/e2e',
   timeout: 30_000,
@@ -11,7 +14,7 @@ export default defineConfig({
     },
   },
   use: {
-    baseURL: 'http://127.0.0.1:3000',
+    baseURL: frontendBaseUrl,
     trace: 'on-first-retry',
     viewport: { width: 1440, height: 920 },
   },
@@ -23,8 +26,8 @@ export default defineConfig({
       reuseExistingServer: !process.env.CI,
     },
     {
-      command: 'NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8080/api npm run dev -- --hostname 127.0.0.1 --port 3000',
-      url: 'http://127.0.0.1:3000/buildings',
+      command: `NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8080/api npm run dev -- --hostname 127.0.0.1 --port ${frontendPort}`,
+      url: `${frontendBaseUrl}/buildings`,
       timeout: 120_000,
       reuseExistingServer: !process.env.CI,
     },

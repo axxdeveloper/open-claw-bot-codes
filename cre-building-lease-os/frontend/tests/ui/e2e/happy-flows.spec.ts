@@ -2,6 +2,12 @@ import { expect, test } from '@playwright/test';
 
 test('task-first UX smoke flow', async ({ page, request }) => {
   const runId = `e2e-${Date.now()}`;
+  const loginPassword = process.env.AUTH_PAGE_PASSWORD || '0910301562';
+
+  await page.goto('/login');
+  await page.getByPlaceholder('密碼').fill(loginPassword);
+  await page.getByRole('button', { name: '登入' }).click();
+  await expect(page).toHaveURL(/\/buildings/);
 
   const buildingResp = await request.post('http://127.0.0.1:8080/api/buildings', {
     data: {

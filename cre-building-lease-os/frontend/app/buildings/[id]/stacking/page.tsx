@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { EmptyState, PageHeader, SectionBlock, StatusChip, SummaryCards } from "@/components/TaskLayout";
 import { apiErrorMessage, apiFetch } from "@/lib/api";
@@ -18,16 +18,42 @@ type Row = {
   }>;
 };
 
+type StackingFilter = "all" | "vacant" | "active" | "draft";
+
+function parseFilter(raw: string | null): StackingFilter {
+  if (raw === "vacant" || raw === "active" || raw === "draft") return raw;
+  return "all";
+}
+
 export default function StackingPage() {
   const params = useParams<{ id: string }>();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const id = params.id;
 
   const [rows, setRows] = useState<Row[]>([]);
   const [tenants, setTenants] = useState<any[]>([]);
   const [selectedTenantByUnit, setSelectedTenantByUnit] = useState<Record<string, string>>({});
-  const [filter, setFilter] = useState<"all" | "vacant" | "active" | "draft">("all");
+  const [filter, setFilter] = useState<StackingFilter>("all");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  const applyQuery = (patch: Record<string, string | null | undefined>) => {
+    const next = new URLSearchParams(searchParams.toString());
+    Object.entries(patch).forEach(([key, value]) => {
+      if (!value) next.delete(key);
+      else next.set(key, value);
+    });
+
+    const q = next.toString();
+    router.replace(q ? `${pathname}?${q}` : pathname);
+  };
+
+  useEffect(() => {
+    setFilter(parseFilter(searchParams.get("filter")));
+  }, [searchParams]);
 
   const load = async () => {
     if (!id) return;
@@ -164,10 +190,34 @@ export default function StackingPage() {
 
       <SummaryCards
         items={[
-          { label: "樓層數", value: summary.floorCount, hint: "納入堆疊圖範圍" },
-          { label: "單位總數", value: summary.total, hint: "含空置與入住" },
-          { label: "啟用入住", value: summary.active, hint: "有有效租約" },
-          { label: "空置單位", value: summary.vacant, hint: "可優先招商" },
+          {
+            label: "樓層數",
+            value: summary.floorCount,
+            hint: "納入堆疊圖範圍",
+            href: `/buildings/${id}/floors`,
+            testId: "drilldown-link-stacking-floor-count",
+          },
+          {
+            label: "單位總數",
+            value: summary.total,
+            hint: "含空置與入住",
+            href: `/buildings/${id}/stacking?filter=all`,
+            testId: "drilldown-link-stacking-total-units",
+          },
+          {
+            label: "啟用入住",
+            value: summary.active,
+            hint: "有有效租約",
+            href: `/buildings/${id}/stacking?filter=active`,
+            testId: "drilldown-link-stacking-active",
+          },
+          {
+            label: "空置單位",
+            value: summary.vacant,
+            hint: "可優先招商",
+            href: `/buildings/${id}/stacking?filter=vacant`,
+            testId: "drilldown-link-stacking-vacant",
+          },
         ]}
       />
 
@@ -179,10 +229,10 @@ export default function StackingPage() {
         description="聚焦你現在要處理的狀態。"
         action={
           <div className="row">
-            <button type="button" className={filter === "all" ? "" : "secondary"} onClick={() => setFilter("all")}>全部</button>
-            <button type="button" className={filter === "vacant" ? "" : "secondary"} onClick={() => setFilter("vacant")}>僅空置</button>
-            <button type="button" className={filter === "draft" ? "" : "secondary"} onClick={() => setFilter("draft")}>僅草稿</button>
-            <button type="button" className={filter === "active" ? "" : "secondary"} onClick={() => setFilter("active")}>僅啟用</button>
+            <button type="button" className={filter === "all" ? "" : "secondary"} onClick={() => applyQuery({ filter: null })} data-testid="filter-chip-stacking-all">全部</button>
+            <button type="button" className={filter === "vacant" ? "" : "secondary"} onClick={() => applyQuery({ filter: "vacant" })} data-testid="filter-chip-stacking-vacant">僅空置</button>
+            <button type="button" className={filter === "draft" ? "" : "secondary"} onClick={() => applyQuery({ filter: "draft" })} data-testid="filter-chip-stacking-draft">僅草稿</button>
+            <button type="button" className={filter === "active" ? "" : "secondary"} onClick={() => applyQuery({ filter: "active" })} data-testid="filter-chip-stacking-active">僅啟用</button>
           </div>
         }
       >
@@ -190,13 +240,22 @@ export default function StackingPage() {
           <EmptyState
             title="目前沒有可顯示資料"
             description="可先到樓層頁新增單位，或切換篩選條件。"
-            action={<Link href={`/buildings/${id}/floors`} className="btn">前往樓層配置</Link>}
+            action={
+              <>
+                <Link href={`/buildings/${id}/stacking`} className="btn secondary" data-testid="drilldown-link-stacking-reset-filter">清除篩選</Link>
+                <Link href={`/buildings/${id}/floors`} className="btn">前往樓層配置</Link>
+              </>
+            }
           />
         ) : (
           filteredRows.map((row) => (
             <div key={row.floorId} className="card" style={{ boxShadow: "none" }}>
               <div className="row" style={{ justifyContent: "space-between", marginBottom: 8 }}>
-                <h3 style={{ margin: 0 }}>{row.floorLabel}</h3>
+                <h3 style={{ margin: 0 }}>
+                  <Link href={`/buildings/${id}/floors/${row.floorId}`} data-testid={`drilldown-link-stacking-floor-${row.floorId}`}>
+                    {row.floorLabel}
+                  </Link>
+                </h3>
                 <div className="row">
                   <Link href={`/buildings/${id}/floors/${row.floorId}`} className="badge">
                     前往樓層作業
@@ -209,16 +268,31 @@ export default function StackingPage() {
               {row.units.map((u) => (
                 <div className="row" key={u.id} style={{ justifyContent: "space-between", alignItems: "center" }} data-testid="stacking-unit-row">
                   <span>
-                    <b>{u.code}</b> {u.tenantName ? `— ${u.tenantName}` : "— 空置"}
+                    <Link href={`/buildings/${id}/leases?unitId=${u.id}`} data-testid={`drilldown-link-unit-${u.id}`}>
+                      <b>{u.code}</b>
+                    </Link>{" "}
+                    {u.tenantName ? (
+                      <>
+                        — <Link href={`/buildings/${id}/tenants?search=${encodeURIComponent(u.tenantName)}`} data-testid={`drilldown-link-tenant-${u.id}`}>{u.tenantName}</Link>
+                      </>
+                    ) : (
+                      "— 空置"
+                    )}
                   </span>
 
                   <div className="row" style={{ gap: 8 }}>
                     {u.occupancyStatus === "ACTIVE" ? (
-                      <StatusChip tone="active">啟用</StatusChip>
+                      <Link href={`/buildings/${id}/stacking?filter=active`} data-testid={`drilldown-link-stacking-status-active-${u.id}`}>
+                        <StatusChip tone="active">啟用</StatusChip>
+                      </Link>
                     ) : u.occupancyStatus === "DRAFT" ? (
-                      <StatusChip tone="draft">草稿</StatusChip>
+                      <Link href={`/buildings/${id}/stacking?filter=draft`} data-testid={`drilldown-link-stacking-status-draft-${u.id}`}>
+                        <StatusChip tone="draft">草稿</StatusChip>
+                      </Link>
                     ) : (
-                      <StatusChip tone="neutral">空置</StatusChip>
+                      <Link href={`/buildings/${id}/stacking?filter=vacant`} data-testid={`drilldown-link-stacking-status-vacant-${u.id}`}>
+                        <StatusChip tone="neutral">空置</StatusChip>
+                      </Link>
                     )}
 
                     {u.occupancyStatus !== "ACTIVE" ? (

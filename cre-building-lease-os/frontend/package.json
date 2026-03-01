@@ -8,7 +8,7 @@
     "start": "next start -p 3000",
     "lint": "next lint",
     "test:component": "vitest run",
-    "test:ui": "playwright test tests/ui/e2e/happy-flows.spec.ts",
+    "test:ui": "playwright test tests/ui/e2e/happy-flows.spec.ts tests/ui/e2e/drilldown-smoke.spec.ts",
     "test:ui:tasks": "playwright test tests/ui/e2e/task-based-v0.3.spec.ts",
     "test:ui:headed": "playwright test tests/ui/e2e/task-based-v0.3.spec.ts --headed",
     "test:ui:fallback": "node tests/ui/e2e/task-based-fallback.mjs",

@@ -1,9 +1,13 @@
+import Link from "next/link";
 import React from "react";
 
 type SummaryItem = {
   label: string;
   value: React.ReactNode;
   hint?: string;
+  href?: string;
+  testId?: string;
+  valueTestId?: string;
 };
 
 export function PageHeader({
@@ -29,13 +33,29 @@ export function PageHeader({
 export function SummaryCards({ items }: { items: SummaryItem[] }) {
   return (
     <section className="summaryGrid">
-      {items.map((item) => (
-        <div className="summaryCard" key={item.label}>
-          <div className="label">{item.label}</div>
-          <div className="value">{item.value}</div>
-          {item.hint ? <div className="hint">{item.hint}</div> : null}
-        </div>
-      ))}
+      {items.map((item) => {
+        const body = (
+          <>
+            <div className="label">{item.label}</div>
+            <div className="value" data-testid={item.valueTestId}>{item.value}</div>
+            {item.hint ? <div className="hint">{item.hint}</div> : null}
+          </>
+        );
+
+        if (item.href) {
+          return (
+            <Link className="summaryCard summaryCardLink" key={item.label} href={item.href} data-testid={item.testId}>
+              {body}
+            </Link>
+          );
+        }
+
+        return (
+          <div className="summaryCard" key={item.label} data-testid={item.testId}>
+            {body}
+          </div>
+        );
+      })}
     </section>
   );
 }

@@ -1,11 +1,12 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import Link from "next/link";
+import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { EmptyState, PageHeader, SectionBlock, StatusChip, SummaryCards } from "@/components/TaskLayout";
 import { API_BASE, apiErrorMessage, apiFetch } from "@/lib/api";
 
-const STATUS_LIST = [
+const REPAIR_STATUS_LIST = [
   "DRAFT",
   "QUOTED",
   "APPROVED",
@@ -34,8 +35,19 @@ function displayAmount(value: unknown) {
   return String(value);
 }
 
+function normalizeStatusFilter(raw: string | null) {
+  if (!raw) return "";
+  if (raw === "DONE") return "DONE";
+  if (REPAIR_STATUS_LIST.includes(raw)) return raw;
+  return "";
+}
+
 export default function RepairsPage() {
   const params = useParams<{ id: string }>();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const id = params.id;
 
   const [rows, setRows] = useState<any[]>([]);
@@ -56,12 +68,37 @@ export default function RepairsPage() {
     vendorId: "",
     dateFrom: "",
     dateTo: "",
+    search: "",
   });
 
   const [acceptanceDraft, setAcceptanceDraft] = useState<Record<string, { acceptanceResult: string; inspectorName: string }>>({});
 
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  const applyQuery = (patch: Record<string, string | null | undefined>) => {
+    const next = new URLSearchParams(searchParams.toString());
+    Object.entries(patch).forEach(([key, value]) => {
+      if (!value) next.delete(key);
+      else next.set(key, value);
+    });
+
+    const q = next.toString();
+    router.replace(q ? `${pathname}?${q}` : pathname);
+  };
+
+  useEffect(() => {
+    setFilters({
+      status: normalizeStatusFilter(searchParams.get("status")),
+      scopeType: searchParams.get("scope") || "",
+      floorId: searchParams.get("floorId") || "",
+      commonAreaId: searchParams.get("commonAreaId") || "",
+      vendorId: searchParams.get("vendorId") || "",
+      dateFrom: searchParams.get("dateFrom") || "",
+      dateTo: searchParams.get("dateTo") || "",
+      search: searchParams.get("search") || "",
+    });
+  }, [searchParams]);
 
   const load = async (bid: string) => {
     const [r, f, a, v] = await Promise.all([
@@ -96,7 +133,13 @@ export default function RepairsPage() {
 
   const filteredRows = useMemo(() => {
     return rows.filter((r) => {
-      if (filters.status && r.status !== filters.status) return false;
+      if (filters.status) {
+        if (filters.status === "DONE") {
+          if (!(r.status === "COMPLETED" || r.status === "ACCEPTED")) return false;
+        } else if (r.status !== filters.status) {
+          return false;
+        }
+      }
       if (filters.scopeType && r.scopeType !== filters.scopeType) return false;
       if (filters.floorId && r.floorId !== filters.floorId) return false;
       if (filters.commonAreaId && r.commonAreaId !== filters.commonAreaId) return false;
@@ -112,12 +155,19 @@ export default function RepairsPage() {
         if (!rowDate || rowDate > to) return false;
       }
 
+      const term = filters.search.trim().toLowerCase();
+      if (term) {
+        const floorLabel = floors.find((f) => f.id === r.floorId)?.label || "";
+        const text = `${r.item || ""} ${r.vendorName || ""} ${r.status || ""} ${r.scopeType || ""} ${floorLabel}`;
+        if (!text.toLowerCase().includes(term)) return false;
+      }
+
       return true;
     });
-  }, [rows, filters]);
+  }, [rows, filters, floors]);
 
   const quickFilter = (status: string) => {
-    setFilters((prev) => ({ ...prev, status }));
+    applyQuery({ status: status || null });
   };
 
   const createVendor = async (e: FormEvent<HTMLFormElement>) => {
@@ -257,6 +307,8 @@ export default function RepairsPage() {
     };
   }, [filteredRows]);
 
+  const filterFormKey = useMemo(() => JSON.stringify(filters), [filters]);
+
   if (!id) return null;
 
   return (
@@ -268,34 +320,60 @@ export default function RepairsPage() {
 
       <SummaryCards
         items={[
-          { label: "案件總數", value: summary.total, hint: "目前清單" },
-          { label: "進行中", value: summary.inProgress, hint: "需追蹤進度" },
-          { label: "已完成", value: summary.completed, hint: "可驗收結案" },
-          { label: "樓層範圍", value: summary.floorScope, hint: "其餘為公共區域" },
+          {
+            label: "案件總數",
+            value: summary.total,
+            hint: "目前清單",
+            href: `/buildings/${id}/repairs`,
+            testId: "drilldown-link-repairs-summary-total",
+          },
+          {
+            label: "進行中",
+            value: summary.inProgress,
+            hint: "需追蹤進度",
+            href: `/buildings/${id}/repairs?status=IN_PROGRESS`,
+            testId: "drilldown-link-repairs-summary-in-progress",
+          },
+          {
+            label: "已完成",
+            value: summary.completed,
+            hint: "可驗收結案",
+            href: `/buildings/${id}/repairs?status=DONE`,
+            testId: "drilldown-link-repairs-summary-completed",
+          },
+          {
+            label: "樓層範圍",
+            value: summary.floorScope,
+            hint: "其餘為公共區域",
+            href: `/buildings/${id}/repairs?scope=FLOOR`,
+            testId: "drilldown-link-repairs-summary-floor",
+          },
         ]}
       />
 
       <SectionBlock title="快速篩選" description="支援範圍/廠商/日期，便於稽核追蹤。" className="taskCard">
         <div className="row">
-          <button type="button" className="secondary" onClick={() => quickFilter("")}>全部</button>
-          <button type="button" className="secondary" onClick={() => quickFilter("IN_PROGRESS")}>僅進行中</button>
-          <button type="button" className="secondary" onClick={() => quickFilter("DRAFT")}>僅草稿</button>
-          <button type="button" className="secondary" onClick={() => quickFilter("COMPLETED")}>僅已完成</button>
+          <button type="button" className="secondary" onClick={() => quickFilter("")} data-testid="filter-chip-repairs-all">全部</button>
+          <button type="button" className="secondary" onClick={() => quickFilter("IN_PROGRESS")} data-testid="filter-chip-repairs-in-progress">僅進行中</button>
+          <button type="button" className="secondary" onClick={() => quickFilter("DRAFT")} data-testid="filter-chip-repairs-draft">僅草稿</button>
+          <button type="button" className="secondary" onClick={() => quickFilter("DONE")} data-testid="filter-chip-repairs-done">僅已完成</button>
         </div>
 
         <form
+          key={filterFormKey}
           className="grid"
           onSubmit={(e) => {
             e.preventDefault();
             const fd = new FormData(e.currentTarget);
-            setFilters({
-              status: String(fd.get("status") || ""),
-              scopeType: String(fd.get("scopeType") || ""),
-              floorId: String(fd.get("floorId") || ""),
-              commonAreaId: String(fd.get("commonAreaId") || ""),
-              vendorId: String(fd.get("vendorId") || ""),
-              dateFrom: String(fd.get("dateFrom") || ""),
-              dateTo: String(fd.get("dateTo") || ""),
+            applyQuery({
+              status: String(fd.get("status") || "") || null,
+              scope: String(fd.get("scopeType") || "") || null,
+              floorId: String(fd.get("floorId") || "") || null,
+              commonAreaId: String(fd.get("commonAreaId") || "") || null,
+              vendorId: String(fd.get("vendorId") || "") || null,
+              dateFrom: String(fd.get("dateFrom") || "") || null,
+              dateTo: String(fd.get("dateTo") || "") || null,
+              search: String(fd.get("search") || "").trim() || null,
             });
           }}
           data-testid="repairs-filter-form"
@@ -305,7 +383,8 @@ export default function RepairsPage() {
               狀態
               <select name="status" defaultValue={filters.status} data-testid="repairs-filter-status">
                 <option value="">全部狀態</option>
-                {STATUS_LIST.map((s) => (
+                <option value="DONE">COMPLETED + ACCEPTED</option>
+                {REPAIR_STATUS_LIST.map((s) => (
                   <option key={s} value={s}>{s}</option>
                 ))}
               </select>
@@ -351,16 +430,21 @@ export default function RepairsPage() {
                 ))}
               </select>
             </label>
-            <div className="split">
-              <label>
-                日期起
-                <input name="dateFrom" type="date" defaultValue={filters.dateFrom} data-testid="repairs-filter-date-from" />
-              </label>
-              <label>
-                日期迄
-                <input name="dateTo" type="date" defaultValue={filters.dateTo} data-testid="repairs-filter-date-to" />
-              </label>
-            </div>
+            <label>
+              關鍵字
+              <input name="search" defaultValue={filters.search} placeholder="搜尋修繕項目 / 廠商 / 狀態" />
+            </label>
+          </div>
+
+          <div className="split">
+            <label>
+              日期起
+              <input name="dateFrom" type="date" defaultValue={filters.dateFrom} data-testid="repairs-filter-date-from" />
+            </label>
+            <label>
+              日期迄
+              <input name="dateTo" type="date" defaultValue={filters.dateTo} data-testid="repairs-filter-date-to" />
+            </label>
           </div>
 
           <div className="row" style={{ justifyContent: "flex-end" }}>
@@ -416,7 +500,7 @@ export default function RepairsPage() {
                   onChange={(e) => setCreateStatus(e.target.value)}
                   data-testid="repair-status-select"
                 >
-                  {STATUS_LIST.map((s) => (
+                  {REPAIR_STATUS_LIST.map((s) => (
                     <option key={s} value={s}>{s}</option>
                   ))}
                 </select>
@@ -470,7 +554,16 @@ export default function RepairsPage() {
 
       <SectionBlock title="修繕清單" description="狀態、驗收、附件都在此追蹤。">
         {filteredRows.length === 0 ? (
-          <EmptyState title="目前沒有修繕案件" description="可先新增一筆草稿案件，後續再補完整資訊。" />
+          <EmptyState
+            title="目前沒有修繕案件"
+            description="可先新增一筆草稿案件，後續再補完整資訊。"
+            action={
+              <>
+                <Link href={`/buildings/${id}/repairs`} className="btn secondary" data-testid="drilldown-link-repairs-reset-filter">清除篩選</Link>
+                <Link href="#quick-add-repair" className="btn" data-testid="drilldown-link-repairs-create-first">新增修繕案件</Link>
+              </>
+            }
+          />
         ) : (
           <div className="tableWrap">
             <table className="table">
@@ -489,15 +582,36 @@ export default function RepairsPage() {
               <tbody>
                 {filteredRows.map((r) => {
                   const draft = acceptanceDraft[r.id] || { acceptanceResult: "", inspectorName: "" };
+                  const floorLabel = floors.find((f) => f.id === r.floorId)?.label;
+                  const areaName = areas.find((a) => a.id === r.commonAreaId)?.name;
 
                   return (
                     <tr key={r.id} id={`repair-${r.id}`} data-testid="repair-row">
-                      <td>{r.item}</td>
-                      <td>{r.scopeType === "FLOOR" ? "樓層" : "公共區域"}</td>
+                      <td>
+                        <Link
+                          href={`/buildings/${id}/repairs?search=${encodeURIComponent(r.item)}#repair-${r.id}`}
+                          data-testid={`drilldown-link-repair-item-${r.id}`}
+                        >
+                          {r.item}
+                        </Link>
+                      </td>
+                      <td>
+                        {r.scopeType === "FLOOR" ? (
+                          <Link href={`/buildings/${id}/floors/${r.floorId}`} data-testid={`drilldown-link-repair-floor-${r.id}`}>
+                            樓層{floorLabel ? ` (${floorLabel})` : ""}
+                          </Link>
+                        ) : (
+                          <Link href={`/buildings/${id}/common-areas/${r.commonAreaId}`} data-testid={`drilldown-link-repair-common-area-${r.id}`}>
+                            公共區域{areaName ? ` (${areaName})` : ""}
+                          </Link>
+                        )}
+                      </td>
                       <td>{r.vendorName}</td>
                       <td>{r.vendorTaxId || "-"}</td>
                       <td>
-                        <StatusChip tone={statusTone(r.status)}>{r.status}</StatusChip>
+                        <Link href={`/buildings/${id}/repairs?status=${r.status}`} data-testid={`drilldown-link-repair-status-${r.id}`}>
+                          <StatusChip tone={statusTone(r.status)}>{r.status}</StatusChip>
+                        </Link>
                       </td>
                       <td>{displayAmount(r.quoteAmount)}</td>
                       <td>{displayAmount(r.finalAmount)}</td>
