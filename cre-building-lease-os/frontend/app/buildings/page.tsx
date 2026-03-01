@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
-import { EmptyState, PageHeader, SectionBlock, StatusChip, SummaryCards } from "@/components/TaskLayout";
+import { EmptyState, PageHeader, SectionBlock, StatusChip } from "@/components/TaskLayout";
 import { apiErrorMessage, apiFetch } from "@/lib/api";
 
 type Building = { id: string; name: string; address?: string };
@@ -117,30 +117,6 @@ function BuildingsPageContent() {
     })();
   }, []);
 
-  const totals = useMemo(() => {
-    const stats = Object.values(statsById);
-    const activeLeases = stats.reduce((acc, x) => acc + x.activeLeases, 0);
-    const expiringSoon = stats.reduce((acc, x) => acc + x.expiringSoon, 0);
-    const openRepairs = stats.reduce((acc, x) => acc + x.openRepairs, 0);
-
-    return {
-      buildings: items.length,
-      activeLeases,
-      expiringSoon,
-      openRepairs,
-    };
-  }, [items.length, statsById]);
-
-  const expiringBuildingId = useMemo(
-    () => items.find((b) => (statsById[b.id]?.expiringSoon || 0) > 0)?.id,
-    [items, statsById],
-  );
-
-  const repairingBuildingId = useMemo(
-    () => items.find((b) => (statsById[b.id]?.openRepairs || 0) > 0)?.id,
-    [items, statsById],
-  );
-
   const filtered = useMemo(() => {
     let list = items;
 
@@ -170,50 +146,8 @@ function BuildingsPageContent() {
   return (
     <main className="page">
       <PageHeader
-        title="Dashboard｜今日營運重點"
-        description="從這裡開始今天的工作：先看待辦與風險，再直接進入大樓做配置、租約與維運。"
-        action={<Link href="/buildings/new" className="btn">建立新大樓</Link>}
-      />
-
-      <SummaryCards
-        items={[
-          {
-            label: "大樓數",
-            value: totals.buildings,
-            hint: "點擊進入大樓詳情",
-            href: items.length === 1 ? `/buildings/${items[0].id}` : "/buildings",
-            testId: "drilldown-link-dashboard-buildings",
-            valueTestId: "dashboard-kpi-buildings",
-          },
-          {
-            label: "啟用租約",
-            value: totals.activeLeases,
-            hint: "目前生效中的租約",
-            href: items.length === 1 ? `/buildings/${items[0].id}/leases` : "/buildings",
-            testId: "drilldown-link-dashboard-active-leases",
-            valueTestId: "dashboard-kpi-active-leases",
-          },
-          {
-            label: "90天內到期租約",
-            value: totals.expiringSoon,
-            hint: "建議提早安排續約",
-            href: expiringBuildingId
-              ? `/buildings/${expiringBuildingId}/leases?filter=expiring`
-              : "/buildings?scope=expiring",
-            testId: "drilldown-link-dashboard-expiring",
-            valueTestId: "dashboard-kpi-expiring",
-          },
-          {
-            label: "進行中修繕",
-            value: totals.openRepairs,
-            hint: "需追蹤工程進度",
-            href: repairingBuildingId
-              ? `/buildings/${repairingBuildingId}/repairs?status=IN_PROGRESS`
-              : "/buildings?scope=repairs",
-            testId: "drilldown-link-dashboard-repairs",
-            valueTestId: "dashboard-kpi-repairs",
-          },
-        ]}
+        title="大樓總覽"
+        description="直接查看各大樓的樓層、公司與維運狀態。"
       />
 
       <SectionBlock
