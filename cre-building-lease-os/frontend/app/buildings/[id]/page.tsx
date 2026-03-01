@@ -40,26 +40,36 @@ function normalizeName(value: string | null | undefined) {
     .toLowerCase();
 }
 
+function cleanCell(value: string | null | undefined, headerWord: string) {
+  const v = String(value || "").trim();
+  if (!v) return "";
+  if (v === headerWord) return "";
+  return v;
+}
+
 export default function BuildingPage() {
   const params = useParams<{ id: string }>();
   const id = params.id;
 
   const [building, setBuilding] = useState<any>(null);
   const [floorDirectory, setFloorDirectory] = useState<Array<{ floorId: string; label: string; entries: Array<{ key: string; address: string; room: string; household: string; unitCode: string; tenantId: string | null; tenantName: string | null; status: string | null }> }>>([]);
+  const [entryDrafts, setEntryDrafts] = useState<Record<string, { address: string; room: string; household: string; tenantName: string }>>({});
   const [amenities, setAmenities] = useState<Array<{ id: string; name: string; floorId?: string | null }>>([]);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
 
     (async () => {
-      const [buildingRes, floorsRes, tenantsRes, occupanciesRes, commonAreasRes, sourceRes] = await Promise.all([
+      const [buildingRes, floorsRes, tenantsRes, occupanciesRes, commonAreasRes, sourceRes, overrideRes] = await Promise.all([
         apiFetch<any>(`/buildings/${id}`),
         apiFetch<any[]>(`/buildings/${id}/floors`),
         apiFetch<any[]>(`/buildings/${id}/tenants`),
         apiFetch<any[]>(`/buildings/${id}/occupancies`),
         apiFetch<any[]>(`/buildings/${id}/common-areas`),
         fetch('/source113.json').then((r) => r.json()).catch(() => ({ rows: [] })),
+        fetch(`/api/source113-overrides/${id}`).then((r) => r.json()).catch(() => ({ ok: false, data: [] })),
       ]);
 
       if (!buildingRes.ok) {
@@ -80,6 +90,9 @@ export default function BuildingPage() {
       });
       const occupancies = occupanciesRes.ok ? occupanciesRes.data : [];
       const sourceRows: any[] = Array.isArray(sourceRes?.rows) ? sourceRes.rows : [];
+      const overrides: any[] = overrideRes?.ok && Array.isArray(overrideRes.data) ? overrideRes.data : [];
+      const overrideMap = new Map<string, any>();
+      overrides.forEach((o) => overrideMap.set(String(o.entryKey || ""), o));
       const fallbackAddresses = Array.from(
         new Set(String(buildingRes.data?.address || "").match(/\d+號/g) || []),
       );
@@ -139,14 +152,16 @@ export default function BuildingPage() {
           });
           const sourceTenantName = String(r.merchant || "").trim();
           const sourceTenantId = tenantIdByNormalizedName.get(normalizeName(sourceTenantName)) || null;
+          const key = `src-${r.row || idx}`;
+          const ov = overrideMap.get(key) || {};
           return {
-            key: `src-${r.row || idx}`,
-            address: String(r.address || ""),
-            room: String(r.room || ""),
-            household: house,
-            unitCode: house,
+            key,
+            address: cleanCell(ov.address ?? r.address, "地址"),
+            room: cleanCell(ov.room ?? r.room, "室號"),
+            household: cleanCell(ov.household ?? house, "戶號"),
+            unitCode: cleanCell(ov.household ?? house, "戶號"),
             tenantId: matched?.tenantId || sourceTenantId,
-            tenantName: matched?.tenantName || sourceTenantName || null,
+            tenantName: String((ov.tenantName ?? matched?.tenantName ?? sourceTenantName) || "") || null,
             status: matched?.status || null,
           };
         });
@@ -155,14 +170,16 @@ export default function BuildingPage() {
         floorUnitOccupancies.forEach((x, idx) => {
           const code = String(x.unitCode || "").toUpperCase();
           if (!code || usedCodes.has(code)) return;
+          const key = `occ-${x.tenantId}-${idx}`;
+          const ov = overrideMap.get(key) || {};
           entries.push({
-            key: `occ-${x.tenantId}-${idx}`,
-            address: "",
-            room: "",
-            household: x.unitCode || "",
-            unitCode: x.unitCode || "",
+            key,
+            address: cleanCell(ov.address, "地址"),
+            room: cleanCell(ov.room, "室號"),
+            household: cleanCell(ov.household ?? x.unitCode, "戶號"),
+            unitCode: cleanCell(ov.household ?? x.unitCode, "戶號"),
             tenantId: x.tenantId,
-            tenantName: x.tenantName,
+            tenantName: String((ov.tenantName ?? x.tenantName) || "") || null,
             status: x.status,
           });
         });
@@ -188,10 +205,80 @@ export default function BuildingPage() {
       });
 
       setFloorDirectory(directory);
+      const drafts: Record<string, { address: string; room: string; household: string; tenantName: string }> = {};
+      directory.forEach((row: any) => {
+        (row.entries || []).forEach((e: any) => {
+          drafts[e.key] = {
+            address: e.address || "",
+            room: e.room || "",
+            household: e.household || e.unitCode || "",
+            tenantName: e.tenantName || "",
+          };
+        });
+      });
+      setEntryDrafts(drafts);
       setAmenities((commonAreasRes.ok ? commonAreasRes.data : []).map((x: any) => ({ id: x.id, name: x.name, floorId: x.floorId })));
 
     })();
   }, [id]);
+
+  const saveInline = async (entry: any) => {
+    const draft = entryDrafts[entry.key];
+    if (!draft) return;
+
+    setError(null);
+    setSuccess(null);
+
+    const payload = {
+      entryKey: entry.key,
+      address: draft.address,
+      room: draft.room,
+      household: draft.household,
+      tenantName: draft.tenantName,
+    };
+
+    const res = await fetch(`/api/source113-overrides/${id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }).then((r) => r.json()).catch(() => ({ ok: false, error: { message: "儲存失敗" } }));
+
+    if (!res?.ok) {
+      setError(res?.error?.message || "儲存失敗");
+      return;
+    }
+
+    if (entry.tenantId && draft.tenantName && draft.tenantName !== entry.tenantName) {
+      const t = await apiFetch(`/tenants/${entry.tenantId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ name: draft.tenantName }),
+      });
+      if (!t.ok) {
+        setError(apiErrorMessage(t.error));
+        return;
+      }
+    }
+
+    setSuccess("已儲存行內修改");
+
+    setFloorDirectory((prev) =>
+      prev.map((row) => ({
+        ...row,
+        entries: row.entries.map((e) =>
+          e.key === entry.key
+            ? {
+                ...e,
+                address: draft.address,
+                room: draft.room,
+                household: draft.household,
+                unitCode: draft.household,
+                tenantName: draft.tenantName || e.tenantName,
+              }
+            : e,
+        ),
+      })),
+    );
+  };
 
   const amenitiesByFloor = amenities.reduce<Record<string, Array<{ id: string; name: string }>>>((acc, item) => {
     if (!item.floorId) return acc;
@@ -210,6 +297,7 @@ export default function BuildingPage() {
       />
 
       {error ? <div className="errorBox">{error}</div> : null}
+      {success ? <div className="successBox">{success}</div> : null}
 
       <SectionBlock
         title="樓層與公司總覽"
@@ -264,7 +352,8 @@ export default function BuildingPage() {
                                   ),
                                 )
                                 .map((entry) => {
-                                  const hasTenantName = Boolean(entry.tenantName);
+                                  const currentTenantName = entryDrafts[entry.key]?.tenantName ?? entry.tenantName ?? "";
+                                  const hasTenantName = Boolean(currentTenantName);
                                   const canClickTenant = Boolean(entry.tenantId && entry.tenantName);
                                   const rowStyle = hasTenantName
                                     ? undefined
@@ -272,27 +361,79 @@ export default function BuildingPage() {
 
                                   return (
                                     <tr key={entry.key} style={rowStyle}>
-                                      <td>{entry.address || "待補"}</td>
-                                      <td>{entry.room || "-"}</td>
-                                      <td>{entry.household || entry.unitCode || "-"}</td>
                                       <td>
-                                        {canClickTenant ? (
-                                          <Link
-                                            href={`/buildings/${id}/tenants/${entry.tenantId}`}
-                                            title={`查看 ${entry.tenantName} 的聯絡人與合約`}
-                                            style={{ color: "#0f2f59", fontWeight: 700 }}
-                                          >
-                                            {entry.tenantName}
-                                            {entry.status === "DRAFT" ? "（草稿）" : ""}
-                                          </Link>
-                                        ) : hasTenantName ? (
-                                          <span style={{ color: "#0f2f59", fontWeight: 700 }}>
-                                            {entry.tenantName}
-                                            {entry.status === "DRAFT" ? "（草稿）" : ""}
-                                          </span>
-                                        ) : (
-                                          <span>尚無住戶</span>
-                                        )}
+                                        <input
+                                          value={entryDrafts[entry.key]?.address ?? ""}
+                                          placeholder="待補"
+                                          onChange={(e) =>
+                                            setEntryDrafts((prev) => ({
+                                              ...prev,
+                                              [entry.key]: {
+                                                ...(prev[entry.key] || { address: "", room: "", household: "", tenantName: "" }),
+                                                address: e.target.value,
+                                              },
+                                            }))
+                                          }
+                                        />
+                                      </td>
+                                      <td>
+                                        <input
+                                          value={entryDrafts[entry.key]?.room ?? ""}
+                                          placeholder="-"
+                                          onChange={(e) =>
+                                            setEntryDrafts((prev) => ({
+                                              ...prev,
+                                              [entry.key]: {
+                                                ...(prev[entry.key] || { address: "", room: "", household: "", tenantName: "" }),
+                                                room: e.target.value,
+                                              },
+                                            }))
+                                          }
+                                        />
+                                      </td>
+                                      <td>
+                                        <input
+                                          value={entryDrafts[entry.key]?.household ?? ""}
+                                          placeholder="-"
+                                          onChange={(e) =>
+                                            setEntryDrafts((prev) => ({
+                                              ...prev,
+                                              [entry.key]: {
+                                                ...(prev[entry.key] || { address: "", room: "", household: "", tenantName: "" }),
+                                                household: e.target.value,
+                                              },
+                                            }))
+                                          }
+                                        />
+                                      </td>
+                                      <td>
+                                        <div className="row" style={{ gap: 6 }}>
+                                          <input
+                                            value={entryDrafts[entry.key]?.tenantName ?? ""}
+                                            placeholder="尚無住戶"
+                                            onChange={(e) =>
+                                              setEntryDrafts((prev) => ({
+                                                ...prev,
+                                                [entry.key]: {
+                                                  ...(prev[entry.key] || { address: "", room: "", household: "", tenantName: "" }),
+                                                  tenantName: e.target.value,
+                                                },
+                                              }))
+                                            }
+                                          />
+                                          <button type="button" className="secondary" onClick={() => saveInline(entry)}>
+                                            儲存
+                                          </button>
+                                          {canClickTenant ? (
+                                            <Link
+                                              href={`/buildings/${id}/tenants/${entry.tenantId}`}
+                                              title={`查看 ${entry.tenantName} 的聯絡人與合約`}
+                                              className="badge"
+                                            >
+                                              詳情
+                                            </Link>
+                                          ) : null}
+                                        </div>
                                       </td>
                                     </tr>
                                   );
