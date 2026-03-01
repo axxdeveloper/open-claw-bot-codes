@@ -184,27 +184,6 @@ function BuildingsPageContent() {
         action={<Link href="/buildings/new" className="btn">建立新大樓</Link>}
       />
 
-      <SectionBlock
-        title="今日建議任務"
-        description="先做會影響營運風險的項目，降低漏處理。"
-        className="taskCard"
-      >
-        <div className="stack">
-          <div className="row" style={{ justifyContent: "space-between" }}>
-            <span>1) 先補齊尚未配置完成的大樓（樓層、單位）</span>
-            <StatusChip tone="info">優先</StatusChip>
-          </div>
-          <div className="row" style={{ justifyContent: "space-between" }}>
-            <span>2) 檢查 90 天內到期租約，預先安排續約</span>
-            <StatusChip tone="risk">風險</StatusChip>
-          </div>
-          <div className="row" style={{ justifyContent: "space-between" }}>
-            <span>3) 追蹤進行中的修繕，避免影響租戶使用</span>
-            <StatusChip tone="draft">待追蹤</StatusChip>
-          </div>
-        </div>
-      </SectionBlock>
-
       <SummaryCards
         items={[
           {
