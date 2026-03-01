@@ -55,7 +55,7 @@ export default function Nav() {
   const baseItems: NavItem[] = [
     { label: "Dashboard", href: "/buildings" },
     {
-      label: "空間管理",
+      label: "樓層資訊",
       href: effectiveBuildingId ? `/buildings/${effectiveBuildingId}/floors` : "/buildings",
     },
     {
