@@ -4,14 +4,6 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
-function normalizeName(value: string | null | undefined) {
-  return String(value || "")
-    .replace(/[\s\n\r]+/g, "")
-    .replace(/臺/g, "台")
-    .replace(/（/g, "(")
-    .replace(/）/g, ")")
-    .toLowerCase();
-}
 import { EmptyState, PageHeader, SectionBlock } from "@/components/TaskLayout";
 import { apiErrorMessage, apiFetch } from "@/lib/api";
 
@@ -29,12 +21,22 @@ function floorOrder(label: string) {
   return Number.MAX_SAFE_INTEGER;
 }
 
+function canonicalFloor(value: string | null | undefined) {
+  return String(value || "").replace(/[\s\n\r]+/g, "").toUpperCase().replace(/F$/, "");
+}
+
+function floorTokens(rawFloor: string | null | undefined) {
+  const raw = String(rawFloor || "").replace(/[\s\n\r]+/g, "").toUpperCase();
+  const tokens = Array.from(raw.matchAll(/B?\d+/g)).map((m) => m[0]);
+  return tokens.map((t) => canonicalFloor(t));
+}
+
 export default function BuildingPage() {
   const params = useParams<{ id: string }>();
   const id = params.id;
 
   const [building, setBuilding] = useState<any>(null);
-  const [floorDirectory, setFloorDirectory] = useState<Array<{ floorId: string; label: string; tenants: Array<{ id: string; name: string; unitCode: string; status: string; address: string; room: string; household: string }> }>>([]);
+  const [floorDirectory, setFloorDirectory] = useState<Array<{ floorId: string; label: string; entries: Array<{ key: string; address: string; room: string; household: string; unitCode: string; tenantId: string | null; tenantName: string | null; status: string | null }> }>>([]);
   const [amenities, setAmenities] = useState<Array<{ id: string; name: string; floorId?: string | null }>>([]);
   const [error, setError] = useState<string | null>(null);
 
@@ -66,67 +68,96 @@ export default function BuildingPage() {
       const occupancies = occupanciesRes.ok ? occupanciesRes.data : [];
       const sourceRows: any[] = Array.isArray(sourceRes?.rows) ? sourceRes.rows : [];
 
-      const findSource113 = (tenantName: string, floorLabel: string, unitCode: string) => {
-        const tKey = normalizeName(tenantName);
-        const fKey = String(floorLabel || "").replace(/[\s\n\r]+/g, "").toUpperCase();
-        const uKey = String(unitCode || "").replace(/[\s\n\r]+/g, "").toUpperCase();
+      const floorUnitsByFloorId = new Map<string, any[]>();
+      floorDetails.forEach((d, idx) => {
+        const floor = floors[idx];
+        floorUnitsByFloorId.set(floor.id, d.ok ? d.data.units || [] : []);
+      });
 
-        const exact = sourceRows.find((r) => {
-          const merchantKey = normalizeName(r?.merchant);
-          const floorKey = String(r?.floor || "").replace(/[\s\n\r]+/g, "").toUpperCase();
-          const houseKey = String(r?.household || "").replace(/[\s\n\r]+/g, "").toUpperCase();
-          const nameOk = merchantKey.includes(tKey) || tKey.includes(merchantKey);
-          const floorOk = !floorKey || floorKey.includes(fKey) || fKey.includes(floorKey);
-          const unitOk = !houseKey || houseKey.includes(uKey) || uKey.includes(houseKey);
-          return nameOk && floorOk && unitOk;
+      const directory = floors.map((floor: any) => {
+        const units = floorUnitsByFloorId.get(floor.id) || [];
+        const unitCodeById = new Map<string, string>();
+        units.forEach((u: any) => unitCodeById.set(u.id, u.code));
+
+        const floorUnitOccupancies = occupancies
+          .filter(
+            (o: any) =>
+              units.some((u: any) => u.id === o.unitId) &&
+              (o.status === "ACTIVE" || o.status === "DRAFT"),
+          )
+          .map((o: any) => {
+            const tenant = tenantById.get(o.tenantId);
+            if (!tenant) return null;
+            const unitCode = unitCodeById.get(o.unitId) || "";
+            return {
+              tenantId: tenant.id,
+              tenantName: tenant.name,
+              unitCode,
+              status: String(o.status || ""),
+            };
+          })
+          .filter(Boolean) as Array<{ tenantId: string; tenantName: string; unitCode: string; status: string }>;
+
+        const floorSourceRows = sourceRows.filter((r) => {
+          const tokens = floorTokens(r?.floor);
+          return tokens.includes(canonicalFloor(floor.label));
         });
 
-        if (exact) return exact;
-
-        return sourceRows.find((r) => {
-          const merchantKey = normalizeName(r?.merchant);
-          return merchantKey.includes(tKey) || tKey.includes(merchantKey);
-        });
-      };
-
-      const directory = floorDetails
-        .map((d, idx) => {
-          if (!d.ok) return null;
-          const floor = floors[idx];
-          const units = d.data.units || [];
-          const unitCodeById = new Map<string, string>();
-          units.forEach((u: any) => unitCodeById.set(u.id, u.code));
-
-          const tenants = occupancies
-            .filter(
-              (o: any) =>
-                units.some((u: any) => u.id === o.unitId) &&
-                (o.status === "ACTIVE" || o.status === "DRAFT"),
-            )
-            .map((o: any) => {
-              const tenant = tenantById.get(o.tenantId);
-              if (!tenant) return null;
-              const unitCode = unitCodeById.get(o.unitId) || "未標示單位";
-              const src = findSource113(tenant.name, floor.label, unitCode) || {};
-              return {
-                id: tenant.id,
-                name: tenant.name,
-                unitCode,
-                status: String(o.status || ""),
-                address: String(src.address || ""),
-                room: String(src.room || ""),
-                household: String(src.household || unitCode || ""),
-              };
-            })
-            .filter(Boolean) as Array<{ id: string; name: string; unitCode: string; status: string; address: string; room: string; household: string }>;
-
+        const entries = floorSourceRows.map((r: any, idx: number) => {
+          const house = String(r.household || "").trim();
+          const matched = floorUnitOccupancies.find((x) => {
+            const hu = String(x.unitCode || "").trim().toUpperCase();
+            const hs = house.toUpperCase();
+            if (!hu || !hs) return false;
+            return hu === hs || hu.includes(hs) || hs.includes(hu);
+          });
           return {
-            floorId: floor.id,
-            label: floor.label,
-            tenants,
+            key: `src-${r.row || idx}`,
+            address: String(r.address || ""),
+            room: String(r.room || ""),
+            household: house,
+            unitCode: house,
+            tenantId: matched?.tenantId || null,
+            tenantName: matched?.tenantName || null,
+            status: matched?.status || null,
           };
-        })
-        .filter(Boolean) as Array<{ floorId: string; label: string; tenants: Array<{ id: string; name: string; unitCode: string; status: string; address: string; room: string; household: string }> }>;
+        });
+
+        const usedCodes = new Set(entries.map((x) => String(x.unitCode || "").toUpperCase()));
+        floorUnitOccupancies.forEach((x, idx) => {
+          const code = String(x.unitCode || "").toUpperCase();
+          if (!code || usedCodes.has(code)) return;
+          entries.push({
+            key: `occ-${x.tenantId}-${idx}`,
+            address: "",
+            room: "",
+            household: x.unitCode || "",
+            unitCode: x.unitCode || "",
+            tenantId: x.tenantId,
+            tenantName: x.tenantName,
+            status: x.status,
+          });
+        });
+
+        if (entries.length === 0) {
+          entries.push({
+            key: `empty-${floor.id}`,
+            address: "",
+            room: "",
+            household: "",
+            unitCode: "",
+            tenantId: null,
+            tenantName: null,
+            status: null,
+          });
+        }
+
+        return {
+          floorId: floor.id,
+          label: floor.label,
+          entries,
+        };
+      });
 
       setFloorDirectory(directory);
       setAmenities((commonAreasRes.ok ? commonAreasRes.data : []).map((x: any) => ({ id: x.id, name: x.name, floorId: x.floorId })));
@@ -185,25 +216,25 @@ export default function BuildingPage() {
                     <tr key={row.floorId}>
                       <td>{row.label}</td>
                       <td>
-                        {row.tenants.length ? (
-                          <div className="grid" style={{ gap: 6 }}>
-                            {[...row.tenants]
-                              .sort((a, b) => a.unitCode.localeCompare(b.unitCode, "zh-Hant", { numeric: true }))
-                              .map((tenant) => (
-                              <Link
-                                key={`${tenant.id}-${tenant.unitCode}`}
-                                href={`/buildings/${id}/tenants/${tenant.id}`}
-                                className="badge"
-                                title={`查看 ${tenant.name} 的聯絡人與合約`}
-                              >
-                                門牌：{tenant.address || "待補"}｜室號：{tenant.room || "-"}｜戶號：{tenant.household || tenant.unitCode || "-"}｜住戶：{tenant.name}
-                                {tenant.status === "DRAFT" ? "（草稿）" : ""}
-                              </Link>
-                            ))}
-                          </div>
-                        ) : (
-                          <span className="badge">尚無用戶</span>
-                        )}
+                        <div className="grid" style={{ gap: 6 }}>
+                          {[...row.entries]
+                            .sort((a, b) => String(a.household || a.unitCode || "").localeCompare(String(b.household || b.unitCode || ""), "zh-Hant", { numeric: true }))
+                            .map((entry) => {
+                              const label = `門牌：${entry.address || "待補"}｜室號：${entry.room || "-"}｜戶號：${entry.household || entry.unitCode || "-"}｜住戶：${entry.tenantName || "尚無住戶"}${entry.status === "DRAFT" ? "（草稿）" : ""}`;
+                              return entry.tenantId ? (
+                                <Link
+                                  key={entry.key}
+                                  href={`/buildings/${id}/tenants/${entry.tenantId}`}
+                                  className="badge"
+                                  title={`查看 ${entry.tenantName} 的聯絡人與合約`}
+                                >
+                                  {label}
+                                </Link>
+                              ) : (
+                                <span key={entry.key} className="badge">{label}</span>
+                              );
+                            })}
+                        </div>
                       </td>
                       <td>
                         {(amenitiesByFloor[row.floorId] || []).length === 0 ? (
