@@ -45,6 +45,7 @@ function segmentLabel(seg: string) {
     owners: "業主",
     vendors: "廠商",
     reports: "報表匯入",
+    ops: "系統儀表板",
     inbox: "收件匣",
     stacking: "堆疊圖",
     login: "登入",
