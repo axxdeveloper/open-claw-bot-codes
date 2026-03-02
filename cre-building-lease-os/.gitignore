@@ -48,3 +48,6 @@ backend/target/
 
 # frontend lockfile (pnpm/npm 任一即可)
 frontend/package-lock.json
+
+# local secrets
+deploy/nginx/console.htpasswd
