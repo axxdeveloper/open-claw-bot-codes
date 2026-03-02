@@ -59,6 +59,7 @@ export default function Nav() {
   const router = useRouter();
 
   const [buildings, setBuildings] = useState<BuildingLite[]>([]);
+  const [currentBuildingName, setCurrentBuildingName] = useState("");
   const [switcherId, setSwitcherId] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -94,6 +95,7 @@ export default function Nav() {
     },
     { label: "收件匣", href: "/inbox", testId: "inbox-link" },
     { label: "報表/匯入", href: "/reports" },
+    { label: "系統儀表板", href: "/ops" },
   ];
 
   useEffect(() => {
@@ -114,6 +116,26 @@ export default function Nav() {
       setSwitcherId(buildings[0].id);
     }
   }, [buildings, currentBuildingId, switcherId]);
+
+  useEffect(() => {
+    if (!currentBuildingId) {
+      setCurrentBuildingName("");
+      return;
+    }
+
+    const fromList = buildings.find((b) => b.id === currentBuildingId)?.name || "";
+    if (fromList) {
+      setCurrentBuildingName(fromList);
+      return;
+    }
+
+    (async () => {
+      const res = await apiFetch<any>(`/buildings/${currentBuildingId}`);
+      if (!res.ok) return;
+      const name = String(res.data?.name || "").trim();
+      if (name) setCurrentBuildingName(name);
+    })();
+  }, [currentBuildingId, buildings]);
 
   useEffect(() => {
     setMenuOpen(false);
@@ -232,6 +254,7 @@ export default function Nav() {
       if (i === 1 && parts[0] === "buildings") {
         const b = buildings.find((x) => x.id === seg);
         if (b) label = b.name;
+        else if (seg === currentBuildingId && currentBuildingName) label = currentBuildingName;
       }
 
       if (/^[0-9a-f-]{8,}$/i.test(seg) && !(i === 1 && parts[0] === "buildings")) {
@@ -242,7 +265,7 @@ export default function Nav() {
     }
 
     return items;
-  }, [pathname, buildings]);
+  }, [pathname, buildings, currentBuildingId, currentBuildingName]);
 
   if (hideOnLogin) return null;
 
