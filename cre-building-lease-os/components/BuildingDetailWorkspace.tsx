@@ -68,10 +68,11 @@ export default function BuildingDetailWorkspace({ buildingId, initial, floors }:
               </td>
             </tr>
             <tr className="border-b">
-              <th className="bg-gray-50 px-3 py-2 text-left font-medium">地址</th>
+              <th className="bg-gray-50 px-3 py-2 text-left font-medium">門牌 / 戶號</th>
               <td className="px-3 py-2">
                 <InlineEditableField
                   value={building.address}
+                  placeholder="例如：168號;168號-1;170號3F-A1"
                   onSave={async (value) => {
                     await patchBuilding({ address: value || null });
                     setBuilding((prev) => ({ ...prev, address: value }));
@@ -107,7 +108,7 @@ export default function BuildingDetailWorkspace({ buildingId, initial, floors }:
           <thead className="border-b bg-gray-50">
             <tr>
               <th className="px-3 py-2 text-left">樓層</th>
-              <th className="px-3 py-2 text-left">地址/房號/單位</th>
+              <th className="px-3 py-2 text-left">門牌 / 戶號</th>
               <th className="px-3 py-2 text-left">公共設施</th>
               <th className="px-3 py-2 text-left">維修狀態</th>
             </tr>

@@ -45,7 +45,7 @@ export default async function BuildingOverviewPage({
         floors={floors.map((floor) => ({
           id: floor.id,
           label: floor.label,
-          unitCodes: floor.units.map((unit) => `${building.address || ""} ${floor.label}-${unit.code}`.trim()),
+          unitCodes: floor.units.map((unit) => unit.code).filter(Boolean),
           commonAreas: floor.commonAreas.map((area) => area.name),
           openRepairs: floor.repairRecords.filter((repair) => repair.status !== RepairStatus.COMPLETED && repair.status !== RepairStatus.ACCEPTED).length,
           completedRepairs: floor.repairRecords.filter((repair) => repair.status === RepairStatus.COMPLETED || repair.status === RepairStatus.ACCEPTED).length,
