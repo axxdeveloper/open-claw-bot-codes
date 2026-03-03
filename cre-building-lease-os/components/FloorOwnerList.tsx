@@ -16,7 +16,7 @@ export default function FloorOwnerList({ data }: { data: FloorOwnerRow[] }) {
 
   return (
     <div className="rounded border bg-white p-3">
-      <h3 className="mb-2 font-semibold">Floor Owners</h3>
+      <h3 className="mb-2 font-semibold">樓層業主</h3>
       <ul className="space-y-2 text-sm">
         {data.map((fo) => (
           <li key={fo.id} className="flex items-center justify-between rounded border p-2">

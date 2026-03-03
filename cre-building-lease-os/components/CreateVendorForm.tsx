@@ -41,7 +41,7 @@ export default function CreateVendorForm({ buildingId }: { buildingId: string })
       <input name="name" placeholder="廠商名稱" className="rounded border px-2 py-1 text-sm" required />
       <input name="contactName" placeholder="聯絡人" className="rounded border px-2 py-1 text-sm" />
       <input name="contactPhone" placeholder="電話" className="rounded border px-2 py-1 text-sm" />
-      <input name="contactEmail" placeholder="Email" className="rounded border px-2 py-1 text-sm" />
+      <input name="contactEmail" placeholder="電子郵件" className="rounded border px-2 py-1 text-sm" />
       <input name="notes" placeholder="備註" className="rounded border px-2 py-1 text-sm md:col-span-4" />
       {error && <p className="text-sm text-red-600 md:col-span-4">{error}</p>}
       <button className="rounded border px-2 py-1 text-sm md:col-span-4">新增廠商</button>

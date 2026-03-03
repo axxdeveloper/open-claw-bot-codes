@@ -31,7 +31,7 @@ export default async function OwnersPage({
   return (
     <main className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">{building.name} - Owners</h1>
+        <h1 className="text-2xl font-semibold">{building.name} - 業主資料</h1>
         <Link href={`/buildings/${id}`} className="text-sm underline">
           返回總覽
         </Link>

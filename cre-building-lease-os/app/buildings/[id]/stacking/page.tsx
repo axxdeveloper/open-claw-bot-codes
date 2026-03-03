@@ -31,8 +31,8 @@ export default async function StackingPage({
 
   return (
     <main className="space-y-4">
-      <h1 className="text-2xl font-semibold">Stacking 圖 (列表版)</h1>
-      <p className="text-sm text-gray-500">僅顯示 ACTIVE occupancy</p>
+      <h1 className="text-2xl font-semibold">堆疊圖（列表版）</h1>
+      <p className="text-sm text-gray-500">僅顯示 ACTIVE 入住資料</p>
       <ManageEntryCta buildingId={id} hint="若需調整租戶/單位資料，請前往資料維護區。" />
 
       <div className="space-y-3">

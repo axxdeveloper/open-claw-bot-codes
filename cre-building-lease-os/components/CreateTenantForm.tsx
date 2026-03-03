@@ -41,7 +41,7 @@ export default function CreateTenantForm({ buildingId }: { buildingId: string })
       <input name="name" placeholder="租戶名稱" className="rounded border px-3 py-2" required />
       <input name="taxId" placeholder="統編" className="rounded border px-3 py-2" />
       <input name="contactName" placeholder="聯絡人" className="rounded border px-3 py-2" />
-      <input name="contactEmail" placeholder="Email" className="rounded border px-3 py-2" />
+      <input name="contactEmail" placeholder="電子郵件" className="rounded border px-3 py-2" />
       <input name="contactPhone" placeholder="電話" className="rounded border px-3 py-2" />
       <input name="notes" placeholder="備註" className="rounded border px-3 py-2" />
       {error && <p className="text-sm text-red-600 md:col-span-3">{error}</p>}

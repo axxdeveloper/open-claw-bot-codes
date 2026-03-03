@@ -105,7 +105,7 @@ export default function TenantDetailWorkspace({ buildingId, breadcrumb, header, 
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-3">
             <div>
-              <p className="text-xs uppercase tracking-wider text-slate-300">Tenant Profile</p>
+              <p className="text-xs uppercase tracking-wider text-slate-300">租戶檔案</p>
               <h1 className="text-2xl font-semibold md:text-3xl">{header.tenantName || PLACEHOLDER}</h1>
               <p className="text-sm text-slate-200">{header.buildingName || PLACEHOLDER}</p>
             </div>
@@ -125,7 +125,7 @@ export default function TenantDetailWorkspace({ buildingId, breadcrumb, header, 
       <section className="grid gap-4 xl:grid-cols-3">
         <div className="space-y-4 xl:col-span-2">
           <article className="rounded-xl border bg-white p-4">
-            <h2 className="mb-3 text-base font-semibold">Unit Information</h2>
+            <h2 className="mb-3 text-base font-semibold">單位資訊</h2>
             <div className="grid gap-3 text-sm md:grid-cols-2">
               <InfoItem label="大樓" value={header.buildingName} />
               <InfoItem label="租用單位" value={header.unitSummary} />
@@ -161,13 +161,13 @@ export default function TenantDetailWorkspace({ buildingId, breadcrumb, header, 
           </article>
 
           <article className="rounded-xl border bg-white p-4">
-            <h2 className="mb-3 text-base font-semibold">Tenant Profile</h2>
+            <h2 className="mb-3 text-base font-semibold">租戶資料</h2>
             <table className="w-full text-sm">
               <tbody>
                 {[
                   ["公司名稱", "name"],
                   ["聯絡人", "contactName"],
-                  ["Email", "contactEmail"],
+                  ["電子郵件", "contactEmail"],
                   ["電話", "contactPhone"],
                   ["統編", "taxId"],
                   ["備註", "notes"],
@@ -191,7 +191,7 @@ export default function TenantDetailWorkspace({ buildingId, breadcrumb, header, 
 
           <article className="rounded-xl border bg-white p-4">
             <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-base font-semibold">Documents & Media</h2>
+              <h2 className="text-base font-semibold">文件與媒體</h2>
               <span className="text-xs text-gray-500">綁定大樓：{buildingId.slice(0, 8)}</span>
             </div>
 
@@ -278,8 +278,8 @@ export default function TenantDetailWorkspace({ buildingId, breadcrumb, header, 
         <div className="space-y-4">
           <article className="rounded-xl border bg-white p-4">
             <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-base font-semibold">Contact List</h2>
-              <button type="button" className="rounded border px-2 py-1 text-xs">Add New Contact</button>
+              <h2 className="text-base font-semibold">聯絡人清單</h2>
+              <button type="button" className="rounded border px-2 py-1 text-xs">新增聯絡人</button>
             </div>
             <div className="space-y-2">
               {contacts.map((contact) => (
@@ -294,7 +294,7 @@ export default function TenantDetailWorkspace({ buildingId, breadcrumb, header, 
           </article>
 
           <article className="rounded-xl border bg-white p-4">
-            <h2 className="mb-3 text-base font-semibold">Quick Actions</h2>
+            <h2 className="mb-3 text-base font-semibold">快捷操作</h2>
             <div className="grid gap-2 text-sm">
               <button type="button" className="rounded border px-3 py-2 text-left hover:bg-slate-50">+ 建立追蹤事項（即將推出）</button>
               <button type="button" className="rounded border px-3 py-2 text-left hover:bg-slate-50">+ 匯出租戶摘要（即將推出）</button>

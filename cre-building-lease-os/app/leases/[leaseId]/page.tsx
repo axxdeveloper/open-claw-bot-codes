@@ -51,7 +51,7 @@ export default async function LeaseDetailPage({
       </div>
 
       <div className="rounded border bg-white p-4">
-        <h2 className="mb-2 font-semibold">Occupancy（含 DRAFT/ACTIVE）</h2>
+        <h2 className="mb-2 font-semibold">入住狀態（含 DRAFT/ACTIVE）</h2>
         <ul className="list-disc space-y-1 pl-5 text-sm">
           {lease.occupancies.map((occ) => (
             <li key={occ.id}>

@@ -4,10 +4,10 @@ import { prisma } from "@/lib/prisma";
 import AddUnitForm from "@/components/AddUnitForm";
 import AssignFloorOwnerForm from "@/components/AssignFloorOwnerForm";
 
-const PLACEHOLDER = "Not provided";
+const PLACEHOLDER = "未提供";
 
 function formatDate(value: Date | null | undefined) {
-  if (!value) return "Present";
+  if (!value) return "迄今";
   return value.toISOString().slice(0, 10);
 }
 
@@ -78,21 +78,21 @@ export default async function FloorDetailPage({
   const contactRows = [
     {
       id: "primary",
-      role: "Primary Contact",
+      role: "主要聯絡人",
       name: fallback(activeOccupancy?.tenant.contactName || activeOccupancy?.tenant.name),
       phone: fallback(activeOccupancy?.tenant.contactPhone),
       email: fallback(activeOccupancy?.tenant.contactEmail),
     },
     {
       id: "finance",
-      role: "Finance / Billing",
+      role: "財務 / 帳務",
       name: fallback(secondaryTenant?.contactName || secondaryTenant?.name),
       phone: fallback(secondaryTenant?.contactPhone),
       email: fallback(secondaryTenant?.contactEmail),
     },
     {
       id: "ops",
-      role: "Site Operations",
+      role: "現場營運",
       name: fallback(activeOccupancy?.tenant.name || secondaryTenant?.name),
       phone: fallback(activeOccupancy?.tenant.contactPhone || secondaryTenant?.contactPhone),
       email: fallback(activeOccupancy?.tenant.contactEmail || secondaryTenant?.contactEmail),
@@ -112,7 +112,7 @@ export default async function FloorDetailPage({
   const leaseAttachments = leases.flatMap((lease) =>
     lease.leaseAttachments.map((attachment) => ({
       ...attachment,
-      leaseLabel: `${formatDate(lease.startDate)} to ${formatDate(lease.endDate)} (${lease.status})`,
+      leaseLabel: `${formatDate(lease.startDate)} 至 ${formatDate(lease.endDate)}（${lease.status}）`,
     })),
   );
 
@@ -136,7 +136,7 @@ export default async function FloorDetailPage({
       <section className="rounded-xl border bg-gradient-to-r from-slate-900 via-slate-800 to-slate-700 p-4 text-white md:p-5">
         <div className="text-xs text-slate-200">
           <Link href="/buildings" className="underline underline-offset-2">
-            Buildings
+            大樓總覽
           </Link>{" "}
           /{" "}
           <Link href={`/buildings/${id}`} className="underline underline-offset-2">
@@ -147,27 +147,27 @@ export default async function FloorDetailPage({
 
         <div className="mt-3 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-2">
-            <p className="text-xs uppercase tracking-wider text-slate-300">Floor Context</p>
-            <h1 className="text-2xl font-semibold md:text-3xl">{floor.label} - Unit Details</h1>
+            <p className="text-xs uppercase tracking-wider text-slate-300">樓層概況</p>
+            <h1 className="text-2xl font-semibold md:text-3xl">{floor.label} - 單位明細</h1>
             <p className="text-sm text-slate-200">
-              Data-first summary for ownership, tenants, contacts, lease documents, photos, and location references.
+              以資料為核心整理產權、租戶、聯絡資訊、租約文件、照片與位置資訊。
             </p>
             <div className="flex flex-wrap gap-2 text-xs text-slate-100">
-              <span className="rounded-full border border-slate-400/50 bg-slate-700/60 px-3 py-1">Units: {unitsCount}</span>
-              <span className="rounded-full border border-slate-400/50 bg-slate-700/60 px-3 py-1">Active tenants: {tenants.length}</span>
-              <span className="rounded-full border border-slate-400/50 bg-slate-700/60 px-3 py-1">Address: {fallback(building.address)}</span>
+              <span className="rounded-full border border-slate-400/50 bg-slate-700/60 px-3 py-1">單位數：{unitsCount}</span>
+              <span className="rounded-full border border-slate-400/50 bg-slate-700/60 px-3 py-1">目前租戶：{tenants.length}</span>
+              <span className="rounded-full border border-slate-400/50 bg-slate-700/60 px-3 py-1">地址：{fallback(building.address)}</span>
             </div>
           </div>
 
           <div className="flex flex-wrap gap-2 lg:justify-end">
             <button type="button" className="rounded-md border border-white/50 px-3 py-1.5 text-sm hover:bg-white/10">
-              Activity Log
+              操作紀錄
             </button>
             <button type="button" className="rounded-md border border-white/50 px-3 py-1.5 text-sm hover:bg-white/10">
-              Edit All Fields
+              編輯全部欄位
             </button>
             <Link href={`/buildings/${id}/floors`} className="rounded-md border border-white/50 px-3 py-1.5 text-sm hover:bg-white/10">
-              Back to Floors
+              回樓層列表
             </Link>
           </div>
         </div>
@@ -176,10 +176,10 @@ export default async function FloorDetailPage({
       <section className="grid gap-4 xl:grid-cols-5">
         <div className="space-y-4 xl:col-span-3">
           <article className="rounded-xl border bg-white p-4">
-            <h2 className="mb-3 text-base font-semibold">Ownership & Property</h2>
+            <h2 className="mb-3 text-base font-semibold">產權與不動產資訊</h2>
             <div className="grid gap-3 text-sm md:grid-cols-2">
-              <InfoItem label="Building" value={building.name} />
-              <InfoItem label="Floor" value={floor.label} />
+              <InfoItem label="大樓" value={building.name} />
+              <InfoItem label="樓層" value={floor.label} />
               <InfoItem label="產權" value={ownershipDisplay} />
               <InfoItem
                 label="坪數"
@@ -212,9 +212,9 @@ export default async function FloorDetailPage({
             <table className="mt-4 w-full text-sm">
               <thead className="border-b bg-gray-50">
                 <tr>
-                  <th className="px-2 py-1 text-left">Owner</th>
-                  <th className="px-2 py-1 text-left">Share</th>
-                  <th className="px-2 py-1 text-left">Term</th>
+                  <th className="px-2 py-1 text-left">業主</th>
+                  <th className="px-2 py-1 text-left">持分</th>
+                  <th className="px-2 py-1 text-left">期間</th>
                 </tr>
               </thead>
               <tbody>
@@ -223,14 +223,14 @@ export default async function FloorDetailPage({
                     <td className="px-2 py-1">{fallback(row.owner.name)}</td>
                     <td className="px-2 py-1">{Number(row.sharePercent)}%</td>
                     <td className="px-2 py-1 text-xs">
-                      {formatDate(row.startDate)} to {formatDate(row.endDate)}
+                      {formatDate(row.startDate)} 至 {formatDate(row.endDate)}
                     </td>
                   </tr>
                 ))}
                 {floor.floorOwners.length === 0 && (
                   <tr>
                     <td className="px-2 py-3 text-center text-gray-500" colSpan={3}>
-                      No ownership records yet.
+                      目前尚無產權紀錄。
                     </td>
                   </tr>
                 )}
@@ -239,13 +239,13 @@ export default async function FloorDetailPage({
           </article>
 
           <article className="rounded-xl border bg-white p-4">
-            <h2 className="mb-3 text-base font-semibold">Tenant Information</h2>
+            <h2 className="mb-3 text-base font-semibold">租戶資訊</h2>
             <table className="w-full text-sm">
               <thead className="border-b bg-gray-50">
                 <tr>
-                  <th className="px-2 py-1 text-left">Unit</th>
-                  <th className="px-2 py-1 text-left">Area</th>
-                  <th className="px-2 py-1 text-left">Tenants</th>
+                  <th className="px-2 py-1 text-left">單位</th>
+                  <th className="px-2 py-1 text-left">坪數</th>
+                  <th className="px-2 py-1 text-left">租戶</th>
                 </tr>
               </thead>
               <tbody>
@@ -257,7 +257,7 @@ export default async function FloorDetailPage({
                         {floor.label}-{unit.code}
                       </td>
                       <td className="px-2 py-1 text-xs">
-                        Gross {formatArea(Number(unit.grossArea))} / Net {formatArea(unit.netArea ? Number(unit.netArea) : null)}
+                        總坪 {formatArea(Number(unit.grossArea))} / 室內 {formatArea(unit.netArea ? Number(unit.netArea) : null)}
                       </td>
                       <td className="px-2 py-1 text-xs">
                         {unitOccupancies.map((occ) => (
@@ -273,7 +273,7 @@ export default async function FloorDetailPage({
                 {floor.units.length === 0 && (
                   <tr>
                     <td className="px-2 py-3 text-center text-gray-500" colSpan={3}>
-                      No units on this floor yet.
+                      此樓層尚無單位。
                     </td>
                   </tr>
                 )}
@@ -283,8 +283,8 @@ export default async function FloorDetailPage({
 
           <article className="rounded-xl border bg-white p-4">
             <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-base font-semibold">Contact Information</h2>
-              <span className="text-xs text-gray-500">3 contact roles</span>
+              <h2 className="text-base font-semibold">聯絡資訊</h2>
+              <span className="text-xs text-gray-500">3 種聯絡角色</span>
             </div>
             <div className="space-y-2">
               {contactRows.map((contact) => (
@@ -301,14 +301,14 @@ export default async function FloorDetailPage({
           </article>
 
           <details className="rounded-xl border bg-white p-4">
-            <summary className="cursor-pointer text-sm font-semibold">Admin Tools (kept for existing workflows)</summary>
+            <summary className="cursor-pointer text-sm font-semibold">管理工具（保留既有流程）</summary>
             <div className="mt-3 space-y-4">
               <section>
-                <h3 className="mb-2 text-sm font-medium">Assign Floor Owner</h3>
+                <h3 className="mb-2 text-sm font-medium">指派樓層業主</h3>
                 <AssignFloorOwnerForm floorId={floor.id} owners={owners.map((owner) => ({ id: owner.id, name: owner.name }))} />
               </section>
               <section>
-                <h3 className="mb-2 text-sm font-medium">Add Unit</h3>
+                <h3 className="mb-2 text-sm font-medium">新增單位</h3>
                 <AddUnitForm floorId={floor.id} />
               </section>
             </div>
@@ -318,9 +318,9 @@ export default async function FloorDetailPage({
         <div className="space-y-4 xl:col-span-2">
           <article className="rounded-xl border bg-white p-4">
             <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-base font-semibold">Lease Agreement</h2>
+              <h2 className="text-base font-semibold">租約文件</h2>
               <button type="button" className="rounded border px-2 py-1 text-xs hover:bg-slate-50">
-                Upload Revision
+                上傳新版
               </button>
             </div>
 
@@ -341,7 +341,7 @@ export default async function FloorDetailPage({
               ))}
               {leaseAttachments.length === 0 && (
                 <div className="rounded-lg border border-dashed p-4 text-center text-sm text-gray-500">
-                  No lease attachments yet.
+                  目前尚無租約附件。
                 </div>
               )}
             </div>
@@ -349,9 +349,9 @@ export default async function FloorDetailPage({
 
           <article className="rounded-xl border bg-white p-4">
             <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-base font-semibold">Unit Photos</h2>
+              <h2 className="text-base font-semibold">單位照片</h2>
               <button type="button" className="rounded border px-2 py-1 text-xs hover:bg-slate-50">
-                Add Photo
+                新增照片
               </button>
             </div>
 
@@ -373,28 +373,28 @@ export default async function FloorDetailPage({
                 );
               })}
               <div className="flex min-h-28 items-center justify-center rounded-lg border border-dashed p-2 text-center text-xs text-gray-500">
-                + Add photo placeholder
+                + 新增照片預留位
               </div>
             </div>
           </article>
 
           <article className="rounded-xl border bg-white p-4">
             <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-base font-semibold">Location Mapping</h2>
+              <h2 className="text-base font-semibold">位置標記</h2>
               <button type="button" className="rounded border px-2 py-1 text-xs hover:bg-slate-50">
-                Update Pin
+                更新定位
               </button>
             </div>
             <div className="rounded-lg border bg-gradient-to-br from-slate-100 to-slate-200 p-4">
               <div className="flex h-36 items-center justify-center rounded border border-dashed border-slate-400 bg-white/60 text-sm text-slate-600">
-                Map preview placeholder
+                地圖預覽預留區
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
                 <button type="button" className="rounded border px-2 py-1 text-xs hover:bg-white">
-                  Open in Maps
+                  在地圖中開啟
                 </button>
                 <button type="button" className="rounded border px-2 py-1 text-xs hover:bg-white">
-                  Copy Coordinates
+                  複製座標
                 </button>
               </div>
             </div>

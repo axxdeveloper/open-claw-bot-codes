@@ -131,9 +131,9 @@ export default function RepairsKanbanBoard({
   }
 
   const tabs: { key: TabKey; label: string }[] = [
-    { key: "board", label: "Board View" },
-    { key: "history", label: "Repair History" },
-    { key: "vendors", label: "Vendors" },
+    { key: "board", label: "看板檢視" },
+    { key: "history", label: "維修歷程" },
+    { key: "vendors", label: "廠商" },
   ];
 
   return (
@@ -141,7 +141,7 @@ export default function RepairsKanbanBoard({
       <div className="rounded-xl border bg-white p-4 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="text-xs text-gray-500">Maintenance & Repair</p>
+            <p className="text-xs text-gray-500">維護與修繕</p>
             <h1 className="text-2xl font-semibold">{buildingName} 維修管理</h1>
           </div>
           <button
@@ -151,7 +151,7 @@ export default function RepairsKanbanBoard({
             }}
             className="rounded-lg bg-black px-3 py-2 text-sm font-medium text-white"
           >
-            Create Ticket
+            新增工單
           </button>
         </div>
 
@@ -186,9 +186,9 @@ export default function RepairsKanbanBoard({
           <section className="grid gap-4 xl:grid-cols-[minmax(0,2fr)_360px]">
             <div className="grid gap-4 md:grid-cols-3">
               {[
-                { key: "new" as const, title: "NEW / PENDING" },
-                { key: "progress" as const, title: "IN PROGRESS" },
-                { key: "done" as const, title: "COMPLETED" },
+                { key: "new" as const, title: "新建 / 待處理" },
+                { key: "progress" as const, title: "處理中" },
+                { key: "done" as const, title: "已完成" },
               ].map((column) => (
                 <div key={column.key} className="rounded-xl border bg-gray-50 p-3">
                   <div className="mb-3 flex items-center justify-between">
@@ -274,7 +274,7 @@ export default function RepairsKanbanBoard({
               {selected ? (
                 <div className="space-y-4">
                   <div>
-                    <p className="text-xs text-gray-500">Ticket #{selected.id.slice(-6)}</p>
+                    <p className="text-xs text-gray-500">工單 #{selected.id.slice(-6)}</p>
                     <h2 className="text-lg font-semibold">{selected.item || "未命名工單"}</h2>
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -287,14 +287,14 @@ export default function RepairsKanbanBoard({
                   </div>
 
                   <section>
-                    <h3 className="text-sm font-medium">Issue Description</h3>
+                    <h3 className="text-sm font-medium">問題描述</h3>
                     <p className="mt-1 whitespace-pre-wrap text-sm text-gray-700">
                       {selected.description || "尚未提供描述"}
                     </p>
                   </section>
 
                   <section>
-                    <h3 className="text-sm font-medium">Location</h3>
+                    <h3 className="text-sm font-medium">位置</h3>
                     <p className="mt-1 text-sm text-gray-700">{buildingName}</p>
                     <p className="text-sm text-gray-600">
                       {selected.floor?.label || selected.commonArea?.name || "未設定樓層/公共區域"}
@@ -302,12 +302,12 @@ export default function RepairsKanbanBoard({
                   </section>
 
                   <section>
-                    <h3 className="text-sm font-medium">Reported Time</h3>
+                    <h3 className="text-sm font-medium">通報時間</h3>
                     <p className="mt-1 text-sm text-gray-700">{formatDate(selected.reportedAt || selected.createdAt)}</p>
                   </section>
 
                   <section>
-                    <h3 className="text-sm font-medium">Attachments</h3>
+                    <h3 className="text-sm font-medium">附件</h3>
                     <div className="mt-2 grid grid-cols-3 gap-2">
                       {selected.repairAttachments.length > 0 ? (
                         selected.repairAttachments.map((file) => (
@@ -332,7 +332,7 @@ export default function RepairsKanbanBoard({
                   </section>
 
                   <section>
-                    <h3 className="mb-1 text-sm font-medium">Assign Vendor</h3>
+                    <h3 className="mb-1 text-sm font-medium">指派廠商</h3>
                     <div className="flex gap-2">
                       <select
                         value={vendorDraft[selected.id] ?? ""}
@@ -371,12 +371,12 @@ export default function RepairsKanbanBoard({
 
       {tab === "history" && (
         <section className="rounded-xl border bg-white p-4 shadow-sm">
-          <h2 className="mb-3 text-sm font-semibold">Repair History</h2>
+          <h2 className="mb-3 text-sm font-semibold">維修歷程</h2>
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
               <thead>
                 <tr className="border-b text-left text-xs text-gray-500">
-                  <th className="pb-2 pr-3">Ticket</th>
+                  <th className="pb-2 pr-3">工單</th>
                   <th className="pb-2 pr-3">項目</th>
                   <th className="pb-2 pr-3">地點</th>
                   <th className="pb-2 pr-3">廠商</th>
@@ -403,7 +403,7 @@ export default function RepairsKanbanBoard({
 
       {tab === "vendors" && (
         <section className="space-y-4 rounded-xl border bg-white p-4 shadow-sm">
-          <h2 className="text-sm font-semibold">Vendors</h2>
+          <h2 className="text-sm font-semibold">廠商</h2>
           <CreateVendorForm buildingId={buildingId} />
           <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {vendors.map((vendor) => (
