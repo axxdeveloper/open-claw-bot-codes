@@ -38,7 +38,7 @@ export default function LoginPage() {
   return (
     <main className="mx-auto mt-20 max-w-md rounded-xl border bg-white p-6 shadow-sm">
       <h1 className="mb-4 text-2xl font-semibold">登入 CRE Lease OS</h1>
-      <p className="mb-6 text-sm text-gray-500">請輸入密碼登入（預設：0910301562；測試：0912505345）。</p>
+      <p className="mb-6 text-sm text-gray-500">請輸入公司配發的登入密碼。</p>
       <form onSubmit={onSubmit} className="space-y-3">
         <input
           name="password"
