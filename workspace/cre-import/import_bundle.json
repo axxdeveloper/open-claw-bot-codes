@@ -1,0 +1,14 @@
+{
+  "sourceFile": "tmp-tenant.xlsx",
+  "sourceSheetUsed": "113",
+  "summary": {
+    "tenantCount": 61,
+    "occupancyDraftCount": 65,
+    "issuesCount": 12
+  },
+  "files": {
+    "tenants": "tenants.csv",
+    "occupanciesDraft": "occupancies_draft.csv",
+    "issues": "import_issues.csv"
+  }
+}

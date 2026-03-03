@@ -1,0 +1,57 @@
+---
+layout: post
+title: Handle InterruptedException
+date: 2016-11-18 02:33:00 +0800
+tags: [java, java concurrent]
+---
+
+<h3>
+Reference</h3>
+<div>
+<a href="http://www.ibm.com/developerworks/library/j-jtp05236/">Dealing with InterruptedException</a></div>
+<div>
+<br /></div>
+<h3>
+How to handle InterruptedException</h3>
+<div>
+<ul>
+<li>Throw it directly</li>
+<li>If you can't throw it, call Thread.currentThread().interrupt()</li>
+<li>Check Thread.currentThread().isInterrupted() every while loop if you catch an InterruptedException within the loop block</li>
+</ul>
+<h3>
+Example:</h3>
+</div>
+<div>
+This example shows how to handle InterruptedException, you can change code to check what will happen in other cases.</div>
+<div>
+<pre>public class TestMain {
+
+ public static void main(String[] params) {
+  ThreadPoolExecutor e = (ThreadPoolExecutor) Executors.newCachedThreadPool();
+  MyRunnable r = new MyRunnable();
+  e.execute(r);
+  System.out.println("shutdown");
+  e.shutdownNow();
+  System.out.println("shutdown done");
+ }
+
+ private static class MyRunnable implements Runnable {
+
+  @Override
+  public void run() {
+   while (!Thread.currentThread().isInterrupted()) {
+    try {
+     System.out.println("sleep");
+     TimeUnit.HOURS.sleep(1);
+    } catch (InterruptedException e) {
+     e.printStackTrace();
+     Thread.currentThread().interrupt();
+    }
+   }
+  }
+ }
+
+}
+</pre>
+<br /></div>

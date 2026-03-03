@@ -1,0 +1,80 @@
+{% assign now = site.time %}
+{% assign cal_year = now | date: "%Y" | plus: 0 %}
+{% assign cal_month = now | date: "%m" | plus: 0 %}
+{% assign cal_month_name = now | date: "%B %Y" %}
+
+{% assign days_in_months = "31,28,31,30,31,30,31,31,30,31,30,31" | split: "," %}
+{% assign month_idx = cal_month | minus: 1 %}
+{% assign days_in_month = days_in_months[month_idx] | plus: 0 %}
+
+{% if cal_month == 2 %}
+  {% assign mod4 = cal_year | modulo: 4 %}
+  {% assign mod100 = cal_year | modulo: 100 %}
+  {% assign mod400 = cal_year | modulo: 400 %}
+  {% if mod4 == 0 %}
+    {% if mod100 != 0 or mod400 == 0 %}
+      {% assign days_in_month = 29 %}
+    {% endif %}
+  {% endif %}
+{% endif %}
+
+{% capture month_str %}{% if cal_month < 10 %}0{{ cal_month }}{% else %}{{ cal_month }}{% endif %}{% endcapture %}
+{% assign month_str = month_str | strip %}
+{% assign first_day_str = cal_year | append: "-" | append: month_str | append: "-01" %}
+{% assign first_dow = first_day_str | date: "%w" | plus: 0 %}
+
+{% assign post_day_list = "" | split: "" %}
+{% assign post_url_list = "" | split: "" %}
+{% for post in site.posts %}
+  {% assign p_y = post.date | date: "%Y" | plus: 0 %}
+  {% assign p_m = post.date | date: "%m" | plus: 0 %}
+  {% if p_y == cal_year and p_m == cal_month %}
+    {% assign p_d = post.date | date: "%-d" %}
+    {% unless post_day_list contains p_d %}
+      {% assign post_day_list = post_day_list | push: p_d %}
+      {% assign post_url_list = post_url_list | push: post.url %}
+    {% endunless %}
+  {% endif %}
+{% endfor %}
+
+{% assign total_cells = first_dow | plus: days_in_month %}
+{% assign remainder = total_cells | modulo: 7 %}
+{% if remainder > 0 %}
+  {% assign total_cells = total_cells | plus: 7 | minus: remainder %}
+{% endif %}
+
+<div class="sidebar-calendar">
+  <h4 class="sidebar-calendar__title">{{ cal_month_name }}</h4>
+  <table class="sidebar-calendar__grid">
+    <thead>
+      <tr><th>Su</th><th>Mo</th><th>Tu</th><th>We</th><th>Th</th><th>Fr</th><th>Sa</th></tr>
+    </thead>
+    <tbody>
+      {% for cell in (1..42) %}
+        {% if cell > total_cells %}{% break %}{% endif %}
+        {% assign cell_idx = cell | minus: 1 %}
+        {% assign col = cell_idx | modulo: 7 %}
+        {% if col == 0 %}<tr>{% endif %}
+        {% assign day = cell_idx | minus: first_dow | plus: 1 %}
+        {% if day >= 1 and day <= days_in_month %}
+          {% assign day_str = day | append: "" %}
+          {% assign found_url = "" %}
+          {% for pd in post_day_list %}
+            {% if pd == day_str %}
+              {% assign found_url = post_url_list[forloop.index0] %}
+              {% break %}
+            {% endif %}
+          {% endfor %}
+          {% if found_url != "" %}
+            <td class="has-post"><a href="{{ found_url | relative_url }}">{{ day }}</a></td>
+          {% else %}
+            <td>{{ day }}</td>
+          {% endif %}
+        {% else %}
+          <td></td>
+        {% endif %}
+        {% if col == 6 %}</tr>{% endif %}
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

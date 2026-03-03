@@ -1,0 +1,156 @@
+---
+layout: post
+title: Lessons Learned While Benchmarking vLLM with GPU
+date: 2026-02-13 19:15:00 +0800
+tags: [vllm]
+lang: en
+---
+
+<p>Recently, I benchmarked vLLM on a GPU to better understand how much throughput can realistically be expected in an LLM serving setup.</p>
+
+<p><strong>One thing surprised me early on:</strong></p>
+
+<p><strong>High GPU utilization does not necessarily mean high throughput.</strong></p>
+
+<hr />
+
+<h2>Initial Setup and Confusion</h2>
+
+<p>Once the model and vLLM server were running, the OpenAI-compatible endpoint was ready for testing. I used a benchmarking script to vary:</p>
+
+<ul>
+  <li>Number of connections</li>
+  <li>Concurrency levels</li>
+  <li>Request patterns</li>
+</ul>
+
+<p>I mainly measured:</p>
+
+<ul>
+  <li>Requests per second</li>
+  <li>Token throughput</li>
+</ul>
+
+<p>The first results were confusing.</p>
+
+<p>GPU utilization stayed around 99%, yet overall throughput looked lower than expected. At first, I wasn’t sure whether this was normal behavior or a flaw in my benchmarking method.</p>
+
+<p>It felt like the system was working hard, but not producing as much output as I expected.</p>
+
+<hr />
+
+<h2>Benchmark Method Matters More Than I Thought</h2>
+
+<p>After several rounds of testing and discussions with teammates, I adjusted the methodology to make it more consistent:</p>
+
+<ul>
+  <li>Fix the total request count</li>
+  <li>Control the number of connections</li>
+  <li>Send requests in bursts instead of spaced batches</li>
+  <li>Increase connection count step by step</li>
+</ul>
+
+<p>This changed everything.</p>
+
+<p>In my earlier tests, I was sending requests in batches with time gaps. If the number of active connections wasn’t enough to fully load the server, the measured throughput appeared artificially low.</p>
+
+<p>Once I switched to burst-style traffic and ensured the request queue stayed full, throughput increased significantly.</p>
+
+<p>Requests per second and token throughput both improved as connection count increased — up to a point.</p>
+
+<p>After reaching a certain threshold, adding more connections actually reduced performance. That was when the true capacity limit became visible.</p>
+
+<p><strong>This was my first major takeaway:</strong></p>
+
+<p><strong>If the server isn’t fully loaded, your benchmark results don’t reflect its real capacity.</strong></p>
+
+<hr />
+
+<h2>Misunderstanding “Batching”</h2>
+
+<p>Another thing I misunderstood was what “Batch API” actually means in practice.</p>
+
+<p>My initial prompt structure was:</p>
+
+<ul>
+  <li>One fixed system message</li>
+  <li>One variable user message</li>
+</ul>
+
+<p>Since the system message remained constant, prefix caching worked well. The prefix cache hit rate stayed around 50–60%.</p>
+
+<p>Later, I tried a different approach:</p>
+
+<p>One system message with multiple user messages combined into a single request.</p>
+
+<p>I expected this to process more inputs more efficiently. But the results were different from what I anticipated.</p>
+
+<p>Here’s what happened:</p>
+
+<ul>
+  <li>Context window limits were reached more easily</li>
+  <li>Prefix cache hit rate dropped</li>
+  <li>KV cache memory filled up faster</li>
+  <li><code>vllm:num_preemptions_total</code> increased</li>
+</ul>
+
+<p>Preemptions meant some sequences were evicted from GPU memory and had to be recomputed later.</p>
+
+<p>Even though more text was processed in one request, the number of independent user messages handled efficiently did not increase proportionally.</p>
+
+<p>The shared prefix became a smaller fraction of the total prompt, reducing the benefits of prefix caching. At the same time, memory pressure increased significantly.</p>
+
+<hr />
+
+<h2>What vLLM Is Actually Doing</h2>
+
+<p>Looking more closely at vLLM metrics helped clarify what was happening. Metrics such as:</p>
+
+<ul>
+  <li>Prefix cache hit rate</li>
+  <li>KV cache usage</li>
+  <li>Number of running requests</li>
+  <li>Prefill time</li>
+  <li>Decode time</li>
+  <li>Preemptions</li>
+</ul>
+
+<p>gave visibility into the internal behavior of the scheduler.</p>
+
+<p>What I eventually learned is that vLLM uses <strong>continuous batching</strong>, not static batching.</p>
+
+<p>Continuous batching dynamically groups sequences at each decoding step. The scheduler decides how many tokens and sequences can run together, constrained by limits like:</p>
+
+<ul>
+  <li>Maximum number of batched tokens</li>
+  <li>Maximum number of sequences</li>
+</ul>
+
+<p>Batching in vLLM is token-based and dynamic. It is not simply about combining multiple prompts into a larger request.</p>
+
+<p>This clarified why my “bulk prompt” approach didn’t improve throughput the way I expected.</p>
+
+<hr />
+
+<h2>Key Takeaways</h2>
+
+<ul>
+  <li>99% GPU utilization does not guarantee optimal throughput</li>
+  <li>Under-loading the server leads to misleading benchmark results</li>
+  <li>Connection count strongly affects measured capacity</li>
+  <li>Larger prompts can reduce prefix cache efficiency</li>
+  <li>Memory pressure can trigger preemptions and recomputation</li>
+  <li>Continuous batching changes how we should think about batching</li>
+</ul>
+
+<hr />
+
+<h2>Final Thoughts</h2>
+
+<p>This wasn’t a deep research study. I’m still relatively new to LLM serving systems.</p>
+
+<p>But going through this process helped me build a clearer mental model of how load, memory, caching, and scheduling interact in practice.</p>
+
+<p>Benchmarking is not just about generating numbers — it’s about understanding how the system behaves under pressure.</p>
+
+<p>It turned out to be a much more interesting learning experience than I initially expected.</p>

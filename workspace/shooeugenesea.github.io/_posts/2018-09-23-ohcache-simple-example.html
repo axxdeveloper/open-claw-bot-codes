@@ -1,0 +1,113 @@
+---
+layout: post
+title: Off Heap Cache - OHCache - Simple Example
+date: 2018-09-23 07:00:00 +0800
+tags: [java]
+---
+
+<h2>
+Reference</h2>
+<div>
+<a href="https://github.com/snazy/ohc" target="_blank">https://github.com/snazy/ohc</a></div>
+<div>
+<a href="https://docs.oracle.com/javase/8/docs/api/java/nio/MappedByteBuffer.html" target="_blank">https://docs.oracle.com/javase/8/docs/api/java/nio/MappedByteBuffer.html</a><br />
+<a href="https://github.com/shooeugenesea/study-practice/tree/ohc" target="_blank">https://github.com/shooeugenesea/study-practice/tree/ohc</a></div>
+<h2>
+What</h2>
+<div>
+OHC 是一個 off heap 的 cache library</div>
+<h2>
+Why</h2>
+<div>
+如果是用 map 做 cache, 資料都在 heap 裡面, heap 裡面的問題就是</div>
+<div>
+<ol>
+<li>會被 GC, GC 就會週期性的對 JVM 效能產生影響</li>
+<li>如果要 persist 需要另外實作</li>
+</ol>
+<div>
+如果是放在 off heap, 比方說用 mmap, 或是用 MappedByteBuffer access 的記憶體, 就是放在 heap memory 之外, 由作業系統控制著.&nbsp;</div>
+</div>
+<div>
+好處是記憶體量不用被 heap size 限制, 缺點是要自己小心控制, 不然會造成系統問題.'</div>
+<h2>
+How</h2>
+<h3>
+Maven</h3>
+<div>
+<pre>&lt;dependency&gt;
+ &lt;groupId&gt;org.caffinitas.ohc&lt;/groupId&gt;
+ &lt;artifactId&gt;ohc-core&lt;/artifactId&gt;
+ &lt;version&gt;0.4.4&lt;/version&gt;
+&lt;/dependency&gt;
+</pre>
+<h3>
+Codes</h3>
+</div>
+<div>
+<pre>public class SimpleMain {
+
+    public static void main(String[] params) {
+        Scanner scanner = new Scanner(System.in);
+        while(scanner.hasNextLine()) {
+            if (scanner.nextLine().trim().equals("GO")) {
+                System.out.println(Runtime.getRuntime().freeMemory()/1024/1024 + "/" + Runtime.getRuntime().totalMemory()/1024/1024);
+                OHCache&lt;String,String&gt; c = OHCacheBuilder.&lt;String,String&gt;newBuilder()
+                        .keySerializer(new StringSerializer())
+                        .valueSerializer(new StringSerializer())
+                        .build();
+                c.put("A", "A");
+                System.out.println(c.get("A"));
+                IntStream.range(0, 1000_000).forEach(idx -&gt; {
+                    c.put(UUID.randomUUID().toString(), UUID.randomUUID().toString());
+                });
+                System.out.println(Runtime.getRuntime().freeMemory()/1024/1024 + "/" + Runtime.getRuntime().totalMemory()/1024/1024);
+            } else {
+                System.out.println("input 'GO' then click enter");
+            }
+        }
+    }
+
+    private static class StringSerializer implements CacheSerializer&lt;String&gt; {
+
+        @Override
+        public void serialize(String s, ByteBuffer byteBuffer) {
+            byteBuffer.put(s.getBytes());
+        }
+
+        @Override
+        public String deserialize(ByteBuffer byteBuffer) {
+            return StandardCharsets.UTF_8.decode(byteBuffer).toString();
+        }
+
+        @Override
+        public int serializedSize(String s) {
+            return s.getBytes().length;
+        }
+    }
+
+}
+</pre>
+<br />
+<h3>
+Output</h3>
+<div>
+<br /></div>
+<div class="separator" style="clear: both; text-align: center;">
+<a href="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjyixslHgVQ4Fo9y5bjjSxKTWahsecT_dVSe3CTs8buPBbFNclk7HHz5eGJPLUVMt5li7Ndoa16lEEmJ4P9v2fFoJPa2CSEgXJaHZvqqqsAZKJIOXNgnw-XDVRJu71euxH_S-xMX2eSkg/s1600/Screen+Shot+2018-09-23+at+2.55.07+PM.png" imageanchor="1" style="clear: left; float: left; margin-bottom: 1em; margin-right: 1em;"><img border="0" data-original-height="790" data-original-width="1252" height="201" src="/assets/images/blog/Screen-Shot-2018-09-23-at-2.55.07-PM.png" width="320" /></a></div>
+這張是輸入了好幾次 GO, 每次都會輸入一百萬次 key value 到 cache.<br />
+<div class="separator" style="clear: both; text-align: center;">
+<a href="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiuZfA20cXPq5V6AiYjWm2ET1dA8ElF_ExI3LHMG4Jrm5uQ6imYj08HVKxEhdb23O4GUsnNk-IcHP6JNRekuAXWYwhZXB2KWmlbFubTSSqm1EjshnmVCizSTJw76jZS_7U6fQepyIbTAQ/s1600/Screen+Shot+2018-09-23+at+2.55.47+PM.png" imageanchor="1" style="clear: left; float: left; margin-bottom: 1em; margin-right: 1em;"><img border="0" data-original-height="770" data-original-width="1600" height="192" src="/assets/images/blog/Screen-Shot-2018-09-23-at-2.55.47-PM.png" width="400" /></a></div>
+<div>
+<br />
+jconsole 與系統資源使用圖可以看到 heap 只用不到 100MB, 但實際上已經用了 600MB.<br />
+就是都放在 off heap 中</div>
+<h3>
+</h3>
+<h3>
+</h3>
+<h3>
+</h3>
+<h3>
+</h3>
+</div>

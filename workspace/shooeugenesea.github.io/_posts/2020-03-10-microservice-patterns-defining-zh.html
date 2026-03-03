@@ -1,0 +1,149 @@
+---
+layout: post
+title: "Microservice Patterns - 2.2 定義應用程式的 Microservice 架構"
+date: 2020-03-10 11:23:00 +0800
+tags: [microservice patterns]
+lang: zh-TW
+---
+
+<br />
+<div>
+<div>
+<div>
+<span style="font-size: 12pt;"><span style="font-size: 12pt; font-weight: bold;">參考資料</span></span>&nbsp;&nbsp;</div>
+<div>
+<a href="https://www.amazon.com/Microservices-Patterns-examples-Chris-Richardson/dp/1617294543">https://www.amazon.com/Microservices-Patterns-examples-Chris-Richardson/dp/1617294543</a></div>
+<div>
+<a href="https://microservices.io/patterns/decomposition/decompose-by-business-capability.html">https://microservices.io/patterns/decomposition/decompose-by-business-capability.html</a></div>
+<div>
+<br /></div>
+<div>
+<span style="font-size: 12pt; font-weight: bold;">三個步驟：</span></div>
+<ol>
+<li><div>
+辨識系統操作</div>
+</li>
+<li><div>
+辨識服務</div>
+</li>
+<li><div>
+定義服務的 API 與協作方式</div>
+</li>
+</ol>
+<div>
+<img src="/assets/images/extracted/microservice-patterns-defining-0-104d512a.png" /></div>
+<div>
+<br /></div>
+<div>
+<span style="font-size: 12pt;"><span style="font-size: 12pt; font-weight: bold;">步驟一：辨識系統操作</span></span></div>
+<ol>
+<li><div>
+建立高階的 domain model</div>
+</li>
+<li><div>
+定義系統操作</div>
+</li>
+</ol>
+<div>
+<br /></div>
+<div>
+<br /></div>
+<div>
+<img src="/assets/images/extracted/microservice-patterns-defining-1-9db188bd.png" /></div>
+<div>
+<br /></div>
+<div>
+<span style="font-size: 12pt;"><span style="font-size: 12pt; font-weight: bold;">步驟二：辨識服務</span></span></div>
+<ul>
+<li><div>
+根據業務能力來定義服務</div>
+</li>
+<li><div>
+依照 domain-driven design 的 subdomain 來組織服務</div>
+</li>
+<li><div>
+圍繞業務概念而非技術概念來組織服務</div>
+</li>
+</ul>
+<div>
+<img src="/assets/images/extracted/microservice-patterns-defining-2-c4b6c0bb.png" width="507" /></div>
+</div>
+<div>
+<br /></div>
+<div>
+<span style="font-size: 12pt;"><span style="font-size: 12pt; font-weight: bold;">透過套用 Decompose by sub-domain pattern 來定義服務</span></span></div>
+<div>
+<img src="/assets/images/extracted/microservice-patterns-defining-3-63e88a24.png" /></div>
+<div>
+<span style="font-size: 12pt;"><span style="font-size: 12pt; font-weight: bold;">拆解準則</span></span></div>
+<ol>
+<li><div>
+SINGLE RESPONSIBILITY PRINCIPLE：一個 class 應該只有一個改變的理由</div>
+</li>
+<li><div>
+COMMON CLOSURE PRINCIPLE：同一個 package 中的 class 應該對同類型的變更一起封閉。影響 package 的變更會影響該 package 中的所有 class。（我們可以在建立 microservice 架構時套用 CCP，把因相同原因而變更的元件打包到同一個服務中。）</div>
+</li>
+</ol>
+<div>
+<br /></div>
+<div>
+<span style="font-size: 12pt;"><span style="font-size: 12pt; font-weight: bold;">拆解應用程式為服務的障礙</span></span></div>
+<ul>
+<li><div>
+網路延遲</div>
+</li>
+<li><div>
+同步通訊導致可用性降低</div>
+</li>
+<li><div>
+跨服務的資料一致性維護</div>
+</li>
+<li><div>
+取得一致的資料檢視</div>
+</li>
+<li><div>
+God class 阻礙拆解</div>
+</li>
+</ul>
+<div>
+<span style="font-size: 12pt;"><b>God class</b></span></div>
+<div>
+「God class 通常實作了應用程式中許多不同面向的商業邏輯。它通常有大量的欄位對應到一個有很多欄位的資料庫表。大多數應用程式至少有一個這樣的 class，每個都代表一個領域中的核心概念：銀行的帳戶、電商的訂單、保險的保單等等。」</div>
+<div>
+<br /></div>
+<div>
+<span style="font-size: 12pt;"><b>定義服務 API</b></span></div>
+<div>
+服務 API 操作的存在有兩個原因：</div>
+<ul>
+<li><div>
+有些操作對應到系統操作。它們被外部 client 呼叫，也可能被其他服務呼叫。</div>
+</li>
+<li><div>
+其他操作是為了支援服務之間的協作。這些操作只被其他服務呼叫。</div>
+</li>
+</ul>
+<ol>
+<li><div>
+將系統操作指派給服務
+<div>
+<img src="/assets/images/extracted/microservice-patterns-defining-4-e51c4a6d.png" width="695" /></div>
+</div>
+</li>
+<li><div>
+決定支援服務間協作所需的 API
+<div>
+<img src="/assets/images/extracted/microservice-patterns-defining-5-40fe0ab7.png" width="671" /></div>
+</div>
+</li>
+</ol>
+<div>
+<br /></div>
+<div>
+<br /></div>
+<div>
+<br /></div>
+</div>
+<div>
+<br /></div>
+<br />

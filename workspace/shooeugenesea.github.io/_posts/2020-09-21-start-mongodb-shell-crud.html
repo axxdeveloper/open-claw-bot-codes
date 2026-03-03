@@ -1,0 +1,112 @@
+---
+layout: post
+title: "Start MongoDB & Shell CRUD"
+date: 2020-09-21 08:31:00 +0800
+tags: [mongodb]
+lang: en
+---
+
+<p>&nbsp;Pull image</p>
+
+<div>sudo docker pull mongo
+</div><div><br /></div><div>Start container
+</div><div><div>sudo docker run --name mongo -d -p 27017:27017 mongo
+</div><div>c38be4173edc4490e954c1046abe47aadf39c938e2faa188c89aef0cad221e0d
+</div></div><div><br /></div><div>Folder
+</div><div>/data/db
+</div><div><br /></div><div>Go to shell, 進這個 shell 之後可以輸入 javascript, 也可以定義 function.
+</div><div><div>docker exec -it mongo bash<br />
+</div><div>iliao@MacBook-Pro ~ % docker exec -it mongo bash
+</div><div>root@12c0a2efb72c:/# mongo
+</div><div>&gt;
+</div></div><div><br /></div><div>如果沒輸入完整的 javascript command, 可以按三下 enter 之後跳出來
+</div><div><div>&gt; Math.sin(Math.PI/2)
+</div><div>1
+</div><div>&gt; a =
+</div><div>...
+</div><div>...
+</div><div>&gt;
+</div></div><div><br /></div><div>Create data
+</div><div><div>// Define movie
+</div><div>&gt; movie = {"title":"A movie", "director": "A director", "year":2020}
+</div><div>{ "title" : "A movie", "director" : "A director", "year" : 2020 }
+</div><div><br /></div><div><span style="font-family: Monaco;">// Insert a movie</span></div><div>&gt; db.movies.insertOne(movie)
+</div><div>{
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"acknowledged" : true,
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"insertedId" : ObjectId("5f685a71a9ea26aaea91f834")
+</div><div>}
+</div><div><br /></div><div>// Query a movie
+</div><div>&gt; db.movies.find().pretty()
+</div><div>{
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"_id" : ObjectId("5f685a71a9ea26aaea91f834"),
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"title" : "A movie",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"director" : "A director",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"year" : 2020
+</div><div>}
+</div><div><span style="font-family: Monaco;"><br /></span></div><div>// 定義第二部電影
+</div><div>&gt; movie2 = {"title":"A movie 2", "director": "A director 2", "year":2020}
+</div><div>{ "title" : "A movie 2", "director" : "A director 2", "year" : 2020 }
+</div><div><br /></div><div>// 儲存第二部電影
+</div><div>&gt; db.movies.insertOne(movie2)
+</div><div>{
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"acknowledged" : true,
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"insertedId" : ObjectId("5f685b21a9ea26aaea91f835")
+</div><div>}
+</div><div><br /></div><div>// 把電影都列出來
+</div><div>&gt; db.movies.find().pretty()
+</div><div>{
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"_id" : ObjectId("5f685a71a9ea26aaea91f834"),
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"title" : "A movie",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"director" : "A director",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"year" : 2020
+</div><div>}
+</div><div>{
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"_id" : ObjectId("5f685b21a9ea26aaea91f835"),
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"title" : "A movie 2",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"director" : "A director 2",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"year" : 2020
+</div><div>}
+</div></div><div><br /></div><div>讀一筆資料 READ
+</div><div><div>&gt; db.movies.findOne()
+</div><div>{
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"_id" : ObjectId("5f685a71a9ea26aaea91f834"),
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"title" : "A movie",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"director" : "A director",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"year" : 2020
+</div><div>}
+</div></div><div><br /></div><div>更新一筆資料 UPDATE
+</div><div><div>// 指定條件: title
+</div><div>// 修改: $set
+</div><div>&gt; db.movies.updateOne(<span style="color: #ff2600;">{"title":"A movie"}</span>, <span style="color: #ff2600;">{$set:{reviews:[], "title":"A movie 3"}</span>})
+</div><div>{ "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
+</div><div><br /></div><div>// 檢查修改結果
+</div><div>&gt; db.movies.find().pretty()
+</div><div>{
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"_id" : ObjectId("5f685a71a9ea26aaea91f834"),
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"title" : "<span style="color: #ff2600;">A movie 3</span>",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"director" : "A director",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"year" : 2020,
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #ff2600;">"reviews"</span> : [ ]
+</div><div>}
+</div><div>{
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"_id" : ObjectId("5f685b21a9ea26aaea91f835"),
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"title" : "A movie 2",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"director" : "A director 2",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"year" : 2020
+</div><div>}
+</div></div><div><br /></div><div>Delete a record
+</div><div><div>&gt; db.movies.deleteOne({"title":"A movie 3"})
+</div><div>{ "acknowledged" : true, "deletedCount" : 1 }
+</div><div>&gt; db.movies.find().pretty()
+</div><div>{
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"_id" : ObjectId("5f685b21a9ea26aaea91f835"),
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"title" : "A movie 2",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"director" : "A director 2",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"year" : 2020
+</div><div>}
+</div></div><div><br /></div><div>Delete multiple records
+</div><div><div>&gt; db.movies.deleteMany({})
+</div><div>{ "acknowledged" : true, "deletedCount" : 1 }
+</div><div>&gt; db.movies.find().pretty()
+</div><div>&gt;
+</div></div><div><br /></div>

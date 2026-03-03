@@ -1,0 +1,418 @@
+---
+layout: post
+title: Scan log and paste to Google sheet to know the Flush pressure
+date: 2017-10-25 06:42:00 +0800
+tags: [java, cassandra]
+---
+
+<h2>
+Introduction</h2>
+<div>
+After a performance issue happen, we have less information about system status at that time.<br />
+There is flush log in Cassandra, so I write code to parse it and write to output file.<br />
+Thus I can paste the parse result to google sheet or excel to draw charts such as:<br />
+<div class="separator" style="clear: both; text-align: center;">
+<a href="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhvmsNQFj4W9ARRFRfXvXhKpZAUhCw9Lqg05Uei1Vo04s4gqiGD4-pb-Bw_4EjskTlhjrKNmhKbt273Ekttgr6g0EfGH6hFveEoh2pl7yMMW8AZCZoGyhmfjwvw9toyfZVaq9GH_AOxHw/s1600/%25E6%2593%25B7%25E5%258F%2596.PNG" imageanchor="1" style="margin-left: 1em; margin-right: 1em;"><img border="0" data-original-height="407" data-original-width="1091" src="/assets/images/blog/擷取.png" /></a></div>
+<br />
+<h2>
+Code</h2>
+</div>
+<pre>public  class  ScanLog  {
+
+  private  static  final  String  fileSufix  =  "10";
+  private  static  final  String  LOG_FOLDER  =  "/cassandraLogPath";
+  private  static  final  String  OUTPUT_FOLDER  =  "/outputpath";
+
+  public  static  void  main(String[]  params)  throws  IOException,  ParseException  {
+    File  folder  =  new  File(LOG_FOLDER);
+    Map&lt;String,List&lt;CompactSize&gt;&gt;  cf2CompactSizes  =  toCompactSizes(folder);
+    FileUtils.write(new  File(OUTPUT_FOLDER  +  "output-compact-mb-"  +  fileSufix  +  ".csv"),  toCompactSizesString(cf2CompactSizes),  "UTF-8");
+    List&lt;CompactSize&gt;  aggCompactSizes  =  aggregate(toCompactSizeList(folder));
+    FileUtils.write(new  File(OUTPUT_FOLDER  +  "output-compact-mb-agg-"  +  fileSufix  +  ".csv"),  toCompactSizesString(aggCompactSizes),  "UTF-8");
+    List&lt;FlushEvent&gt;  events  =  toEvents(folder);
+    FileUtils.write(new  File(OUTPUT_FOLDER  +  "output-queue-"  +  fileSufix  +  ".csv"),  toString(events),  "UTF-8");
+    Map&lt;String,  List&lt;Enqueue&gt;&gt;  cfToE  =  cfToE(folder);
+    Map&lt;String,  LinkedHashMap&lt;String,Long&gt;&gt;  cfToTimeToAvg  =  cfToTimeToAvg(cfToE);
+    FileUtils.write(new  File(OUTPUT_FOLDER  +  "output-"  +  fileSufix  +  ".csv"),  toString(cfToE),  "UTF-8");
+    FileUtils.write(new  File(OUTPUT_FOLDER  +  "output-"  +  fileSufix  +  "-avg.csv"),  toAvgString(cfToTimeToAvg),  "UTF-8");
+  }
+
+  private  static  List&lt;CompactSize&gt;  aggregate(List&lt;CompactSize&gt;  compactSizes)  {
+    LinkedHashMap&lt;String,List&lt;CompactSize&gt;&gt;  minutes2CompactSizes  =  new  LinkedHashMap&lt;&gt;();
+    compactSizes.forEach(compactSize  -&gt;  {
+      String  timeMinutes  =  compactSize.getTimeMinutes();
+      if  (!minutes2CompactSizes.containsKey(timeMinutes))  {
+        minutes2CompactSizes.put(timeMinutes,  new  ArrayList&lt;&gt;());
+      }
+      minutes2CompactSizes.get(timeMinutes).add(compactSize);
+    });  
+    LinkedHashMap&lt;String,CompactSize&gt;  minutes2AggregatedSize  =  new  LinkedHashMap&lt;&gt;();
+    minutes2CompactSizes.entrySet().forEach(entry  -&gt;  {
+      String  minutes  =  entry.getKey();
+      entry.getValue().forEach(size  -&gt;  {
+        if  (!minutes2AggregatedSize.containsKey(size.getTimeMinutes()))  {
+          minutes2AggregatedSize.put(size.getTimeMinutes(),new  CompactSize(size.getTime(),size.getCf(),size.getDataSize()));
+        }  else  {
+          CompactSize  total  =  minutes2AggregatedSize.get(size.getTimeMinutes());
+          CompactSize  newTotal  =  new  CompactSize(size.getTime(),size.getCf(),  size.getDataSize()  +  total.getDataSize());
+          minutes2AggregatedSize.put(size.getTimeMinutes(),  newTotal);
+        }
+      });
+    });
+    List&lt;CompactSize&gt;  result  =  new  ArrayList&lt;&gt;();
+    minutes2AggregatedSize.entrySet().forEach(entry  -&gt;  {
+      result.add(entry.getValue());
+    });
+    Collections.sort(result,  Comparator.comparingLong(CompactSize::getTimeMillis));
+    return  result;
+  }
+  
+  private  static  String  toCompactSizesString(List&lt;CompactSize&gt;  cf2compactSizes)  {
+    StringBuilder  sb  =  new  StringBuilder();
+    cf2compactSizes.forEach(size  -&gt;  {
+      sb.append(size.getCf()  +  ","  +  size.getTime()  +  ","  +  size.getDataSizeInMB()).append("\n");
+    });
+    return  sb.toString();
+  }
+  
+  private  static  String  toCompactSizesString(Map&lt;String,List&lt;CompactSize&gt;&gt;  cf2compactSizes)  {
+    StringBuilder  sb  =  new  StringBuilder();
+    cf2compactSizes.keySet().forEach(cf  -&gt;  {
+      cf2compactSizes.get(cf).forEach(size  -&gt;  {
+        sb.append(size.getCf()  +  ","  +  size.getTime()  +  ","  +  size.getDataSizeInMB()).append("\n");
+      });
+    });
+    return  sb.toString();
+  }
+
+  private  static  List&lt;CompactSize&gt;  toCompactSizeList(File  folder)  {
+    List&lt;CompactSize&gt;  result  =  new  ArrayList&lt;&gt;();
+    Arrays.stream(folder.listFiles())
+        .filter(file  -&gt;  file.getName().contains("system.log"))
+        .forEach(file  -&gt;  {
+          try  {
+            for  (String  line:  FileUtils.readLines(file))  {
+              if  (  CompactSize.isMyPattern(line)  )  {
+                CompactSize  compactSize  =  new  CompactSize(line);
+                result.add(compactSize);
+              }
+            }
+          }  catch  (Exception  ex)  {
+            ex.printStackTrace();
+          }
+        });
+    Collections.sort(result,  Comparator.comparingLong(CompactSize::getTimeMillis));
+    return  result;
+  }
+  
+  private  static  Map&lt;String,List&lt;CompactSize&gt;&gt;  toCompactSizes(File  folder)  {
+    Map&lt;String,List&lt;CompactSize&gt;&gt;  cf2CompactSizes  =  new  HashMap&lt;&gt;();
+    Arrays.stream(folder.listFiles())
+        .filter(file  -&gt;  file.getName().contains("system.log"))
+        .forEach(file  -&gt;  {
+          try  {
+            for  (String  line:  FileUtils.readLines(file))  {
+              if  (  CompactSize.isMyPattern(line)  )  {
+                CompactSize  compactSize  =  new  CompactSize(line);
+                if  (!cf2CompactSizes.containsKey(compactSize.getCf()))  {
+                  cf2CompactSizes.put(compactSize.getCf(),  new  ArrayList&lt;&gt;());
+                }
+                cf2CompactSizes.get(compactSize.getCf()).add(compactSize);
+              }
+            }
+          }  catch  (Exception  ex)  {
+            ex.printStackTrace();
+          }
+        });
+    cf2CompactSizes.values().forEach(compactSizes  -&gt;  
+        Collections.sort(compactSizes,  Comparator.comparingLong(CompactSize::getTimeMillis)));
+    return  cf2CompactSizes;
+  }
+  
+  private  static  class  CompactSize  {
+    private  final  String  time;
+    private  final  String  cf;
+    private  final  long  dataSize;
+    
+    CompactSize(String  time,  String  cf,  long  dataSize)  {
+      this.time  =  time;
+      this.cf  =  cf;
+      this.dataSize  =  dataSize;
+    }
+    
+    CompactSize(String  line)  {
+      this.time  =  substringBetween(line,  "]  ",",");
+      this.cf  =  substringBetween(line,  "/data/ng/db/data/wsg/",  "/");
+      this.dataSize  =  NumberUtils.toInt(StringUtils.replace(substringBetween(line,  "].    ",  "  bytes"),",",""));
+    }
+
+    public  static  boolean  isMyPattern(String  line)  {
+      return  StringUtils.contains(line,  "CompactionTask.java  (line  302)  Compacted")
+          &amp;&amp;  StringUtils.contains(line,  "[/data/ng/db/data/wsg/");
+    }
+    
+    public  long  getDataSizeInMB()  {
+      return  dataSize  //  bytes  
+          /  1024    //  KB
+          /  1024;  //  MB
+    }
+    
+    public  long  getDataSize()  {
+      return  dataSize;
+    }
+
+    public  String  getCf()  {
+      return  cf;
+    }
+
+    public  String  getTimeMinutes()  {
+      long  millis  =  getTimeMillis();
+      return  sdfToMinutes.format(new  Date(millis));
+    }
+    
+    public  Long  getTimeMillis()  {
+      return  toMillis(getTime());
+    }
+    
+    public  String  getTime()  {
+      return  time;
+    }
+  }
+  
+  private  static  String  toString(List&lt;FlushEvent&gt;  events)  {
+    StringBuilder  sb  =  new  StringBuilder();
+    AtomicInteger  waitForWrite  =  new  AtomicInteger();
+    AtomicInteger  writing  =  new  AtomicInteger();
+    events.forEach(e  -&gt;  {
+      switch  (  e.getType()  )  {
+        case  Enqueue:
+          waitForWrite.incrementAndGet();
+          break;
+        case  Write:
+          writing.incrementAndGet();
+          waitForWrite.decrementAndGet();
+          break;
+        case  Complete:
+          writing.decrementAndGet();
+          break;
+        default:  
+          throw  new  RuntimeException("Shouldn't  happen");
+      }
+      sb.append(e.getTime()  +  ","  +  waitForWrite  +  ","  +  writing).append("\n");
+    });
+    return  sb.toString();
+  }
+  
+  private  static  List&lt;FlushEvent&gt;  toEvents(File  folder)  {
+    List&lt;FlushEvent&gt;  events  =  new  ArrayList&lt;&gt;();
+    Arrays.stream(folder.listFiles())
+        .filter(file  -&gt;  file.getName().contains("system.log"))
+        .forEach(file  -&gt;  {
+          try  {
+            for  (String  line:  FileUtils.readLines(file))  {
+              Optional&lt;FlushEventType&gt;  type  =  FlushEventType.getByPattern(line);
+              type.ifPresent(t  -&gt;  {
+                events.add(new  FlushEvent(line));
+              });
+            }
+          }  catch  (Exception  ex)  {
+            ex.printStackTrace();
+          }
+          });
+    Collections.sort(events,  Comparator.comparingLong(FlushEvent::getTimeMillis));
+    return  events;
+  }
+
+  private  static  String  toAvgString(Map&lt;String,  LinkedHashMap&lt;String,Long&gt;&gt;  cfToTimeToAvg)  {
+    StringBuilder  sb  =  new  StringBuilder();
+    cfToTimeToAvg.keySet().forEach(cf  -&gt;  {
+      cfToTimeToAvg.get(cf).forEach((time,avg)  -&gt;  {
+        sb.append(cf  +  ","  +  time  +  ","  +  avg).append("\n");
+      });
+    });
+    return  sb.toString();
+  }
+
+  private  static  String  toString(Map&lt;String,  List&lt;Enqueue&gt;&gt;  cfToE)  {
+    StringBuilder  sb  =  new  StringBuilder();
+    cfToE.values().stream().forEach(eList  -&gt;  {
+      eList.stream().forEach(e  -&gt;  {
+        try  {
+          sb.append(e.getCf()  +  ","  +  e.getTime()  +  ","  +  e.serializedMB).append("\n");
+        }  catch  (Exception  ex)  {
+          ex.printStackTrace();
+        }
+      });
+    });
+    return  sb.toString();
+  }
+
+  private  static  Map&lt;String,  LinkedHashMap&lt;String,Long&gt;&gt;  cfToTimeToAvg(Map&lt;String,  List&lt;Enqueue&gt;&gt;  cfToE)  {
+    Map&lt;String,  LinkedHashMap&lt;String,Long&gt;&gt;  cfToTimeToAvg  =  new  HashMap&lt;&gt;();
+    cfToE.keySet().forEach(cf  -&gt;  {
+      if  (!cfToTimeToAvg.containsKey(cf))  {
+        cfToTimeToAvg.put(cf,  new  LinkedHashMap&lt;&gt;());
+      }
+      LinkedHashMap&lt;String,List&lt;Long&gt;&gt;  timeToMBList  =  new  LinkedHashMap&lt;&gt;();
+      cfToE.get(cf).forEach(enqueue  -&gt;  {
+        if  (!timeToMBList.containsKey(enqueue.getTimeMinutes()))  {
+          timeToMBList.put(enqueue.getTimeMinutes(),  new  ArrayList&lt;&gt;());
+        }
+        timeToMBList.get(enqueue.getTimeMinutes()).add(enqueue.serializedMB);
+      });
+      AtomicReference&lt;String&gt;  previousTime  =  new  AtomicReference&lt;&gt;();
+      LinkedHashMap&lt;String,Long&gt;  timeToAvg  =  cfToTimeToAvg.get(cf);
+      timeToMBList.keySet().forEach(time  -&gt;  {
+        try  {
+          if  (previousTime.get()  !=  null)  {
+            AtomicLong  totalMB  =  new  AtomicLong();
+            timeToMBList.get(time).forEach(mb  -&gt;  {
+              totalMB.addAndGet(mb);
+            });
+            long  currentTimeMillis  =  sdfToMinutes.parse(time).getTime();
+            long  previousTimeMillis  =  sdfToMinutes.parse(previousTime.get()).getTime();
+            long  gapMinutes  =  TimeUnit.MILLISECONDS.toMinutes(currentTimeMillis  -  previousTimeMillis);
+            timeToAvg.put(time,  (totalMB.longValue()  /  gapMinutes));
+          }
+          previousTime.set(time);
+        }  catch  (Exception  ex)  {
+          ex.printStackTrace();
+        }
+      });
+    });
+    return  cfToTimeToAvg;
+  }
+
+  private  static  Map&lt;String,  List&lt;Enqueue&gt;&gt;  cfToE(File  folder)  {
+    Map&lt;String,List&lt;Enqueue&gt;&gt;  cfToE  =  new  HashMap&lt;&gt;();
+    Arrays.stream(folder.listFiles())
+        .filter(f  -&gt;  f.getName().contains("system.log"))
+        .forEach(file  -&gt;  {
+          try  {
+            List&lt;String&gt;  lines  =  IOUtils.readLines(new  FileInputStream(file));
+            for  (String  line:  lines)  {
+              if  (StringUtils.contains(line,  "Enqueuing  flush  of  Memtable-"))  {
+                Enqueue  e  =  new  Enqueue(line);
+                if  (e.serializedMB  &lt;=  1)  {
+                  continue;
+                }
+                if  (!cfToE.containsKey(e.getCf()))  {
+                  cfToE.put(e.getCf(),  new  ArrayList&lt;&gt;());
+                }
+                cfToE.get(e.getCf()).add(e);
+              }
+            }
+          }  catch  (Exception  ex)  {
+            ex.printStackTrace();
+          }
+        });
+    cfToE.keySet().forEach(k  -&gt;  {
+      cfToE.get(k).sort((e1,e2)  -&gt;  {
+        try  {
+          return  (int)(e1.getTimeMillis()-e2.getTimeMillis());
+        }  catch  (Exception  ex)  {
+          ex.printStackTrace();
+          return  0;
+        }
+      });
+    });
+    return  cfToE;
+  }
+
+  private  enum  FlushEventType  {
+    Enqueue("Enqueuing  flush  of  Memtable-"),
+    Write("Writing  Memtable-"),
+    Complete("Completed  flushing  ");
+    private  final  String  pattern;
+    FlushEventType(String  pattern)  {
+      this.pattern  =  pattern;
+    }
+
+    public  String  getPattern()  {
+      return  pattern;
+    }
+
+    public  static  Optional&lt;FlushEventType&gt;  getByPattern(String  line)  {
+      return  Arrays.stream(values())
+          .filter(type  -&gt;  StringUtils.contains(line,  type.getPattern()))
+          .findFirst();
+    }
+  }
+  
+  private  static  class  FlushEvent  {
+    private  final  FlushEventType  type;
+    private  final  String  time;
+    FlushEvent(String  line)  {
+      this.time  =  substringBetween(line,  "]  ",",");
+      this.type  =  FlushEventType.getByPattern(line).get();  //  must  success
+    }
+
+    public  FlushEventType  getType()  {
+      return  type;
+    }
+
+    public  Long  getTimeMillis()  {
+      return  toMillis(getTime());
+    }
+    
+    public  String  getTime()  {
+      return  time;
+    }
+  }
+  
+  private  static  class  Enqueue  {
+    private  final  String  time;
+    private  final  String  cf;
+    private  final  int  ops;
+    private  final  long  serializedMB;
+
+    Enqueue(String  line)  throws  ParseException  {
+      this.time  =  substringBetween(line,  "]  ",",");
+      this.cf  =  substringBetween(line,  "Enqueuing  flush  of  Memtable-",  "@");
+      this.ops  =  NumberUtils.toInt(substringBetween(line,  "serialized/live  bytes,  ",  "  ops)"));
+      this.serializedMB  =  NumberUtils.toInt(substringBetween(substringAfter(line,  "Enqueuing  flush  of  Memtable-"),  "(",  "/"))  /  1024  /  1024;
+    }
+
+    @Override
+    public  String  toString()  {
+      return  new  ToStringBuilder(this)
+          .append("time",time)
+          .append("cf",cf)
+          .append("ops",ops)
+          .append("serializedMB",  serializedMB)
+          .toString();
+    }
+
+    public  String  getTimeMinutes()  {
+      long  millis  =  getTimeMillis();
+      return  sdfToMinutes.format(new  Date(millis));
+    }
+
+    public  Long  getTimeMillis()  {
+      return  toMillis(getTime());
+    }
+
+    public  String  getTime()  {
+      return  time;
+    }
+
+    public  String  getCf()  {
+      return  cf;
+    }
+
+  }
+
+  private  static  final  SimpleDateFormat  sdfToMinutes  =  new  SimpleDateFormat("yyyy-MM-dd  HH:mm");
+  private  static  final  SimpleDateFormat  sdf  =  new  SimpleDateFormat("yyyy-MM-dd  HH:mm:SS");
+
+  private  static  long  toMillis(String  time)  {
+    try  {
+      Date  date  =  sdf.parse(time);
+      return  date.getTime();
+    }  catch  (Exception  ex)  {
+      throw  new  RuntimeException(ex);
+    }
+  }
+
+}
+</pre>

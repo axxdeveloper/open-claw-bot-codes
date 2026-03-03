@@ -1,0 +1,38 @@
+---
+layout: post
+title: Go - Slices -1
+date: 2019-03-30 13:10:00 +0800
+tags: [Go]
+---
+
+<br />
+<ul>
+<li>Slice is declared as "var s []T"
+</li>
+<li>Declare a slice by make([]int,length,capacity)
+</li>
+<li>Slice looks like an array without size
+</li>
+<li>Pointer: point to the first element of an array that is reachable through a slice
+</li>
+<li>Length: the number of a slice. Length can't bigger than capacity
+</li>
+<li><div>
+Capacity: the number between syart of slice and ent of the underlying array.
+</div>
+<div>
+<img src="/assets/images/extracted/go-slice-1-0-e97b59b8.png" /></div>
+</li>
+<li><div>
+Multiple slices can share the same underlying array, may refer to overlapping parts of that array
+</div>
+<div>
+<img src="/assets/images/extracted/go-slice-1-1-a6f41d5a.png" /></div>
+</li>
+<li><div>
+Slice can be extended, but can not exceed capacity
+</div>
+<div>
+<img src="/assets/images/extracted/go-slice-1-2-fa72dede.png" /></div>
+</li>
+</ul>

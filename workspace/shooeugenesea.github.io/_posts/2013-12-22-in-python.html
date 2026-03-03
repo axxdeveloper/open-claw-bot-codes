@@ -1,0 +1,43 @@
+---
+layout: post
+title: 巴斯卡三角形 in Python
+date: 2013-12-22 06:16:00 +0800
+tags: [python]
+---
+
+<h2>
+Source Code</h2>
+<pre>def print_pascal(row_cnt):
+    pascal = []
+    for row in range(row_cnt):
+        cols = []
+        for col in range(row+1):
+            if row == 0:
+                cols.append(1)
+            elif col == 0 or col == row:
+                cols.append(1)
+            else:
+                val = pascal[row-1][col-1]+pascal[row-1][col];
+                cols.append(val)
+        pascal.append(cols)
+    for row in pascal:
+        for i in range(row_cnt-len(row)):
+            print('%5s' %'',end='')
+        for col in row:
+            print('%5d' %col,end='%5s' %'')
+        print()
+</pre>
+<pre></pre>
+<h2>
+Usage</h2>
+<div>
+<br /></div>
+<pre>&gt;&gt;&gt; print_pascal(6)
+                             1     
+                        1         1     
+                   1         2         1     
+              1         3         3         1     
+         1         4         6         4         1     
+    1         5        10        10         5         1  
+</pre>
+<pre></pre>

@@ -1,0 +1,99 @@
+---
+layout: post
+title: Microservice Patterns - 3.2.4 Microservice 架構中的行程間通訊 - 使用 Service Discovery
+date: 2020-03-22 09:14:00 +0800
+tags: [microservice patterns]
+lang: zh-TW
+---
+
+<br />
+<div>
+<div>
+<span style="font-size: 12pt; font-weight: bold;">參考資料</span></div>
+<br />
+<div>
+<a href="https://www.amazon.com/Microservices-Patterns-examples-Chris-Richardson/dp/1617294543" style="color: black;">https://www.amazon.com/Microservices-Patterns-examples-Chris-Richardson/dp/1617294543</a></div>
+<span style="font-size: 10pt;"><br /></span>
+<span style="font-size: 10pt;">為了讓一個服務能用 RPI 呼叫另一個服務，它需要知道服務實例的網路位置。=&gt; Service Discovery</span></div>
+<div>
+<span style="font-size: 12pt; font-weight: bold;"><br /></span></div>
+<div>
+<span style="font-size: 12pt; font-weight: bold;">使用 Service Discovery</span></div>
+<div>
+<span style="font-size: 10pt;">實例 IP 可能會變，所以 Service client 需要一種方式來找到實例</span></div>
+<div>
+<img src="/assets/images/extracted/329-microservice-patterns-interprocess-0-ce7d6679.png" width="462" /></div>
+<div>
+<br /></div>
+<div>
+<span style="font-weight: bold;">SERVICE DISCOVERY 概觀</span></div>
+<ul>
+<li><div>
+核心元件是 service registry，它是一個記錄應用程式服務實例網路位置的資料庫</div>
+</li>
+<li><div>
+Service discovery 機制會在服務實例啟動和停止時更新 service registry。</div>
+</li>
+<li><div>
+當 client 呼叫一個服務時，service discovery 機制會查詢 service registry 取得可用服務實例列表，然後將請求路由到其中一個。</div>
+</li>
+</ul>
+<div>
+<br /></div>
+<div>
+<span style="font-weight: bold;">套用應用層級的 SERVICE DISCOVERY PATTERNS</span></div>
+<ol>
+<li><div>
+服務啟動時自行註冊（Self registration pattern，實例資訊可能包含 health check URL）
+<div>
+（Pattern: Self registration 服務實例自行向 service registry 註冊。參見 <a href="http://microservices.io/patterns/self-registration.html">http://microservices.io/patterns/self-registration.html</a>。）</div>
+</div>
+</li>
+<li><div>
+Client 查詢服務並以快取機制和負載平衡策略（如 round-robin 或 random）發送請求
+<div>
+（Pattern: Client-side discovery 服務 client 從 service registry 取得可用服務實例列表並在它們之間做負載平衡。參見 <a href="http://microservices.io/patterns/clientside-discovery.html">http://microservices.io/patterns/clientside-discovery.html</a>。）</div>
+</div>
+</li>
+</ol>
+<div>
+<br /></div>
+<div>
+<span style="font-weight: bold;">優缺點</span></div>
+<div>
+優點：可以處理各種情境，包括傳統系統也能支援這種方式</div>
+<div>
+缺點：使用某些工具如 JVM 或 Spring 支援的方案時，無法在非 JVM 環境中使用</div>
+<div>
+<img src="/assets/images/extracted/329-microservice-patterns-interprocess-1-23a8e41b.png" /></div>
+<div>
+<br /></div>
+<div>
+通常使用部署基礎設施提供的 service discovery 機制會比較好，因為應用層實作有其限制。</div>
+<div>
+<br /></div>
+<div>
+<span style="font-weight: bold;">套用平台提供的 SERVICE DISCOVERY PATTERNS</span></div>
+<div>
+Docker 和 Kubernetes 等平台內建了 service registry 和 service discovery 機制。例如 DNS、VIP</div>
+<div>
+<br /></div>
+<div>
+<span style="font-weight: bold;">優缺點</span></div>
+<div>
+優點：不需要應用程式端的程式碼</div>
+<div>
+缺點：需要部署在 Docker 或 Kubernetes 上</div>
+<div>
+<img src="/assets/images/extracted/329-microservice-patterns-interprocess-2-bcc5475b.png" width="495" /></div>
+<ul>
+<li><div>
+3rd party registration pattern：由第三方（稱為 registrar，通常是部署平台的一部分）來處理註冊。（參見 <a href="http://microservices.io/patterns/3rd-party-registration.html">http://microservices.io/patterns/3rd-party-registration.html</a>。）</div>
+</li>
+<li><div>
+Server-side discovery pattern：Client 向一個 DNS 名稱發送請求，解析到一個 request router，由它查詢 service registry 並做請求的負載平衡。（參見 <a href="http://microservices.io/patterns/server-side-discovery.html">http://microservices.io/patterns/server-side-discovery.html</a>。）</div>
+</li>
+</ul>
+<div>
+<br /></div>
+<br />

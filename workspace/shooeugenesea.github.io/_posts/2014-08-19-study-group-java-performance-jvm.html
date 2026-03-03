@@ -1,0 +1,294 @@
+---
+layout: post
+title: "[Study Group] Java Performance - JVM Overview"
+date: 2014-08-19 23:25:00 +0800
+tags: [java]
+---
+
+<h2>
+Reference</h2>
+<div>
+<a href="http://www.amazon.com/Java-Performance-Charlie-Hunt/dp/0137142528" target="_blank">Java Performance at Amazon</a></div>
+<h2>
+Notes</h2>
+<div>
+<ol>
+<li>HotSpot VM 三個主要元件: VM Runtime, JIT Compiler, memory manager</li>
+<li>JIT Compiler 與 Garbage Collector 是 pluggable.</li>
+<li>HotSpot VM Runtime 提供 service 與 Common API 給 JIT Compiler 與 Garbage Collector 使用</li>
+<li>HotSpot VM Runtime 還提供了諸如啟動程序, thread management, JNI等功能</li>
+<li>32位元的 HotSpot VM 最多只能使用4GB Ram, 而隨著 OS 不同實際上只能使用 1.5-3.3GB Ram</li>
+<li>64位元的系統引進後, HotSpot VM可以使用更大的記憶體, 但隨之而來的是由於java object 的 representation (稱為 ordinary object pointers, or oops)的 size 變大產生的效能問題. 換句話說就是其寬度從32位元變為64位元時跟著一起變大了.</li>
+<li>oops 寬度變大導致能放進 CPU cache line 的 oops 減少也使 CPU 效能跟著減少 (跟32位元比起來約減少約8%-15%).</li>
+<li>在 Java6 HotSpot VM, OpenJDK 中增加新功能: compressed oops, 透過 -XX:+UseCompressedOops 就能起動, 使能擁有64位元的 heap 與32位元相同甚至更好的效能&nbsp;</li>
+</ol>
+<h3>
+HotSpot VM Runtime</h3>
+</div>
+<div>
+<h4>
+Command Line Options</h4>
+</div>
+<div>
+Command Line Option 有三種: standard, nonstandard, developer.</div>
+<div>
+<ol>
+<li>Standard: JVM Spec 定的 option, 所以每個 JVM 實作都會支援. 穩定, 有可能在之後的 release 被 deprecated.</li>
+<li>Nonstandard: -X 開頭的 option. 不保證每個 JVM 實作都會支援. 也可能在沒告知的情況下被移除.&nbsp;</li>
+<li>Developer: -XX 開頭的 option. 需在特定的系統需求與權限下才能被正確使用. 也可能在沒告知的情況下被移除.</li>
+</ol>
+<div>
+Command Line Option 控制著 HotSpot VM 內部變數的值.</div>
+</div>
+<div>
+<ol>
+<li>+ 或 - 可指定一個 boolean 變數為 true 或 false.<br />Ex.&nbsp;-XX:+AggressiveOpts 設定&nbsp;AggressiveOpts 為 true 去 enable 額外的效能優化<br />Ex.&nbsp;-XX:-AggressiveOpts&nbsp;設定&nbsp;AggressiveOpts 為 false 去 disable 額外的效能優化</li>
+<li>Developer command line 也可以指定nonboolean value.<br />Ex. -XX:OptionName=&lt;N&gt;</li>
+<li>幾乎所有 value 為數值的&nbsp;command line option&nbsp;都可以使用 k,m,g 結尾來代表 kilo-, mega-, giga-</li>
+</ol>
+<h4>
+VM Life Cycle</h4>
+<div>
+HotSpot VM Runtime負責開啟與關閉 HotSpot VM</div>
+<div>
+<ol>
+<li>launcher: 開啟 HotSpot VM 的 component. <br />Ex.&nbsp;</li>
+<ol>
+<li>java (Linux)</li>
+<li>javaw (Windows)</li>
+<li>JNI_CreateJavaVM (Embedded JVM through JNI interface)</li>
+<li>javaws (Java Web Start)</li>
+</ol>
+<li>Launcher 開啟 HotSpot VM 的流程</li>
+<ol>
+<li>Parse command line option: 有些 option &nbsp;會拿來決定如何開啟 HotSpot VM 如 <br />-server or -client. 有些則會丟給開啟後的 HotSpot VM.</li>
+<li>如果 java heap size 與 JIT compiler type 沒透過 option 指定, 則 Launcher 會在這時候根據環境計算 &amp; 決定</li>
+<li>建立環境變數如 CLASSPATH</li>
+<li>如果 option 沒指定 Main-Class, Launcher 在這時候會去找 Jar file 的 manifest 指定的 Main-Class</li>
+<li>在新建立的非原生(nonprimordial)的 thread 使用 JNI_CreateJavaVM 啟動 HotSpot VM.&nbsp;(原生的 thread 是作業系統建立的 thread)</li>
+<li>HotSpot VM 開啟後, 載入 Main-Class, 取得要丟給 Main-Class 的參數</li>
+<li>解析參數後, 透過 JNI method&nbsp;CallStaticVoidMethod 傳入被呼叫的 Main-Class 的 main method.</li>
+</ol>
+<li>Java program 或 Java main method 執行完, HotSpot VM 要檢查與清除所有在程式執行中產生的 exception 然後回傳 exit status 給 caller.</li>
+<li>呼叫 JNI method&nbsp;DetachCurrentThread 去 detach Java Main method.</li>
+<li>當&nbsp;DetachCurrentThread 被呼叫, thread count 會減少, 使 JNI 知道何時可以安全的關閉 HotSpot VM 並確保沒有 thread 在沒有 java frames or stacks 的時候還在 thread 裡面作業.</li>
+</ol>
+<h4>
+Class Loader Delegation</h4>
+</div>
+<div>
+一個 class loader 可以叫另一個 class loader 去 load class 就叫做 Class Loader Delegation.</div>
+<div>
+Class Loaders 被階層式的定義, 每個 class loader 有個 delegation parent. 這個 delegation 定義了呈現 class 的方法. Java SE class loader 會 search bootstrap classloader =&gt; extention class loader =&gt; system class loader (system class loader 就是預設的 application class loader, 也就是從 classpath 載入 class 與 Java main method 的 class loader). application class loader 可以是 Java SE 的 class loader, 也可以是 developer 自訂的 class loader. Java SE 的 class loader 實作了會從 JRE 的 lib/ext 載 class 的 extenstion class loader.</div>
+<h4>
+Bootstrap Class Loader</h4>
+<div>
+HotSpot VM 實作了 Bootstrap Class Loader, 會從 HotSpot VM BOOTCLASSPATH 載入 class 例如 rt.jar (rt.jar 包含了 Java SE class library).</div>
+<h4>
+Type Safety</h4>
+</div>
+<div>
+Java class 或 Java interface 包含 package name 在 class loader 中必須是 unique. 這表示兩個不同的 class loader 內的同樣名字的 class 代表著不同的 class. HotSpot VM 要負責保證 extension customer class loader 不會破壞這個 type safety. =&gt; HotSpot 要確保當 class A 呼叫 B.someMethod() 時, A 的 class loader 與 B 的 class loader 透過 class loader 的 tracking constraint 都同意 someMethod 的 parameter 與 return type.</div>
+<h4>
+Byte Code Verification</h4>
+<div>
+在對於 Java 6 之前 compile 的 class (version number 50), HotSpot VM 使用 type inference 檢查 class file. Java 6 之後, HotSpot VM 使用新的, 效率較好的 type verification 機制.</div>
+<h4>
+Class Data Sharing</h4>
+<div>
+在 Java 5 之後為了優化啟動速度並減少記憶體使用 &amp; 增加能同時開啟的 JVM 引進的功能. 原理是有些 class 是能夠跨 JVM 共用的, 放在 read-only memory mapped space 可以分享給不同的 JVM, 使不用重新載入 class.</div>
+<div>
+<h3>
+HotSpot VM Garbage Collector</h3>
+</div>
+<h4>
+Generational Garbage Collection</h4>
+<div>
+HotSpot VM 使用 Generational Garbage Collection, 這個方式依賴兩種觀察:</div>
+<div>
+<ol>
+<li>大部分物件會很快變 unreachable</li>
+<li>很少從老物件到新物件的關連</li>
+</ol>
+<div>
+這兩個觀察就是 weak generational hypothesis. 根據這個假說, HotSpot VM 將 heap 分成幾塊:&nbsp;</div>
+</div>
+<div>
+<ul>
+<li>The young generation: 大部分新物件都會 allocate 在 young generation, 在 java heap 中這一塊相對小且很快會被回收, 因為大部分物件被預期會很快變成 unreachable, 存在 young generation 的然後被 minor garbage collection 的物件被期望要很少. 通常 minor garbage collection 會比較有效率因為它處理的空間比較小且包含很多要回收的物件.</li>
+<li>The old generation: 活比較久的物件會被 promote 到 old generation. 這個區塊比 young generation 大, 成長的也比較慢. GC 較不頻繁, 但時間較久.</li>
+<li>The permanent generation: 雖說這是個 generation, 但 user allocate 的物件不會被移到這裡. 這個區塊是給 HotSpot VM 使用的. 例如 metadata, internal string..etc</li>
+</ul>
+<div>
+為了確保 GC 時間短, garbage collector 必須不用 scan 整個 old generation 就能從 young generation 指出 live object. 為此 HotSpot VM 使用 card table 來完成這件事. old generation 每 512 bytes 被分成一個 card. card table 是一個 array, 每個 card 有一個 byte 做為 entry. 每個 reference 欄位的更新必須確保包含該 reference 欄位的 card 被註記成 dirty. (透過設定 card table 的 entry). 在 minor GC 的時候只有被註記成 dirty 的 card 會被 scan 來發現從 old generation 連到 young generation 的 reference.<br />
+<br />
+HotSpot VM 與 bytecode interpreter, JIT compiler 互動的時候使用 write barrier 的技巧維護 card table. 這個 barrier 就是一段去改寫 card table entry 為 dirty 的程式. 當 interpreter 執行 bytecode 修改 reference 的時候會跑一次 write barrier. JIT Compiler 也會在更新 reference 的時候去跑 write barrier.<br />
+<br />
+generational garbage collection 的好處是每個 generation 可以依照特性使用不同的 GC algorithm. base 在 young generation 的特性 (空間小, 物件很快被回收), 比較快速的 garbage collector 做為 minor GC 可以浪費一些空間以較快速度處理 young generation. 而空間使用上較有效率的 garbage collector 則拿來處理佔了大部分 &nbsp;java heap 的 old generation. 這個 GC 比較慢但由於 full GC 的頻率比較少所以影響有限.<br />
+<h4>
+The Young Generation</h4>
+</div>
+</div>
+<div>
+Young Generation 分為三塊: The eden &amp; two survivor spaces</div>
+<h4>
+<ul>
+<li>The eden. <span style="font-weight: normal;">大部分新物件都放這, 在 minor GC 後 eden space 通常是空的</span></li>
+<li>The two survivor spaces.<span style="font-weight: normal;">&nbsp;活過至少一次 minor GC 的物件就會進入 survivor space. 但還有機會在進入 old generation 前變成 unreachable.</span></li>
+</ul>
+<div>
+<span style="font-weight: normal;">在 minor GC 的時候, 不保證 survivor space 有足夠的空間放物件, 如果 overflow 了, 物件會直接放到 old generation. 這會造成 old generation 因為存放短暫存活的物件而變大造成效能問題. 當這現象持續發生導致 old generation 滿了, 就會導致 minor GC 之後就開始 full GC.&nbsp;</span></div>
+</h4>
+<h4>
+Fast Allocation</h4>
+<div>
+object allocator 與 garbage collector 的操做緊密相關, garbage collector 必須記錄回收過的 free space 在哪裡, allocator 必須去找 heap 裡面能滿足 allocation request 的 free space 在哪. 回收 eden space 的 garbage collector 有個優勢就是每次回收之後 eden space 就是空的. 這讓 eden space 的 allocation 透過 bump-the-pointer 的技巧能很有效率. bump-the-pointer 這個技巧是去追蹤最後一個 allocated object, 把位置放在 top, 當新的 allocation request 來的時候, allocator 只需要檢查 eden 的 top 與 end 是否能滿足該 allocation request, 滿足的話, top 就會被調整到新 allocate object 的尾巴.</div>
+<div>
+<br /></div>
+<div>
+在 multi-threaded 的環境中, bump-the-pointer 為了做對需要 lock, 如果只有一個 lock (global lock) 會有效能問題, HotSpot VM 使用 Thread-Local Allocation Buffers (TLABs) 的技巧, 在 eden space 中切一小塊給每個 thread 專屬的能夠 allocate 的 buffer 來提升 multi-thread 時候 allocation 的效能. 由於每個 TLAB 都只會有一個 thread 在使用, 就不需要 lock 的機制就能執行 bump-the-pointer 的動作. 然而當 TLAB 滿了, 一個 thread 需要新的 TLAB 就需要取得 lock 取得 TLAB 才安全. 在 HotSpot VM 中 new Object() 通常會有大約 10 行 assembly code, 就是為了清空 eden space 並啟動 fast allocation.</div>
+<h3>
+Garbage Collectors: Spoiled for Choice</h3>
+<div>
+HotSpot VM 有四種 garbage collector, 不同 garbage collector 針對不同型態的 application 設計.</div>
+<h4>
+The Serial GC</h4>
+<div>
+old generation 由 sliding compacting mark-sweep 也就是 mark-compact garbage collector 管理, &nbsp;Serial GC 負責 young generation. minor 與 full GC 會在 stop-the-world 時進行, 整個 application 在 GC 結束前動作都會停下來.<br />
+mark-compact collector 會先指出哪些物件還活在 old generation, 把它們轉到 heap 一開始的地方, 在 heap 的尾端騰出連續的空間. 這讓之後的物件使用快速的 bump-the-pointer 的技巧從 young generation promote 到 old generation.<br />
+大部分沒有 "暫停時間一定要很短" 需求或是在 client machine 執行的 application 選用 Serial GC. 好處是只有一個 virtual processor 會執行 garbage collection 的工作. 在今天的機器上, Serial GC 可以有效率只要很短的暫停時間處理 100MB 以下的 heap size.<br />
+另一個使用 Serial GC 的 case 是在一台機器上跑多個 JVM. (JVM 的數量比 processor 還多) 在這樣的環境上, 即使 garbage collection 會跑更久, 一個 JVM 最好只跑在一個 processor 來減少對其他 JVM 的影響.</div>
+<div>
+<h4>
+The Parallel GC: Throughput Matters!</h4>
+</div>
+<div>
+很多 java application 執行的環境有許多的實體記憶體與 processor. 理想上 garbage collector 會善用這些資源執行 GC 的工作. 為了加強跑在這種 server style 機器上 application 的 throughput, HotSpot VM 提供 Parallel GC, 也叫做 Throughput GC.</div>
+<div>
+Parallel GC 的行為跟 Serial GC 一樣, 將物件從 young generation 搬到 old generation 的時候要 stop-the-world. 但是 minor 與 full GC 可以使用 available processors 同時進行.</div>
+<div>
+有需求 throughput 要好且 pause time 不能低 (stop-the-world 的時間不能久)的 application, 如果跑在多個 processor 的機器上可以使用 Parallel GC.&nbsp;</div>
+<h4>
+The Mostly-Concurrent GC: Latency Matters!</h4>
+<div>
+對某些 application 而言, 一段一段 throughput 的重要性比不上快速的 response time. 在 stop-the-world 模式下 application 在 GC 完成前會無法服務. minor GC 的影響不大, 但在 full GC 的時候, 即使頻率不高, 但每次的 stop-the-world 都可能造成下次更久的 stop-the-world.&nbsp;</div>
+<div>
+為了解決這個問題, HotSpot VM 提供 Mostly-Concurrent GC, 也叫做 Concurrent Mark-Sweep GC (CMS). 這個機制對 minor GC 的處理不變, 但對於 old generation, CMS 用一個演算方式讓大部分 GC 的工作同時進行, 每次 GC 只需要兩次短暫的暫停.</div>
+<div>
+CMS 的流程是:&nbsp;</div>
+<div>
+<ol>
+<li>開始於一個短暫的暫停 (整個 JVM stop-the-world), 稱做 initial mark, 指出可立即從 old generation 外部碰觸到的物件.&nbsp;</li>
+<li>在 concurrent marking phase 的時候標記這些物件是可接觸到的.&nbsp;</li>
+<li>由於在標記的時候可能 reference fields 就被更新了 (CMS 正在 iterate 的 object tree 會更新), 所以不保證所有的物件在 concurrent marking phase 結束後都會被標記完. 為了解決這個問題, application 會再暫停一下子, 稱為 remark pause, CMS 在這個 phase 中會再訪問一次 concurrent marking phase 中有更動過的物件並給予最終狀態. 為了追蹤物件狀態這時候會重複使用 card table.</li>
+<li>由於 remark&nbsp;pause比 initial mark 更重, 為了增加效率被設計成同步進行 (parallelized)</li>
+<li>為了更進一步減少 remark&nbsp;pause的工作, HotSpot VM 引進 concurrent pre-cleaning phase. 這個&nbsp;phase 在 concurrent marking phase 後以及 remark&nbsp;pause之前發生. 這時候會做些在 remark pause 的事情, 例如重新拜訪一次被更動的物件, 如此在 remark pause 的時候工作就不會那麼多. (有些需要 finalize mark 的物件在 pre-cleaning 的時候就處理過了)</li>
+<li>在 remark pause 的最後, 保證所有 java heap 裡面的 live object 都會被標記.<br />整體來說, 比起 Parallel GC, CMS 的工作量比較多. 這是因為 garbage collector 要做的事情就是那麼多, 為了增加效率與減少 pause time 只好增加工作量.</li>
+<li>登記完 old generation 的所有物件後, 最後一個 phase 就是 concurrent sweeping phase, 也就是把垃圾物件清除. 與 Serial GC &amp; Parallel GC 不同的是, CMS 清除垃圾物件後, free space 並不是連續的. CMS 會去記錄 free space 位置在哪. 這導致在 old generation 定位物件的成本比使用 bump-the-pointer 技巧的 Serial GC or Parallel GC 來的昂貴.</li>
+<li>這也對 minor GC 帶來額外的負擔因為 old generation 的 allocation 會發生在物件在 minor GC 被 promote 的時候.</li>
+<li>CMS 另一個 Serial GC 與 Parallel GC 沒有的缺點是: CMS 需要更多的 Java heap.</li>
+<ol>
+<li>這是因為 concurrent marking cycle 延續的時間比 stop-the-world 還長, 而且只有在 sweeping phase 的時候 space 才真正的被回收.</li>
+<li>在 marking phase 的時候 application 還是可以繼續執行, 所以也可以繼續在 old generation 佔用新的空間, 而這些空間又只會在 sweeping phase 的時候減少</li>
+<li>此外, 儘管 GC 保證在 marking phase 的時候 identify 所有的 live object, 但這不保證它會 identify 所有的 garbage 物件. 物件有可能在 marking phase 的時候被偵測到是 garbage 但也可能不會, 如果沒被偵測到就只能等下次的 marking phase.</li>
+<li>在 GC 時候沒被偵測到的 garbage object 稱作 floating garbage (漂浮垃圾)</li>
+</ol>
+<li>最後, 由於缺乏 compaction 造成的碎片問題 (fragmentation issues) 可能使 garbage collector 無法盡可能有效使用 free space. 如果 old generation 在回收有效空間之前就滿了, 如同 Serial GC 與 Parallel GC, CMS 會回到 stop-the-world compackting 的階段.</li>
+</ol>
+<h4>
+The Garbage-First GC: CMS Replacement</h4>
+<ol>
+<li>G1 使用跟其他 GC 機制不同的 Java heap layout.</li>
+<li>它把 Java heap 分成多組同樣大小的 chunk, 稱作 region.</li>
+<li>雖然 G1 是 generational, 但沒有實體上區分 young 與 old generation. 而是每個 generation 有多個 regions. (這些 regions 不一定是連續的). 這讓 G1 能有彈性的調整 young generation 的 size.</li>
+<li>G1 是在從 region 中評估 surviving object 的時候回收資源, 大部分時候 G1 回收 young regions (也就是 G1 的 young generation) 就像 minor GC 一樣.</li>
+<li>G1 也會周期性的進行 concurrent marking cycles 來 identify 哪些 non-young regions 是空的或大部分是空的 (empty: 看文章應該是說沒空間 promote 物件到此). 這些 region 屬於回收起來 CP 值最高的 regions. 這些 region 會被丟進排程進行回收.&nbsp;</li>
+</ol>
+<h2>
+HotSpot VM JIT Compilers</h2>
+<h3>
+Compilation Policy</h3>
+</div>
+<div>
+<ol>
+<li>由於 JIT 沒有足夠的時間 compile 每個 method, 所有的程式最初都從 interpreter 開始執行, 一旦 code 變夠 hot 了就會被 schedule 去 compile.</li>
+<li>這在 HotSpot VM 裡面是由兩個 counter 來控制: invocation counter 與 backedge counter.</li>
+<ol>
+<li>invocation counter: 每次 method 被呼叫就 +1</li>
+<li>backedge counter: 每次 control flow 從較高的 bytecode index 執行到較低的 bytecode index 就 +1. <br />backedge counter 用來偵測有 loop 的 method 來提前 compile.</li>
+</ol>
+<li>counter 無論何時增加都會檢查一個 threadhold, 如果超過 threadhold, interpreter 就會要求 compile 這個 method.&nbsp;</li>
+<li>invocation counter 的 threadhold 名字叫 CompileThreadhold.</li>
+<li>backedge counter 的 threadhold 公式比較複雜: <br />CompileThreadhold * OnStackReplacePercentage / 100</li>
+<li>compilation request 會被 enqueue 進一個一或多個 compiler threads 監控著的 list, 當 compiler thread 不忙的時候就會將 compilation request 從 list 移掉然後開始進行 compilation.</li>
+<li>通常 interpreter 不會等 compiler 完成, 而是 reset invocation counter 後繼續執行 interpreter 裡面的 method. 當 compilation 完成後, compile 過的 method 會被關連到那個 method, 讓下一個 method caller 使用那個 compiled code. (當 interpreter 偵測到一個 method 是 compiled 過的, 下次就不會執行 interpreter 裡面的 code 而會 dispatch 到 compiled 的 code 去執行)</li>
+<li>然而, 當一個 java code 是跑一個很長而且只跑一次的 loop, 比方說一個程式會執行無限迴圈直到 process 關掉, 這時候 method 雖然被偵測到要 compile, 但是 compile 結束卻不會被使用, 而是一直使用 interpreter 的 code, 因為正常情況 long-running loop method 要等到下次 method 被呼叫的時候才會使用 compiled 過的程式. 這時候 HotSpot VM 可以執行一個特別的 compiles call "On Stack Replacement" 或稱為 "OSRs" 可以解決這個問題.</li>
+<li>當 backedge counter 溢位 (猜是超過 threadhold 的意思), interpreter 會發出 compile request, 這會開始執行 backedge 的 bytecode 而不是 method 第一次被呼叫的 bytecode. 這導致 compile 完產生出來的程式會把 interpreter frame 當成 input 來用並執行. 這作法使 long-running loop 可以使用 compiled 過的 bytecode.&nbsp;</li>
+<li>On Stack Replacement 因此而得名: compile 完產生的 code 拿一個 interpreter frame 來執行.</li>
+</ol>
+<h3>
+Client JIT Compiler Oberview</h3>
+</div>
+<div>
+<ol>
+<li>HotSpot VM Client JIT Compiler 目標是快速啟動與 compilation.</li>
+<li>為了給予 Java 合理的啟動效能避免太多的複雜度, Client JIT Compiler 被當成一個快速簡單的 code generator 程式啟動,&nbsp;</li>
+<li>這概念上跟 interpreter 有點像因為它會針對不同種類的 bytecode 建立 template 並維護一個像 interpreter frame 的 stack layout.</li>
+<li>Java 1.4 之前只支援 field accessor 的 inline.</li>
+<li>Java 1.4 之後支援 inline method, 還支援 Class Hieracrchy Analysis 與 deoptimization.</li>
+<li>Java 6 後為了提升效能有很多改變, 其中一個是把 intermediate representation 改為 SSA style representation, 且原本 simple local register allocator 改為 linear scan register allocator.</li>
+<li>此外 Java 6 支援數字可以跨 block. 在 x86 支援使用 SSE 增加浮點數的操作, 提升浮點運算效能提升.</li>
+</ol>
+<h3>
+Server SIT Compiler Overview</h3>
+</div>
+<div>
+<ol>
+<li>HotSpot VM Server JIT Compiler 目標是好的效能, throughput 與優化</li>
+<li>比起 Client JIT Compiler, Server JIT Compiler 在 compile 的時候需要更多的 space 與時間.</li>
+<li>Server JIT Compiler 會更積極作 inline, 通常也帶來更大的 method, 更大的 method 要花更長的時間 compile.</li>
+</ol>
+<h3>
+SSA - Program Dependence Graph</h3>
+</div>
+<h4>
+program dependence graph</h4>
+<div>
+<ol>
+<li>Server JIT Compiler 的 intermediate representation (IR) 是一個 SSA like IR, 但它使用了不同的 representing 流程處理方式, 稱為 "program dependence graph"</li>
+<li>為了能夠積極的重新排列 operation 與 global value 來減少多餘的計算, "program dependence graph" 會試著在 operation 進行中截取最小的 constraint,&nbsp;</li>
+<li>"program dependence graph"擁有 rick type system 而能夠取得所有 java type 執行的細節, 再投入之後的優化中.&nbsp;</li>
+</ol>
+<h4>
+methodDataOop</h4>
+<ol>
+<li>interpreter 在執行的時候會蒐集 profile information 給 Server JIT Compiler 使用.</li>
+<li>執行 bytecode 的時候, 一個 method 如果執行了足夠的次數, interpreter 就會建立一個 methodDataOop 的物件來裝這個 method 的 profile information, 資料包含哪些 type 被呼叫以及呼叫幾次.</li>
+<li>所有 control flow 的 bytecode 也都會紀錄自己有多常被使用以及後續的動作.</li>
+<li>所有這些資訊都被 Server JIT Compiler 用來基於 common types 與執行頻率找到 inline 的機會, 這會驅動 block layout 與 register allocation.</li>
+</ol>
+<h4>
+uncommon trap</h4>
+<ol>
+<li>所有 Java bytecode 的 JIT Compiler 都需要面對 unloaded 或 uninitialized classes 的可能性.&nbsp;</li>
+<li>在 Server JIT compiler 包含 unresolved constant pool entries 時,Server JIT compiler 會把 unloaded 或 uninitialized classes 當成碰不到的路徑 (unrechable path)</li>
+<li>遇到這種情況, Server JIT compiler 會替該 bytecode 送出一個 uncommon trap 並停止透過該 method parse 的 path.</li>
+<li>一個 uncommon trap 是一個給 HotSpot VM 的 request, 這個 request 會要求 HotSpot VM deoptimize 目前的 compiled method, 然後將程式退回到 constant entry pool 能被解析與 process 為止, 退回的部分改在 &nbsp;interpreter 執行.&nbsp;</li>
+<li>HotSpot VM 收到 uncommon trap 後, 原本 compiled 過的 code 會被丟掉, 程式會回到 interpreter 執行, 直到下次 compile 又被觸發為止, 下一次執行時由於 path 都被 resolved 過, 所以下次可以正常的 compile.</li>
+<li>uncommon traps 也會用來處理沒碰觸到的 path, 所以 compiler 沒有 generate code 給沒有用過的 method. 這樣 code 會比較小而且更直接的程式通常更好優化.</li>
+<li>Server JIT Compiler 還會拿 uncommon trap 來做更樂觀的優化, 當 Server JIT Compiler 認為某些行只會執行一次, 就會放個 dynamic check 去檢查, 如果檢查結果認為是 uncommon 就送出 uncommon trap 然後在 interpreter 執行這段程式. 當 uncommon trap 發生次數夠多, 就會被當成其實不是 uncommon, 就不再懷疑這可能是 uncommon 而直接使用 generated code. 這個情況發生在: 當 call site 從一個 profile information 只會看到一個類別, Server JIT Compiler 就會假設只看到一個類別, 然後加入檢查. 如果大部分情況看到一個類別, 少部分情況看到別的類別, Server JIT Compiler 就不會送出 uncommon trap 而是使用 compiled code.</li>
+</ol>
+<h4>
+optimizations on loops</h4>
+<ol>
+<li>Server JIT Compiler 在 loop 上有很多優化, 透過拆解 iteration 做到如 loop&nbsp;unswitching,&nbsp;loop unrolling,&nbsp;range check elimination 等優化.</li>
+<li>拆解 iteration 的方式是把一個 loop 轉成三個: preloop, main loop, post loop.</li>
+<li>這個 idea 是去計算每個 loop 的邊界使 main loop 不用做任何的 range check, 只有 preloop 與 post loop 需要做 range check.</li>
+<li>大部分情況 preloop 與 post loop 都只需要跑少數幾次, 甚至很多情況下都可以被完全淘汰.</li>
+<li>當 range check 被移除, 就可以被 unroll. Loop unroll 就是讓 loop body 變單純, 讓被 loop 的程式攤開來不要跑 loop, 減少 loop 的次數.</li>
+<li>unroll 之後可以減少執行 loop 的成本, 通常可以更簡化 loop 的內容, 使 loop 可以在更短時間做更多事. 有時候幾次的 unroll 後可以讓 loop 完全消失.</li>
+<li>Loop unrolling 可以導致開始另一個優化叫做 superword, superword 是&nbsp;vectorization 的一種形式.&nbsp;</li>
+<li>Unrolling 可以在 loop body 建立一些平行的 operations, 如果那些 operations 照順序放在記憶體, 就可以被蒐集成 vector 裡面的 operations. 使一個指令就能在同樣的一段時間內執行多個 operation.&nbsp;</li>
+</ol>
+一旦所有的高階優化都完成, IR (intermediate representation) 會被轉換成 machine dependent 的格式. 這時候可以享有所有特別的 instructions 與 processor address mode 的好處.<br />
+<br /></div>

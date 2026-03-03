@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Coin body - oval koban shape -->
+  <ellipse cx="32" cy="32" rx="22" ry="28" fill="#F5C842" stroke="#C8960C" stroke-width="2.5"/>
+  <!-- Inner rim -->
+  <ellipse cx="32" cy="32" rx="17" ry="23" fill="none" stroke="#D4A017" stroke-width="1.5"/>
+  <!-- Top stamp mark -->
+  <rect x="26" y="12" width="12" height="8" rx="1.5" fill="#D4A017" stroke="#C8960C" stroke-width="1"/>
+  <!-- Center character 金 -->
+  <text x="32" y="40" text-anchor="middle" font-family="serif" font-size="18" font-weight="bold" fill="#8B6914">金</text>
+  <!-- Bottom stamp mark -->
+  <rect x="26" y="46" width="12" height="8" rx="1.5" fill="#D4A017" stroke="#C8960C" stroke-width="1"/>
+  <!-- Shine highlight -->
+  <ellipse cx="24" cy="22" rx="5" ry="8" fill="rgba(255,255,255,0.25)" transform="rotate(-15 24 22)"/>
+</svg>

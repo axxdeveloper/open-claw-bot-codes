@@ -1,0 +1,46 @@
+---
+layout: post
+title: Redux - 更深入理解 mapStateToProps
+date: 2020-06-18 02:27:00 +0800
+tags: [redux, javascript]
+lang: zh-TW
+---
+
+<div><b><font style="font-size: 18px;">Commit</font></b></div><div><a href="https://github.com/shooeugenesea/study-js/commit/9abf9a073ca86dea1b1dcf1418a5880a7975c0ea">https://github.com/shooeugenesea/study-js/commit/9abf9a073ca86dea1b1dcf1418a5880a7975c0ea</a></div><div><br /></div><div>我犯的錯誤
+</div><div>我發現 PttPosts 的實作好像不太對。
+</div><div><br /></div><div>PttPosts.js
+</div><div><div>import React, {Component} from "react";
+</div><div>import {connect} from 'react-redux'
+</div><div>import {selectPttPost} from '../actions'
+</div><div><div><br /></div></div><div>class PttPosts extends Component {
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;renderPosts() {
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return this.props.pttPosts.map((post) =&gt; {
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return &lt;div key={post.title}&gt;
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${post.title} / ${post.author} &lt;button onClick={() =&gt; this.props.selectPttPost(post)} key={post.title}&gt;Click&lt;/button&gt;
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/div&gt;
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;});
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;}
+</div><div><div><br /></div></div><div>&nbsp;&nbsp;&nbsp;&nbsp;render() {
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return &lt;div&gt;{this.renderPosts()}&lt;/div&gt;
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;}
+</div><div>}
+</div><div><div><br /></div></div><div><font color="#FF2600"><b>// incorrect</b></font></div><div><font color="#FF2600"><b>const mapStateToProps = (state) =&gt; {</b></font></div><div><font color="#FF2600"><b>&nbsp;&nbsp;&nbsp;&nbsp;console.log("mapStateToProps", state)</b></font></div><div><font color="#FF2600"><b>&nbsp;&nbsp;&nbsp;&nbsp;return state;</b></font></div><div><font color="#FF2600"><b>}</b></font></div><div><div><br /></div></div><div>export default connect(mapStateToProps, { selectPttPost })(PttPosts)
+</div></div><div><br /></div><div>後來我理解到 "mapStateToProps" 可以指定 render function 中使用的屬性名稱。
+</div><div>就像 PttPostContent.js 一樣
+</div><div><div>import React, {Component} from "react";
+</div><div>import {connect} from 'react-redux'
+</div><div><div><br /></div></div><div>const PttPostContent = ({<font color="#0433FF"><b>pttPost</b></font>}) =&gt; { <font color="#0433FF"><b>// 2. 所以在 render 的時候可以透過屬性名稱拿到資料</b></font>
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;if (!pttPost) {
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return &lt;div /&gt;
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;}
+</div><div><div><br /></div></div><div>&nbsp;&nbsp;&nbsp;&nbsp;return &lt;div&gt;
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;div&gt;${pttPost.title}&lt;/div&gt;
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;div&gt;${pttPost.author}&lt;/div&gt;
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&lt;/div&gt;
+</div><div>}
+</div><div><div><br /></div></div><div>const mapStateToProps = (state) =&gt; {
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;console.log("mapStateToProps", state)
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;return {<font style="color: #0433ff;"><b>pttPost</b></font>: state.selectedPttPost} <font color="#0433FF"><b>// 1. 因為 "pttPost" 被放進 props 裡面了</b></font>
+</div><div>}
+</div><div><div><br /></div></div><div>export default connect(mapStateToProps)(PttPostContent)
+</div></div>

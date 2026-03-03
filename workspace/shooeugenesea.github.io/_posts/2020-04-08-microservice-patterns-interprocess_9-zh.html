@@ -1,0 +1,114 @@
+---
+layout: post
+title: Microservice Patterns - 3.4 Microservice 架構中的行程間通訊 - 使用非同步 Messaging 提升可用性
+date: 2020-04-08 18:08:00 +0800
+tags: [microservice patterns]
+lang: zh-TW
+---
+
+<br />
+<div>
+<span style="font-size: 12pt; font-weight: bold;">參考資料</span></div>
+<div>
+<a href="https://www.amazon.com/Microservices-Patterns-examples-Chris-Richardson/dp/1617294543" style="color: black;">https://www.amazon.com/Microservices-Patterns-examples-Chris-Richardson/dp/1617294543</a></div>
+<div>
+<br /></div>
+<ul>
+<li><div>
+<span style="font-size: 12pt;">在處理請求時與其他服務做同步通訊會降低應用程式的可用性</span></div>
+</li>
+<li><div>
+<span style="font-size: 12pt;">因此，你應該盡可能設計服務使用非同步 messaging</span></div>
+</li>
+</ul>
+<div>
+<span style="font-size: 12pt;"><br /></span></div>
+<div>
+<span style="font-size: 12pt;"><b>同步通訊會降低可用性</b></span></div>
+<ul>
+<li><div>
+「使用 REST 做服務間通訊」的問題在於「它是同步協定」</div>
+</li>
+<li><div>
+同步協定 =&gt; 降低可用性</div>
+</li>
+<li><div>
+如果你想最大化可用性，就必須最小化同步通訊的量。</div>
+</li>
+</ul>
+<div>
+<br /></div>
+<div>
+<b><span style="font-size: 12pt;">消除同步互動</span></b></div>
+<div>
+在處理同步請求的同時減少與其他服務同步通訊量的方法</div>
+<ul>
+<li><div>
+定義只有非同步 API 的服務（但公開 API 通常是 RESTful 的）</div>
+</li>
+</ul>
+<div>
+<br /></div>
+<div>
+<b>使用非同步互動風格</b></div>
+<div>
+<img src="/assets/images/extracted/microservice-patterns-interprocess_9-0-8e48d5e2.png" width="677" /></div>
+<div>
+<br /></div>
+<div>
+<b>複製資料</b></div>
+<ul>
+<li><div>
+如果服務有同步 API，提升可用性的一種方式是複製資料</div>
+</li>
+<li><div>
+服務維護一份處理請求時所需資料的副本。</div>
+</li>
+<li><div>
+透過訂閱擁有資料的服務所發佈的 event 來保持副本是最新的</div>
+</li>
+<li><div>
+缺點</div>
+</li>
+<ul>
+<li><div>
+有時候需要複製大量的資料，這是沒效率的。</div>
+</li>
+<li><div>
+它無法解決服務如何更新其他服務擁有的資料的問題</div>
+</li>
+</ul>
+</ul>
+<div>
+<br /></div>
+<div>
+<b>回傳回應後才完成處理</b></div>
+<div>
+處理請求的方式如下：</div>
+<ol>
+<li><div>
+只使用本地可用的資料來驗證請求。</div>
+</li>
+<li><div>
+更新自己的資料庫，包括將訊息插入 OUTBOX 表。</div>
+</li>
+<li><div>
+回傳回應給 client。</div>
+</li>
+</ol>
+<div>
+它會非同步地發送訊息給其他服務</div>
+<div>
+<img src="/assets/images/extracted/microservice-patterns-interprocess_9-1-7abad84e.png" /></div>
+<div>
+<br /></div>
+<div>
+缺點：</div>
+<ul>
+<li><div>
+讓 client 端更複雜</div>
+</li>
+</ul>
+<div>
+<br /></div>
+<br />

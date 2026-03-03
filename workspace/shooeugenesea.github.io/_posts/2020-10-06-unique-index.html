@@ -1,0 +1,143 @@
+---
+layout: post
+title: MongoDB unique index
+date: 2020-10-06 10:50:00 +0800
+tags: [mongodb]
+lang: en
+---
+
+<p>&nbsp;<b>Unique index</b></p>
+
+<div><div>&gt; db.users.createIndex({"name":1},{<span style="color: #ff2600;">"unique":true</span>})
+</div><div>{
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"createdCollectionAutomatically" : false,
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"numIndexesBefore" : 4,
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"numIndexesAfter" : 5,
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"ok" : 1
+</div><div>}
+</div><div>&gt; db.users.insertOne({"name":"user164"})
+</div><div>WriteError({
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"index" : 0,
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"code" : 11000,
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"errmsg" : "<span style="color: #ff2600;">E11000 duplicate key error collection</span>: test.users index: name_1 dup key: { name: \"user164\" }",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"op" : {
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"_id" : ObjectId("5f7c208d02c41bd39db9af73"),
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name" : "user164"
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;}
+</div><div>}) :
+</div><div>WriteError({
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"index" : 0,
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"code" : 11000,
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"errmsg" : "E11000 duplicate key error collection: test.users index: name_1 dup key: { name: \"user164\" }",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"op" : {
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"_id" : ObjectId("5f7c208d02c41bd39db9af73"),
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name" : "user164"
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;}
+</div><div>})
+</div><div>WriteError@src/mongo/shell/bulk_api.js:458:48
+</div><div>mergeBatchResults@src/mongo/shell/bulk_api.js:855:49
+</div><div>executeBatch@src/mongo/shell/bulk_api.js:919:13
+</div><div>Bulk/this.execute@src/mongo/shell/bulk_api.js:1163:21
+</div><div>DBCollection.prototype.insertOne@src/mongo/shell/crud_api.js:264:9
+</div><div>@(shell):1:1
+</div><div>&gt;
+</div></div><div><br /></div><div><b>partialFilterExpression</b></div><div>MongoDB treat null as the same value in index, can use partialFilterExpression to filter only specific field exist
+</div><div><div>// re-create unique index with partialFilterExpression
+</div><div>&gt; db.users.dropIndex({"name":1})
+</div><div>{ "nIndexesWas" : 5, "ok" : 1 }
+</div><div>&gt; db.users.createIndex({"name":1},{"unique":true,"partialFilterExpression":<span style="color: #ff2600;">{"comments":{$exists: true}</span>}})
+</div><div>{
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"createdCollectionAutomatically" : false,
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"numIndexesBefore" : 4,
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"numIndexesAfter" : 5,
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"ok" : 1
+</div><div>}
+</div><div><br /></div><div>// insert duplicated name will success
+</div><div>&gt; db.users.insertOne({"name":"user164"})<br />
+</div><div>{
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"acknowledged" : true,
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"insertedId" : ObjectId("5f7c234602c41bd39db9af76")
+</div><div>}
+</div><div>&gt; db.users.insertOne({"name":"user164"})
+</div><div>{
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"acknowledged" : true,
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"insertedId" : ObjectId("5f7c234c02c41bd39db9af77")
+</div><div>}
+</div><div><br /></div><div>// however, if insert user with comments field, unique index works
+</div><div>&gt; db.users.insertOne({"name":"<span style="color: #ff2600;">user164</span>",<span style="color: #ff2600;">"comments":"abc"</span>})
+</div><div>{
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"acknowledged" : true,
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"insertedId" : ObjectId("5f7c23f702c41bd39db9af78")
+</div><div>}
+</div><div>&gt; db.users.insertOne({"name":"<span style="color: #ff2600;">user164</span>",<span style="color: #ff2600;">"comments":"abcdef"</span>})
+</div><div>WriteError({
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"index" : 0,
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"code" : 11000,
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"errmsg" : "<span style="color: #ff2600;">E11000 duplicate key error collection</span>: test.users index: name_1 dup key: { name: \"user164\" }",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"op" : {
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"_id" : ObjectId("5f7c23fa02c41bd39db9af79"),
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name" : "user164",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"comments" : "abcdef"
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;}
+</div><div>}) :
+</div><div>WriteError({
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"index" : 0,
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"code" : 11000,
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"errmsg" : "E11000 duplicate key error collection: test.users index: name_1 dup key: { name: \"user164\" }",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"op" : {
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"_id" : ObjectId("5f7c23fa02c41bd39db9af79"),
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name" : "user164",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"comments" : "abcdef"
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;}
+</div><div>})
+</div><div>WriteError@src/mongo/shell/bulk_api.js:458:48
+</div><div>mergeBatchResults@src/mongo/shell/bulk_api.js:855:49
+</div><div>executeBatch@src/mongo/shell/bulk_api.js:919:13
+</div><div>Bulk/this.execute@src/mongo/shell/bulk_api.js:1163:21
+</div><div>DBCollection.prototype.insertOne@src/mongo/shell/crud_api.js:264:9
+</div><div>@(shell):1:1
+</div><div>&gt;
+</div></div><div><br /></div><div><b>Compound unique indexes</b></div><div><div>// create compound unique index
+</div><div>&gt; db.tickets.createIndex({"name":1,"location":1},{"unique":true})
+</div><div>{
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"createdCollectionAutomatically" : false,
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"numIndexesBefore" : 1,
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"numIndexesAfter" : 2,
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"ok" : 1
+</div><div>}
+</div><div><br /></div><div>// insert the first record
+</div><div>&gt; db.tickets.insertOne({"name":"T1","location":"Taipei"})
+</div><div>{
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"acknowledged" : true,
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"insertedId" : ObjectId("5f7c408f4db79b5cc8c5423d")
+</div><div>}
+</div><div><br /></div><div>// insert the second record fail
+</div><div>&gt; db.tickets.insertOne({"name":"T1","location":"Taipei"})
+</div><div>WriteError({
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"index" : 0,
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"code" : 11000,
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"errmsg" : "<span style="color: #ff2600;">E11000 duplicate key error collection: test.tickets index: name_1_location_1 dup key: { name: \"T1\", location: \"Taipei\" }</span>",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"op" : {
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"_id" : ObjectId("5f7c40904db79b5cc8c5423e"),
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name" : "T1",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"location" : "Taipei"
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;}
+</div><div>}) :
+</div><div>WriteError({
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"index" : 0,
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"code" : 11000,
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"errmsg" : "E11000 duplicate key error collection: test.tickets index: name_1_location_1 dup key: { name: \"T1\", location: \"Taipei\" }",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"op" : {
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"_id" : ObjectId("5f7c40904db79b5cc8c5423e"),
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name" : "T1",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"location" : "Taipei"
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;}
+</div><div>})
+</div><div>WriteError@src/mongo/shell/bulk_api.js:458:48
+</div><div>mergeBatchResults@src/mongo/shell/bulk_api.js:855:49
+</div><div>executeBatch@src/mongo/shell/bulk_api.js:919:13
+</div><div>Bulk/this.execute@src/mongo/shell/bulk_api.js:1163:21
+</div><div>DBCollection.prototype.insertOne@src/mongo/shell/crud_api.js:264:9
+</div><div>@(shell):1:1
+</div><div>&gt;
+</div><div><br /></div></div><div><br /></div>

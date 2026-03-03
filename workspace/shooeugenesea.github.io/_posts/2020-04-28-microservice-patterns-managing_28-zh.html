@@ -1,0 +1,124 @@
+---
+layout: post
+title: Microservice Patterns - 用 Saga 管理交易 - 4.3 處理缺乏隔離性的問題
+date: 2020-04-28 15:31:00 +0800
+tags: [microservice patterns]
+lang: zh-TW
+---
+
+<div>
+<div>
+<div>
+<div>
+<span style="font-size: 12pt; font-weight: bold;">參考資料</span></div>
+<div>
+<a href="https://www.amazon.com/Microservices-Patterns-examples-Chris-Richardson/dp/1617294543" style="color: black;">https://www.amazon.com/Microservices-Patterns-examples-Chris-Richardson/dp/1617294543</a></div>
+<div>
+<br /></div>
+<div>
+<br /></div>
+<ul>
+<li><div>
+ACID 交易的隔離性<span style="color: red; font-weight: bold;">確保同時執行多個交易的結果，跟以某種串行順序執行它們的結果相同</span></div>
+</li>
+<li><div>
+隔離性讓撰寫同時執行的商業邏輯變得容易許多</div>
+</li>
+<li><div>
+使用 saga 的挑戰在於它們缺乏 ACID 交易的隔離性。</div>
+</li>
+<li><div>
+問題</div>
+</li>
+<ul>
+<li><div>
+其他 saga 可以在 saga 執行時變更它存取的資料</div>
+</li>
+<li><div>
+其他 saga 可以在 saga 完成更新前讀取它的資料，因此可能讀到不一致的資料</div>
+</li>
+</ul>
+<li><div>
+saga 是 ACD 的：</div>
+</li>
+<ul>
+<li><div>
+原子性 — saga 的實作確保所有交易都被執行，或所有變更都被復原。</div>
+</li>
+<li><div>
+一致性 — 服務內部的參照完整性由本地資料庫處理。跨服務的參照完整性由服務自行處理。</div>
+</li>
+<li><div>
+持久性 — 由本地資料庫處理。</div>
+</li>
+</ul>
+<li><div>
+處理缺乏隔離性的策略：反制措施</div>
+</li>
+</ul>
+</div>
+<div>
+<br /></div>
+<div>
+<span style="font-size: 12pt; font-weight: bold;">異常狀況概觀</span></div>
+<ul>
+<li><div>
+遺失更新：更新一筆資料後，另一個 Saga 馬上覆寫同一筆資料</div>
+</li>
+<li><div>
+髒讀：讀取一筆資料時，另一個 Saga 正在更新該資料但尚未完成</div>
+</li>
+<li><div>
+模糊/不可重複讀取：Saga 的不同步驟讀取同一筆資料得到不同結果，因為其他 saga 做了更新</div>
+</li>
+</ul>
+<div>
+<br /></div>
+<div>
+<span style="font-size: 12pt; font-weight: bold;">處理缺乏隔離性的反制措施</span></div>
+<ul>
+<li><div>
+Semantic lock：應用層級的鎖</div>
+</li>
+<li><div>
+Commutative updates：設計可以任意順序執行的更新操作</div>
+</li>
+<li><div>
+Pessimistic view：重新排列 saga 步驟以最小化因髒讀造成的商業風險</div>
+</li>
+<li><div>
+Reread value：覆寫資料前重新讀取以驗證資料沒有被變更</div>
+</li>
+<li><div>
+Version file：記錄對記錄的更新，以便能重新排序。例如記錄到達的操作，然後以正確的順序執行</div>
+</li>
+<li><div>
+By value：用請求的商業風險來動態選擇並行機制。例如轉帳用分散式交易。簡單的狀態更新用 Saga。</div>
+</li>
+</ul>
+<div>
+<br /></div>
+<div>
+<span style="font-size: 12pt; font-weight: bold;">SAGA 的結構</span></div>
+<div>
+<br /></div>
+<div>
+一個 saga 由三種類型的交易組成（一個完整的流程可能包含每種交易）：</div>
+</div>
+<ul>
+<li><div>
+可補償交易：有可能被回滾。例如刪除一個已建立的 Order</div>
+</li>
+<li><div>
+關鍵交易：saga 中的決定性時刻。例如在繼續前進行驗證，驗證後決定要繼續還是停止。</div>
+</li>
+<li><div>
+可重試交易：在關鍵交易之後，保證會成功。例如失敗時可以重試。</div>
+</li>
+</ul>
+<div>
+<br /></div>
+</div>
+<br />
+<div>
+<br /></div>

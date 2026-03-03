@@ -1,0 +1,502 @@
+---
+layout: post
+title: guava notes
+date: 2016-07-20 00:13:00 +0800
+tags: [java]
+---
+
+<h2>
+Reference</h2>
+<div>
+<a href="https://github.com/google/guava/wiki" rel="nofollow" target="_blank">Guava User Guide</a><br />
+<a href="https://github.com/shooeugenesea/study-practice/tree/guava">Practice in Github</a></div>
+<h2>
+Optional</h2>
+<div>
+Optional 可以用來處理 null value 與避免 NullPointerException
+<br />
+<pre>public class OptionalTest {
+
+    @Test
+    public void test() {
+        try {
+            Optional.of(null);
+            Assert.fail("Optional.of shouldn't accept null");
+        } catch (NullPointerException ex) {
+        }
+        Optional opt = Optional.of("Test");
+        Assert.assertTrue(opt.isPresent());
+        Assert.assertEquals("Test", opt.get());
+        Assert.assertEquals("Test", opt.or("QQ"));
+        Assert.assertEquals("Test", opt.orNull());
+        Assert.assertEquals(ImmutableSet.of("Test"), opt.asSet());
+
+        Optional nullableOptional = Optional.fromNullable(null);
+        Assert.assertFalse(nullableOptional.isPresent());
+        try {
+            Assert.assertNull(nullableOptional.get());
+            Assert.fail();
+        } catch (IllegalStateException ex) {
+        }
+        Assert.assertEquals("QQ", nullableOptional.or("QQ"));
+        Assert.assertNull(nullableOptional.orNull());
+        Assert.assertEquals(ImmutableSet.of(), nullableOptional.asSet());
+        Assert.assertEquals(Optional.absent(), nullableOptional);
+    }
+
+}
+</pre>
+</div>
+<h2>
+ComparisonChain</h2>
+ComparisonChain 可以用比較漂亮的程式實作 compare
+<br />
+<div>
+<pre>public class ComparisonChainTest {
+
+    @Test
+    public void test() {
+        NumbersObject n1 = new NumbersObject(1,2,3);
+        NumbersObject n2 = new NumbersObject(1,2,4);
+        NumbersObject n3 = new NumbersObject(1,3,4);
+        NumbersObject n4 = new NumbersObject(2,2,4);
+
+        List&lt;NumbersObject&gt; list = Arrays.asList(n4, n3, n2, n1);
+        Collections.sort(list, (o1, o2) -&gt; ComparisonChain.start()
+                .compare(o1.a,o2.a)
+                .compare(o1.b,o2.b)
+                .compare(o1.c,o2.c)
+                .result());
+        Assert.assertTrue(n1 == list.get(0));
+        Assert.assertTrue(n2 == list.get(1));
+        Assert.assertTrue(n3 == list.get(2));
+        Assert.assertTrue(n4 == list.get(3));
+    }
+
+    final static class NumbersObject {
+        private final int a ;
+        private final int b;
+        private final int c;
+        NumbersObject(int a, int b, int c) {
+            this.a = a;
+            this.b = b;
+            this.c = c;
+        }
+    }
+
+}
+</pre>
+</div>
+<div>
+<h2>
+Ordering</h2>
+Ordering 其實就是 Comparator, 可以傳給 Collections. 例如: Collections.sort(list, Ordering)
+<br />
+<h3>
+usingToString</h3>
+用 toString 的結果排序
+<br />
+<pre>@Test
+public void usingToString() {
+    NumbersObject n1 = new NumbersObject(1, 2, 3);
+    NumbersObject n2 = new NumbersObject(1, 2, 4);
+    NumbersObject n3 = new NumbersObject(-1, 2, -3);
+    NumbersObject n4 = new NumbersObject(-2, 3, 5);
+    List&lt;NumbersObject&gt; numbers = Arrays.asList(n1, n2, n3, n4);
+    Collections.sort(numbers, Ordering.usingToString());
+    Assert.assertEquals(n3, numbers.get(0));
+    Assert.assertEquals(n4, numbers.get(1));
+    Assert.assertEquals(n1, numbers.get(2));
+    Assert.assertEquals(n2, numbers.get(3));
+}
+
+private final class NumbersObject {
+
+    public final Integer a;
+    public final Integer b;
+    public final Integer c;
+
+    public NumbersObject(Integer a, Integer b, Integer c) {
+        this.a = a;
+        this.b = b;
+        this.c = c;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("a",a)
+                .add("b",b)
+                .add("c",c)
+                .toString();
+    }
+}
+</pre>
+<h3>
+nullsFirst &amp; nullsLast</h3>
+排序的時候, null 放在最前面位置(或最後).<br />
+物件本身是 Comparable, 可以直接拿 nullsFirst 回傳的 Ordering 來排序, 若物件本身不是 Comparable 就要提供排序的方式
+<br />
+<pre>@Test
+public void nullsFirst_NotComparable() {
+    NumbersObject n1 = new NumbersObject(1, 2, 3);
+    NumbersObject n2 = new NumbersObject(1, 2, 4);
+    NumbersObject n3 = new NumbersObject(-1, 2, -3);
+    NumbersObject n4 = new NumbersObject(-2, 3, 5);
+    NumbersObject nullNumber = new NumbersObject(null,null,null);
+    List&lt;NumbersObject&gt; numbers = Arrays.asList(n1, n2, n3, n4, nullNumber);
+    Ordering ordering = Ordering.natural().nullsFirst().onResultOf(new Function&lt;NumbersObject, Integer&gt;() {
+        @Override
+        public Integer apply(NumbersObject numbersObject) {
+            return numbersObject.a;
+        }
+    });
+    Collections.sort(numbers, ordering);
+    Assert.assertEquals(nullNumber, numbers.get(0));
+    Assert.assertEquals(n4, numbers.get(1));
+    Assert.assertEquals(n3, numbers.get(2));
+    Assert.assertEquals(n1, numbers.get(3));
+    Assert.assertEquals(n2, numbers.get(4));
+}
+
+@Test
+public void nullsFirst_Comparable() {
+    List&lt;Integer&gt; list = Arrays.asList(5, 2, 6, 7, 3, null);
+    Collections.sort(list, Ordering.natural().nullsFirst());
+    Assert.assertEquals((Integer) null, list.get(0));
+    Assert.assertEquals((Integer) 2, list.get(1));
+    Assert.assertEquals((Integer) 3, list.get(2));
+    Assert.assertEquals((Integer) 5, list.get(3));
+    Assert.assertEquals((Integer) 6, list.get(4));
+    Assert.assertEquals((Integer) 7, list.get(5));
+}
+
+@Test
+public void nullsLast_Comparable() {
+    List&lt;Integer&gt; list = Arrays.asList(5, 2, 6, 7, 3, null);
+    Collections.sort(list, Ordering.natural().nullsLast());
+    Assert.assertEquals((Integer) 2, list.get(0));
+    Assert.assertEquals((Integer) 3, list.get(1));
+    Assert.assertEquals((Integer) 5, list.get(2));
+    Assert.assertEquals((Integer) 6, list.get(3));
+    Assert.assertEquals((Integer) 7, list.get(4));
+    Assert.assertEquals((Integer) null, list.get(5));
+}
+
+@Test
+public void nullsLast_NotComparable() {
+    NumbersObject n1 = new NumbersObject(1, 2, 3);
+    NumbersObject n2 = new NumbersObject(1, 2, 4);
+    NumbersObject n3 = new NumbersObject(-1, 2, -3);
+    NumbersObject n4 = new NumbersObject(-2, 3, 5);
+    NumbersObject nullNumber = new NumbersObject(null,null,null);
+    List&lt;NumbersObject&gt; numbers = Arrays.asList(n1, n2, n3, n4, nullNumber);
+    Ordering ordering = Ordering.natural().nullsLast().onResultOf(new Function&lt;NumbersObject, Integer&gt;() {
+        @Override
+        public Integer apply(NumbersObject numbersObject) {
+            return numbersObject.a;
+        }
+    });
+    Collections.sort(numbers, ordering);
+    Assert.assertEquals(n4, numbers.get(0));
+    Assert.assertEquals(n3, numbers.get(1));
+    Assert.assertEquals(n1, numbers.get(2));
+    Assert.assertEquals(n2, numbers.get(3));
+    Assert.assertEquals(nullNumber, numbers.get(4));
+}
+
+private final class NumbersObject {
+
+    public final Integer a;
+    public final Integer b;
+    public final Integer c;
+
+    public NumbersObject(Integer a, Integer b, Integer c) {
+        this.a = a;
+        this.b = b;
+        this.c = c;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("a",a)
+                .add("b",b)
+                .add("c",c)
+                .toString();
+    }
+}
+</pre>
+<h3>
+compound</h3>
+可以組合多個 Comparator, 在上一個 Comparator 無法決定時就交給下一個 Comparator 判斷.<br />
+在排列的屬性有優先順序的時候可以讓程式變簡單. <br />
+例如: 先排 a, 再 b, 再 c. null 的話就排前面
+<br />
+<pre>@Test
+public void compound() {
+    NumbersObject n1 = new NumbersObject(1, 2, 3);
+    NumbersObject n2 = new NumbersObject(1, 2, 4);
+    NumbersObject n3 = new NumbersObject(-1, 2, -3);
+    NumbersObject n4 = new NumbersObject(-2, 3, 5);
+    NumbersObject nullNumber = new NumbersObject(null,null,null);
+    List&lt;NumbersObject&gt; numbers = Arrays.asList(n1, n2, n3, n4, nullNumber);
+    Comparator&lt;NumbersObject&gt; byNullFirstA = Ordering.natural().nullsFirst().onResultOf((t) -&gt; t.a);
+    Comparator&lt;NumbersObject&gt; byNullFirstB = Ordering.natural().nullsFirst().onResultOf((t) -&gt; t.b);
+    Comparator&lt;NumbersObject&gt; byNullFirstC = Ordering.natural().nullsFirst().onResultOf((t) -&gt; t.c);
+    Ordering orderByABC = Ordering.compound(Arrays.asList(byNullFirstA, byNullFirstB, byNullFirstC));
+    Collections.sort(numbers, orderByABC);
+    Assert.assertEquals(nullNumber, numbers.get(0));
+    Assert.assertEquals(n4, numbers.get(1));
+    Assert.assertEquals(n3, numbers.get(2));
+    Assert.assertEquals(n1, numbers.get(3));
+    Assert.assertEquals(n2, numbers.get(4));
+}
+
+private final class NumbersObject {
+
+    public final Integer a;
+    public final Integer b;
+    public final Integer c;
+
+    public NumbersObject(Integer a, Integer b, Integer c) {
+        this.a = a;
+        this.b = b;
+        this.c = c;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("a",a)
+                .add("b",b)
+                .add("c",c)
+                .toString();
+    }
+}
+</pre>
+<h3>
+lexicographical</h3>
+跟 Collections.sort 不同, loxicographical 是用來替很多個 iterable 作排序
+<br />
+<pre>@Test
+public void lexicographically() {
+    ImmutableList&lt;String&gt; empty = ImmutableList.of();
+    ImmutableList&lt;String&gt; a = ImmutableList.of("a");
+    ImmutableList&lt;String&gt; aa = ImmutableList.of("a", "a");
+    ImmutableList&lt;String&gt; ab = ImmutableList.of("a", "b");
+    ImmutableList&lt;String&gt; b = ImmutableList.of("b");
+    List&lt;ImmutableList&lt;String&gt;&gt; all = Arrays.asList(b,a,ab,aa,empty);
+    Ordering&lt;Iterable&lt;String&gt;&gt; c = Ordering.&lt;String&gt;natural().lexicographical();
+    Collections.sort(all, c);
+    Assert.assertEquals(empty, all.get(0));
+    Assert.assertEquals(a, all.get(1));
+    Assert.assertEquals(aa, all.get(2));
+    Assert.assertEquals(ab, all.get(3));
+    Assert.assertEquals(b, all.get(4));
+}
+
+@Test
+public void lexicographicallyReverse() {
+    ImmutableList&lt;String&gt; empty = ImmutableList.of();
+    ImmutableList&lt;String&gt; a = ImmutableList.of("a");
+    ImmutableList&lt;String&gt; aa = ImmutableList.of("a", "a");
+    ImmutableList&lt;String&gt; ab = ImmutableList.of("a", "b");
+    ImmutableList&lt;String&gt; b = ImmutableList.of("b");
+    List&lt;ImmutableList&lt;String&gt;&gt; all = Arrays.asList(b,a,ab,aa,empty);
+    Ordering&lt;Iterable&lt;String&gt;&gt; c = Ordering.&lt;String&gt;natural().lexicographical().reverse();
+    Collections.sort(all, c);
+    Assert.assertEquals(empty, all.get(4));
+    Assert.assertEquals(a, all.get(3));
+    Assert.assertEquals(aa, all.get(2));
+    Assert.assertEquals(ab, all.get(1));
+    Assert.assertEquals(b, all.get(0));
+}
+
+@Test
+public void reverseLexicographically() {
+    ImmutableList&lt;String&gt; empty = ImmutableList.of();
+    ImmutableList&lt;String&gt; a = ImmutableList.of("a");
+    ImmutableList&lt;String&gt; aa = ImmutableList.of("a", "a");
+    ImmutableList&lt;String&gt; ab = ImmutableList.of("a", "b");
+    ImmutableList&lt;String&gt; b = ImmutableList.of("b");
+    List&lt;ImmutableList&lt;String&gt;&gt; all = Arrays.asList(b,a,ab,aa,empty);
+    Ordering&lt;Iterable&lt;String&gt;&gt; c = Ordering.&lt;String&gt;natural().reverse().lexicographical();
+    Collections.sort(all, c);
+    System.out.println(all);
+    Assert.assertEquals(empty, all.get(0));
+    Assert.assertEquals(b, all.get(1));
+    Assert.assertEquals(a, all.get(2));
+    Assert.assertEquals(ab, all.get(3));
+    Assert.assertEquals(aa, all.get(4));
+}
+</pre>
+<h3>
+onResultOf</h3>
+就是自訂排序方式, 直行完後會再往前呼叫其他排序法
+<br />
+<pre>@Test
+public void onResultOf() {
+    Comparator&lt;Integer&gt; c = Ordering.&lt;Integer&gt;natural().onResultOf((x) -&gt; Optional.ofNullable(x).orElse(4)%5);
+    List&lt;Integer&gt; list = Arrays.asList(5, 11, 4, 1, 2, 5, 7, 9, null);
+    Collections.sort(list, c);
+    System.out.println(list);
+    Assert.assertEquals(5, list.get(0).intValue());
+    Assert.assertEquals(5, list.get(1).intValue());
+    Assert.assertEquals(11, list.get(2).intValue());
+    Assert.assertEquals(1, list.get(3).intValue());
+    Assert.assertEquals(2, list.get(4).intValue());
+    Assert.assertEquals(7, list.get(5).intValue());
+    Assert.assertEquals(4, list.get(6).intValue());
+    Assert.assertEquals(9, list.get(7).intValue());
+    Assert.assertEquals(null, list.get(8));
+}
+
+@Test
+public void onResultOf_reverse() {
+    Comparator&lt;Integer&gt; c = Ordering.&lt;Integer&gt;natural().reverse().onResultOf((x) -&gt; Optional.ofNullable(x).orElse(4)%5);
+    List&lt;Integer&gt; list = Arrays.asList(5, 11, 4, 1, 2, 5, 7, 9, null);
+    Collections.sort(list, c);
+    System.out.println(list);
+    Assert.assertEquals(5, list.get(8).intValue());
+    Assert.assertEquals(5, list.get(7).intValue());
+    Assert.assertEquals(11, list.get(5).intValue());
+    Assert.assertEquals(1, list.get(6).intValue());
+    Assert.assertEquals(2, list.get(3).intValue());
+    Assert.assertEquals(7, list.get(4).intValue());
+    Assert.assertEquals(4, list.get(0).intValue());
+    Assert.assertEquals(9, list.get(1).intValue());
+    Assert.assertEquals(null, list.get(2));
+}
+</pre>
+<h3>
+greatestOf 與 leastOf</h3>
+拿排序過資料的最後幾筆與最前幾筆.
+<br />
+<pre>@Test
+public void greatestOf() {
+    NumbersObject n1 = new NumbersObject(1, 2, 3);
+    NumbersObject n2 = new NumbersObject(1, 2, 4);
+    NumbersObject n3 = new NumbersObject(-1, 2, -3);
+    NumbersObject n4 = new NumbersObject(-2, 3, 5);
+    NumbersObject nullNumber = new NumbersObject(null,null,null);
+    List&lt;NumbersObject&gt; numbers = Arrays.asList(n1, n2, n3, n4, nullNumber);
+    List&lt;NumbersObject&gt; greatestOf = Ordering.natural().greatestOf(numbers,3);
+    Assert.assertEquals(n4, greatestOf.get(0));
+    Assert.assertEquals(n3, greatestOf.get(1));
+    Assert.assertEquals(n1, greatestOf.get(2));
+}
+
+@Test
+public void leastOf() {
+    NumbersObject n1 = new NumbersObject(1, 2, 3);
+    NumbersObject n2 = new NumbersObject(2, 2, 4);
+    NumbersObject n3 = new NumbersObject(-1, 2, -3);
+    NumbersObject n4 = new NumbersObject(-2, 3, 5);
+    NumbersObject nullNumber = new NumbersObject(null,null,null);
+    List&lt;NumbersObject&gt; numbers = Arrays.asList(n1, n2, n3, n4, nullNumber);
+    List&lt;NumbersObject&gt; leastOf = Ordering.natural().leastOf(numbers,3);
+    Assert.assertEquals(nullNumber, leastOf.get(0));
+    Assert.assertEquals(n2, leastOf.get(1));
+    Assert.assertEquals(n1, leastOf.get(2));
+}
+
+private final class NumbersObject implements Comparable&lt;NumbersObject&gt; {
+
+    public final Integer a;
+    public final Integer b;
+    public final Integer c;
+
+    public NumbersObject(Integer a, Integer b, Integer c) {
+        this.a = a;
+        this.b = b;
+        this.c = c;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("a",a)
+                .add("b",b)
+                .add("c",c)
+                .toString();
+    }
+
+    @Override
+    public int compareTo(NumbersObject o) {
+        if (a == null &amp;&amp; o.a == null) {
+            return 0;
+        } else if (a == null) {
+            return -1;
+        } else if (o.a == null) {
+            return 1;
+        } else {
+            return Ints.compare(o.a,a);
+        }
+    }
+}
+</pre>
+<h3>
+ImmutableXXX</h3>
+沒有 ImmutableSet 的時候會用 Collections.unmodifiableSet, 差別是 ImmutableSet 有很多好用的 api 讓程式簡單很多.<br>
+另外 ImmutableXXX 在能夠避免線性成長的 copy time 時候會盡量避免. 例如 ImmutableList.copyOf(ImmutableSet)
+<br />
+<pre>@Test(expected = UnsupportedOperationException.class)
+public void of() {
+    ImmutableSet.of("a","b").add("a");
+}
+
+@Test(expected = UnsupportedOperationException.class)
+public void copyOf() {
+    ImmutableSet.copyOf(Arrays.asList(&quot;a&quot;,&quot;b&quot;,&quot;c&quot;)).add(&quot;&quot;);
+}
+
+@Test
+public void listCopyOfSet() {
+    ImmutableList immutableList = ImmutableList.copyOf(ImmutableSet.of(&quot;a&quot;,&quot;b&quot;));
+}
+</pre>
+<h3>Multipleset</h3>
+像是 set 一樣, 差別是一個同樣的資料可以存多筆. 也可以記錄某種資料總共有幾筆.
+<pre>
+@RunWith(Parameterized.class)
+public class MultisetTest {
+
+    @Parameterized.Parameters
+    public static Collection&lt;Object[]&gt; data() {
+        return Arrays.asList(new Object[][] {
+                { HashMultiset.create() },
+                {TreeMultiset.create() },
+                {LinkedHashMultiset.create() },
+                {ConcurrentHashMultiset.create()},
+        });
+    }
+
+    private final Multiset&lt;String&gt; testee;
+
+    public MultisetTest(Multiset&lt;String&gt; testee) {
+        this.testee = testee;
+    }
+
+    @Test
+    public void test() {
+        testee.addAll(Arrays.asList(&quot;A&quot;,&quot;B&quot;,&quot;A&quot;));
+        Assert.assertEquals(2, testee.count(&quot;A&quot;));
+        Assert.assertEquals(1, testee.count(&quot;B&quot;));
+    }
+
+}
+
+public class ImmutableMultisetTest {
+
+    @Test
+    public void count() {
+        ImmutableMultiset<String> set = ImmutableMultiset.of("A","B","A");
+        Assert.assertEquals(2,set.count("A"));
+        Assert.assertEquals(1,set.count("B"));
+    }
+
+}
+</pre>
+</div>
+<br />

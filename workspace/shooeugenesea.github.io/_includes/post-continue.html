@@ -1,0 +1,87 @@
+{% if page.id %}
+  {% assign _lang = page.lang | default: page.locale | default: site.lang | default: "" %}
+  {% assign _is_zh = false %}
+  {% if _lang contains "zh" %}{% assign _is_zh = true %}{% endif %}
+
+  {% assign _is_macro = false %}
+  {% if page.categories contains "macro" %}{% assign _is_macro = true %}{% endif %}
+
+  {% assign _pool = "" | split: "" %}
+  {% for p in site.posts %}
+    {% assign _p_is_macro = false %}
+    {% if p.categories contains "macro" %}{% assign _p_is_macro = true %}{% endif %}
+
+    {% if _is_macro %}
+      {% if _p_is_macro %}{% assign _pool = _pool | push: p %}{% endif %}
+    {% else %}
+      {% unless _p_is_macro %}{% assign _pool = _pool | push: p %}{% endunless %}
+    {% endif %}
+  {% endfor %}
+
+  {% assign _more = "" | split: "" %}
+  {% for p in _pool %}
+    {% if p.url != page.url %}
+      {% assign _more = _more | push: p %}
+    {% endif %}
+    {% if _more.size >= 3 %}{% break %}{% endif %}
+  {% endfor %}
+
+  <div class="post-continue">
+    <h3 class="post-continue__title">
+      {% if _is_zh %}接下來看什麼{% else %}What to read next{% endif %}
+    </h3>
+
+    <div class="post-continue__grid">
+      <div class="post-continue__card">
+        <div class="post-continue__card-title">
+          {% if _is_zh %}上一篇 / 下一篇{% else %}Previous / Next{% endif %}
+        </div>
+        <div class="post-continue__nav">
+          {% if page.previous %}
+            <a class="post-continue__link" href="{{ page.previous.url | relative_url }}">
+              {% if _is_zh %}上一篇：{% else %}Previous: {% endif %}{{ page.previous.title }}
+            </a>
+          {% endif %}
+          {% if page.next %}
+            <a class="post-continue__link" href="{{ page.next.url | relative_url }}">
+              {% if _is_zh %}下一篇：{% else %}Next: {% endif %}{{ page.next.title }}
+            </a>
+          {% endif %}
+          {% unless page.previous or page.next %}
+            <div class="post-continue__muted">
+              {% if _is_zh %}目前沒有相鄰文章。{% else %}No adjacent posts yet.{% endif %}
+            </div>
+          {% endunless %}
+        </div>
+      </div>
+
+      <div class="post-continue__card">
+        <div class="post-continue__card-title">
+          {% if _is_zh %}延伸閱讀{% else %}More like this{% endif %}
+        </div>
+        <ul class="post-continue__list">
+          {% for p in _more %}
+            <li>
+              <a class="post-continue__link" href="{{ p.url | relative_url }}">{{ p.title }}</a>
+              <span class="post-continue__date">{{ p.date | date: "%Y-%m-%d" }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+
+    <div class="post-continue__rss">
+      {% if _is_zh %}
+        訂閱 RSS：
+        <a href="{{ '/feed/macro.xml' | relative_url }}">總經</a>
+        ·
+        <a href="{{ '/feed/tech.xml' | relative_url }}">技術</a>
+      {% else %}
+        Subscribe via RSS:
+        <a href="{{ '/feed/macro.xml' | relative_url }}">Macro</a>
+        ·
+        <a href="{{ '/feed/tech.xml' | relative_url }}">Tech</a>
+      {% endif %}
+    </div>
+  </div>
+{% endif %}

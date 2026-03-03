@@ -1,0 +1,16 @@
+---
+layout: post
+title: MongoDB 索引管理
+date: 2020-10-06 10:58:00 +0800
+tags: [mongodb]
+lang: zh-TW
+---
+
+<p>&nbsp;</p>
+
+<ol><li>索引資訊儲存在 system.indexes
+</li><li>指令：createIndex、createIndexes、dropIndex、dropIndexes
+</li><li>db.collectionName.getIndexes()
+</li></ol><div><div>&gt; db.users.getIndexes()
+</div><div>[ { "v" : 2, "key" : { "_id" : 1 }, "name" : "_id_" } ]
+</div></div><ol start="4"><li>Key 可以用來做 hinting&nbsp;</li></ol>
