@@ -118,6 +118,19 @@ export default async function FloorDetailPage({
 
   const unitPhotos = floor.floorFiles.filter((file) => file.kind === "IMAGE" || file.kind === "FLOORPLAN");
 
+  const ownershipDisplay =
+    floor.floorOwners.length > 0
+      ? floor.floorOwners.map((row) => fallback(row.owner.name)).join(" / ")
+      : PLACEHOLDER;
+
+  const rawDoorNumberText = building.address?.trim() || "";
+  const doorNumberRows = rawDoorNumberText
+    ? rawDoorNumberText
+        .split(/\n|;|；/)
+        .map((row) => row.trim())
+        .filter(Boolean)
+    : [];
+
   return (
     <main className="space-y-4 pb-6">
       <section className="rounded-xl border bg-gradient-to-r from-slate-900 via-slate-800 to-slate-700 p-4 text-white md:p-5">
@@ -167,8 +180,33 @@ export default async function FloorDetailPage({
             <div className="grid gap-3 text-sm md:grid-cols-2">
               <InfoItem label="Building" value={building.name} />
               <InfoItem label="Floor" value={floor.label} />
-              <InfoItem label="Total Gross Area" value={`${formatArea(totalGrossArea)} sq.ft`} />
-              <InfoItem label="Total Net Area" value={`${formatArea(totalNetArea)} sq.ft`} />
+              <InfoItem label="產權" value={ownershipDisplay} />
+              <InfoItem
+                label="坪數"
+                value={
+                  totalGrossArea || totalNetArea
+                    ? `總坪數 ${formatArea(totalGrossArea)} 坪 / 室內 ${formatArea(totalNetArea)} 坪`
+                    : PLACEHOLDER
+                }
+              />
+            </div>
+
+            <div className="mt-3 rounded-lg border bg-slate-50 p-3 text-sm">
+              <p className="text-xs text-gray-500">門牌號碼（支援多筆 / 原樣呈現）</p>
+              {rawDoorNumberText ? (
+                <div className="mt-2 space-y-2">
+                  <pre className="whitespace-pre-wrap break-words rounded border bg-white p-2 text-xs text-gray-700">{rawDoorNumberText}</pre>
+                  <div className="flex flex-wrap gap-1">
+                    {doorNumberRows.map((door, index) => (
+                      <span key={`${door}-${index}`} className="rounded-full border bg-white px-2 py-0.5 text-xs text-gray-700">
+                        {door}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <p className="mt-1 text-sm text-gray-500">{PLACEHOLDER}</p>
+              )}
             </div>
 
             <table className="mt-4 w-full text-sm">
