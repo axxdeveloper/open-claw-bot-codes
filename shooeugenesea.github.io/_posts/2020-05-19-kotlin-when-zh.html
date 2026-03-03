@@ -1,9 +1,0 @@
----
-layout: post
-title: Kotlin - when 表達式
-date: 2020-05-19 16:57:00 +0800
-tags: [kotlin]
-lang: zh-TW
----
-
-<span><div><b>When</b></div><div><div>package examples</div><div><br /></div><div>fun main() {</div><div>&nbsp;&nbsp;&nbsp;&nbsp;var name = "John"</div><div>&nbsp;&nbsp;&nbsp;&nbsp;val greet = when(name) {</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"John" -&gt; "Hello John"</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else -&gt; "Unknown"</div><div>&nbsp;&nbsp;&nbsp;&nbsp;}</div><div>&nbsp;&nbsp;&nbsp;&nbsp;println(greet)</div><div>}</div></div><div><br /></div><div><b>When + if else</b></div><div><div>package examples</div><div><br /></div><div>fun main() {</div><div>&nbsp;&nbsp;&nbsp;&nbsp;val i = 50</div><div>&nbsp;&nbsp;&nbsp;&nbsp;val s = when(i) {</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;in 0..50 -&gt; "0-50"</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;in 51..100 -&gt; "51-100"</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else -&gt; if (i in 101..150) "101-150" else "Out Of Range"</div><div>&nbsp;&nbsp;&nbsp;&nbsp;}</div><div>}</div></div><div><br /></div></span><br />

@@ -1,9 +1,0 @@
----
-layout: post
-title: redux - prevent too many request
-date: 2020-06-23 18:08:00 +0800
-tags: [redux, javascript]
-lang: en
----
-
-<span><div><div>Commit</div><div><a href="https://github.com/shooeugenesea/study-js/commit/ad54df277bb17c12cf9f3bb37f965b13945ae68b">https://github.com/shooeugenesea/study-js/commit/ad54df277bb17c12cf9f3bb37f965b13945ae68b</a></div></div><div><br /></div><div>By current implementation, many requests are sent</div><div><br /></div><div><img src="/assets/images/extracted/redux-prevent-too-many-request-0-d8bddacb.png" width="878" /></div><div><br /></div><div>In order to prevent too many redundant requests, use lodash memoize to reduce.</div><div><div>npm install -save lodash</div></div><div><br /></div><div>Then change src/actions/index.js</div><div><div>import _ from 'lodash'</div><div><br /></div><div>// assign fetchUser to memoize, so that function instance is the same</div><div>export const fetchUser = (userId) =&gt; dispatch =&gt; _fetchUser(userId, dispatch);</div><div><br /></div><div>// define a function to adapt memoize</div><div>const _fetchUser = _.memoize(async (userId, dispatch) =&gt; {</div><div>&nbsp;&nbsp;&nbsp;&nbsp;const response = await jsonPlaceholder.get(`/users/${userId}`)</div><div><br /></div><div>&nbsp;&nbsp;&nbsp;&nbsp;dispatch({type:'FETCH_USER', payload: response.data})</div><div>})</div></div><div><br /></div><div>request and response are cached, so no redundant request will be sent</div><div><img src="/assets/images/extracted/redux-prevent-too-many-request-1-ac882d52.png" width="857" /></div><div><br /></div></span><br />

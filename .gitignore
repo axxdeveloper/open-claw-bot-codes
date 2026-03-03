@@ -1,3 +1,6 @@
 
 # local backup of nested git metadata
 .openclaw/git-backups/
+
+# keep blog as independent repo
+/shooeugenesea.github.io/
