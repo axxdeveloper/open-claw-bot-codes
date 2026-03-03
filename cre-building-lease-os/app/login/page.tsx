@@ -15,7 +15,6 @@ export default function LoginPage() {
 
     const form = new FormData(e.currentTarget);
     const payload = {
-      email: String(form.get("email") || ""),
       password: String(form.get("password") || ""),
     };
 
@@ -39,13 +38,12 @@ export default function LoginPage() {
   return (
     <main className="mx-auto mt-20 max-w-md rounded-xl border bg-white p-6 shadow-sm">
       <h1 className="mb-4 text-2xl font-semibold">登入 CRE Lease OS</h1>
-      <p className="mb-6 text-sm text-gray-500">MVP 測試帳號可由 seed 建立：admin@example.com / admin123</p>
+      <p className="mb-6 text-sm text-gray-500">請輸入密碼登入（預設：0910301562；測試：0912505345）。</p>
       <form onSubmit={onSubmit} className="space-y-3">
-        <input name="email" type="email" placeholder="Email" className="w-full rounded border px-3 py-2" required />
         <input
           name="password"
           type="password"
-          placeholder="Password"
+          placeholder="請輸入密碼"
           className="w-full rounded border px-3 py-2"
           required
         />
