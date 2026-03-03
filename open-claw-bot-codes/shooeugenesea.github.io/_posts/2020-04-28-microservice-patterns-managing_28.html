@@ -1,0 +1,124 @@
+---
+layout: post
+title: Microservice Patterns - Managing transactions with sagas - 4.3 Handling the lack of isolation
+date: 2020-04-28 15:31:00 +0800
+tags: [microservice patterns]
+lang: en
+---
+
+<div>
+<div>
+<div>
+<div>
+<span style="font-size: 12pt; font-weight: bold;">Reference</span></div>
+<div>
+<a href="https://www.amazon.com/Microservices-Patterns-examples-Chris-Richardson/dp/1617294543" style="color: black;">https://www.amazon.com/Microservices-Patterns-examples-Chris-Richardson/dp/1617294543</a></div>
+<div>
+<br /></div>
+<div>
+<br /></div>
+<ul>
+<li><div>
+The isolation property of ACID transactions <span style="color: red; font-weight: bold;">ensures that the outcome of executing multiple transactions concurrently is the same as if they were executed in some serial order</span></div>
+</li>
+<li><div>
+Isolation makes it a lot easier to write business logic that executes concurrently</div>
+</li>
+<li><div>
+The challenge with using sagas is that they lack the isolation property of ACID transactions.</div>
+</li>
+<li><div>
+Problem</div>
+</li>
+<ul>
+<li><div>
+other sagas can change the data accessed by the saga while it’s executing</div>
+</li>
+<li><div>
+other sagas can read its data before the saga has completed its updates, and consequently can be exposed to inconsistent data</div>
+</li>
+</ul>
+<li><div>
+saga to be ACD:</div>
+</li>
+<ul>
+<li><div>
+Atomicity—The saga implementation ensures that all transactions are executed or all changes are undone.</div>
+</li>
+<li><div>
+Consistency—Referential integrity within a service is handled by local databases. Referential integrity across services is handled by the services.</div>
+</li>
+<li><div>
+Durability—Handled by local databases.</div>
+</li>
+</ul>
+<li><div>
+Strategy to deal with the lack of isolation:&nbsp; countermeasures</div>
+</li>
+</ul>
+</div>
+<div>
+<br /></div>
+<div>
+<span style="font-size: 12pt; font-weight: bold;">Overview of anomalies</span></div>
+<ul>
+<li><div>
+Lost updates: Update a data and another Saga override the same data right away</div>
+</li>
+<li><div>
+Dirty reads: Read a data while another Saga update that data but not completed</div>
+</li>
+<li><div>
+Fuzzy/nonrepeatable reads: Different step of Saga read same data get different result because other saga has made update</div>
+</li>
+</ul>
+<div>
+<br /></div>
+<div>
+<span style="font-size: 12pt; font-weight: bold;">Countermeasures for handling the lack of isolation</span></div>
+<ul>
+<li><div>
+Semantic lock: application level lock</div>
+</li>
+<li><div>
+Commutative updates: Design update operations to be executable in any order</div>
+</li>
+<li><div>
+Pessimistic view: Reorder of saga steps to minimize business risk due to dirty read</div>
+</li>
+<li><div>
+Reread value: Reread data to verify it's unchanged before overwriting it</div>
+</li>
+<li><div>
+Version file: Record the update to a record so that they can be reordered. Ex. record the operations as they arrive and then execute them in the correct order</div>
+</li>
+<li><div>
+By value: Use request's business risk to dynamically to select the concurrency mechanism. Ex. transfer money, use distributed transaction. Simple status update, use Sagas.</div>
+</li>
+</ul>
+<div>
+<br /></div>
+<div>
+<span style="font-size: 12pt; font-weight: bold;">THE STRUCTURE OF A SAGA</span></div>
+<div>
+<br /></div>
+<div>
+a saga consists of three types of transactions (One complete flow may have every kinds of transactions):</div>
+</div>
+<ul>
+<li><div>
+Compensatable transactions:&nbsp; can potentially be rolled back. Ex. Delete a created Order</div>
+</li>
+<li><div>
+Pivot transaction:&nbsp; The go/no-go point in a saga. Ex. verify before proceed, go or no-go after verify.</div>
+</li>
+<li><div>
+Retriable transactions: Follow pivot transaction but guarantee to succeed. Ex. Can retry when fail.</div>
+</li>
+</ul>
+<div>
+<br /></div>
+</div>
+<br />
+<div>
+<br /></div>

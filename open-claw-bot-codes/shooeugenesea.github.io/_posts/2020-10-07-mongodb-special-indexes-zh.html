@@ -1,0 +1,63 @@
+---
+layout: post
+title: MongoDB 特殊索引
+date: 2020-10-07 10:29:00 +0800
+tags: [mongodb]
+lang: zh-TW
+---
+
+<p>&nbsp;
+
+</p><div><b>Capped Collections</b></div><div><div>// Create capped collection (100000 bytes and max 10 entries)
+</div><div>&gt; db.createCollection("ring_buffer",{"capped":true,"size":100000,"max":10})
+</div><div>{ "ok" : 1 }
+</div><div><br /></div><div>// insert more than 10 messages
+</div><div>&gt; db.ring_buffer.insert({"message":1})
+</div><div>WriteResult({ "nInserted" : 1 })
+</div><div>&gt; db.ring_buffer.insert({"message":2})
+</div><div>WriteResult({ "nInserted" : 1 })
+</div><div>&gt; db.ring_buffer.insert({"message":3})
+</div><div>WriteResult({ "nInserted" : 1 })
+</div><div>&gt; db.ring_buffer.insert({"message":4})
+</div><div>WriteResult({ "nInserted" : 1 })
+</div><div>&gt; db.ring_buffer.insert({"message":5})
+</div><div>WriteResult({ "nInserted" : 1 })
+</div><div>&gt; db.ring_buffer.insert({"message":6})
+</div><div>WriteResult({ "nInserted" : 1 })
+</div><div>&gt; db.ring_buffer.insert({"message":7})
+</div><div>WriteResult({ "nInserted" : 1 })
+</div><div>&gt; db.ring_buffer.insert({"message":8})
+</div><div>WriteResult({ "nInserted" : 1 })
+</div><div>&gt; db.ring_buffer.insert({"message":9})
+</div><div>WriteResult({ "nInserted" : 1 })
+</div><div>&gt; db.ring_buffer.insert({"message":10})
+</div><div>WriteResult({ "nInserted" : 1 })
+</div><div>&gt; db.ring_buffer.insert({"message":11})
+</div><div>WriteResult({ "nInserted" : 1 })
+</div><div><br /></div><div>// list collection, only rest 10 entries
+</div><div>&gt; db.ring_buffer.find()
+</div><div>{ "_id" : ObjectId("5f7d7b1b4db79b5cc8c54240"), "message" : 2 }
+</div><div>{ "_id" : ObjectId("5f7d7b1d4db79b5cc8c54241"), "message" : 3 }
+</div><div>{ "_id" : ObjectId("5f7d7b204db79b5cc8c54242"), "message" : 4 }
+</div><div>{ "_id" : ObjectId("5f7d7b234db79b5cc8c54243"), "message" : 5 }
+</div><div>{ "_id" : ObjectId("5f7d7b264db79b5cc8c54244"), "message" : 6 }
+</div><div>{ "_id" : ObjectId("5f7d7b274db79b5cc8c54245"), "message" : 7 }
+</div><div>{ "_id" : ObjectId("5f7d7b2a4db79b5cc8c54246"), "message" : 8 }
+</div><div>{ "_id" : ObjectId("5f7d7b2c4db79b5cc8c54247"), "message" : 9 }
+</div><div>{ "_id" : ObjectId("5f7d7b2e4db79b5cc8c54248"), "message" : 10 }
+</div><div>{ "_id" : ObjectId("5f7d7b304db79b5cc8c54249"), "message" : 11 }
+</div></div><div><br /></div><div><b>Time-To-Live Indexes</b></div><div>Time-To-Live 索引需要在 Date 資料型態上設定。
+</div><div>After “expireAfterSeconds”, the data will be deleted
+</div><div><div>// create index for Date type with “expireAfterSeconds” attributes
+</div><div>&gt; db.users.createIndex({"date":1},{"expireAfterSeconds":5})
+</div><div>{
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"createdCollectionAutomatically" : false,
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"numIndexesBefore" : 1,
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"numIndexesAfter" : 2,
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"ok" : 1
+</div><div>}
+</div><div><br /></div><div>// update users with date
+</div><div>&gt; db.users.updateOne({"name":"user164"},{"$set":{"date":new Date()}})
+</div><div>{ "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
+</div><div><br /></div><div>// after 5 seconds, the records will be deleted
+</div><div><br /><br /></div></div>

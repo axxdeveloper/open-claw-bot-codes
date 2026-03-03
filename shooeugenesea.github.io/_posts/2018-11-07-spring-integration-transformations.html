@@ -1,0 +1,602 @@
+---
+layout: post
+title: Spring Integration - Transformations
+date: 2018-11-07 14:41:00 +0800
+tags: [spring, java, spring integration]
+---
+
+<br />
+<div>
+<br />
+<div>
+<span style="font-size: 18pt; font-weight: bold;">Reference</span></div>
+<div>
+Pro Spring Integration -&nbsp;<a href="https://www.amazon.com/Pro-Spring-Integration-Experts-Voice-ebook-dp-B005PZ29OA/dp/B005PZ29OA/ref=mt_kindle?_encoding=UTF8&amp;me=&amp;qid=">https://www.amazon.com/Pro-Spring-Integration-Experts-Voice-ebook-dp-B005PZ29OA/dp/B005PZ29OA/ref=mt_kindle?_encoding=UTF8&amp;me=&amp;qid=</a>&nbsp;</div>
+<div>
+<span style="font-size: 12pt;">前篇:&nbsp;<a href="https://www.isaacnote.com/2018/10/spring-integration-channels.html">https://www.isaacnote.com/2018/10/spring-integration-channels.html</a></span><br />
+下篇:&nbsp; <a href="https://www.isaacnote.com/2018/11/spring-integration-integrate-with-tomcat.html">https://www.isaacnote.com/2018/11/spring-integration-integrate-with-tomcat.html</a></div>
+<div>
+<span style="font-size: 18px; font-weight: bold;"><br /></span></div>
+<div>
+<span style="font-size: 18px; font-weight: bold;">Transformer</span> 用來轉換收進來的訊息</div>
+<div>
+<span style="font-weight: bold;">Example</span> 把 Map 或 String 改為 TextMessage. Mapper 掛上 @Transformer 就是註冊 Transformer, 根據 parameter type 可以自動判斷哪個 transformer method 要被呼叫</div>
+<div>
+<div>
+// Mapper</div>
+<div>
+@Component</div>
+<div>
+public class Mapper {</div>
+<div>
+<br /></div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;@Transformer</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;public TextMessage map(Map&lt;String, String&gt; message) {</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;System.out.println("transform from " + message + " to TextMessage");</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return new TextMessage(message.get("text"));</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;}</div>
+<div>
+<br /></div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;@Transformer</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;public TextMessage map(String message) {</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;System.out.println("transform from string to TextMessage");</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return new TextMessage(message);</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;}</div>
+<div>
+<br /></div>
+<div>
+}</div>
+<div>
+<br /></div>
+<div>
+// TextMessage</div>
+<div>
+public class TextMessage {</div>
+<div>
+<br /></div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;private final String text;</div>
+<div>
+<br /></div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;public TextMessage(String text) {</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.text = text;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;}</div>
+<div>
+<br /></div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;@Override</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;public String toString() {</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return text;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;}</div>
+<div>
+}</div>
+<div>
+<br /></div>
+<div>
+// TransformerMain.xml</div>
+<div>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;</div>
+<div>
+&lt;beans xmlns="http://www.springframework.org/schema/beans"</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;xmlns:int="http://www.springframework.org/schema/integration"</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;xmlns:context="http://www.springframework.org/schema/context"</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;xsi:schemaLocation="http://www.springframework.org/schema/beans</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;http://www.springframework.org/schema/beans/spring-beans.xsd</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;http://www.springframework.org/schema/integration</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;http://www.springframework.org/schema/integration/spring-integration-5.0.xsd</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;http://www.springframework.org/schema/context</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;http://www.springframework.org/schema/context/spring-context-3.0.xsd"&gt;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;context:component-scan base-package="examples.transformer"/&gt;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;int:transformer input-channel="input"</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;output-channel="output"</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ref="mapper"/&gt;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;int:channel id="input"/&gt;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;int:channel id="output"&gt;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;int:queue capacity="10"/&gt;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;/int:channel&gt;</div>
+<div>
+&lt;/beans&gt;</div>
+<div>
+<br /></div>
+<div>
+// TransformerMain.java</div>
+<div>
+public class TransformerMain {</div>
+<div>
+<br /></div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;public static void main(String[] params) {</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("classpath:TransformerMain.xml");</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;MessageChannel input = ctx.getBean("input", MessageChannel.class);</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;PollableChannel output = ctx.getBean("output", PollableChannel.class);</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Map&lt;String,String&gt; message = new HashMap&lt;&gt;();</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;message.put("text", "here");</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;input.send(MessageBuilder.withPayload(message).build());</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;System.out.println(output.receive().getPayload());</div>
+<div>
+<br /></div>
+<div>
+<br /></div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;input.send(MessageBuilder.withPayload("fromString").build());</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;System.out.println(output.receive().getPayload());</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;}</div>
+<div>
+<br /></div>
+<div>
+}</div>
+<div>
+<br /></div>
+</div>
+<div>
+<br /></div>
+<div>
+<span style="font-weight: bold;">Object-to-string transformer</span></div>
+<div>
+<span style="font-weight: bold;">Example</span> 不用設定 mapper 就會呼叫 toString 轉換</div>
+<div>
+<div>
+// ObjectToStringTransformer.xml</div>
+<div>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;</div>
+<div>
+&lt;beans xmlns="http://www.springframework.org/schema/beans"</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;xmlns:int="http://www.springframework.org/schema/integration"</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;xmlns:context="http://www.springframework.org/schema/context"</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;xsi:schemaLocation="http://www.springframework.org/schema/beans</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;http://www.springframework.org/schema/beans/spring-beans.xsd</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;http://www.springframework.org/schema/integration</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;http://www.springframework.org/schema/integration/spring-integration-5.0.xsd</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;http://www.springframework.org/schema/context</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;http://www.springframework.org/schema/context/spring-context-3.0.xsd"&gt;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;context:component-scan base-package="examples.transformer"/&gt;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;int:object-to-string-transformer input-channel="input" output-channel="output" /&gt;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;int:channel id="input"/&gt;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;int:channel id="output"&gt;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;int:queue capacity="10"/&gt;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;/int:channel&gt;</div>
+<div>
+&lt;/beans&gt;</div>
+<div>
+<br /></div>
+<div>
+public class ObjectToStringTransformerMain {</div>
+<div>
+<br /></div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;public static void main(String[] params) {</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("classpath:ObjectToStringTransformerMain.xml");</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;MessageChannel input = ctx.getBean("input", MessageChannel.class);</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;PollableChannel output = ctx.getBean("output", PollableChannel.class);</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Map&lt;String,String&gt; message = new HashMap&lt;&gt;();</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;message.put("text", "here");</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;input.send(MessageBuilder.withPayload(message).build());</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;System.out.println(output.receive().getPayload());</div>
+<div>
+<br /></div>
+<div>
+<br /></div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;input.send(MessageBuilder.withPayload("fromString").build());</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;System.out.println(output.receive().getPayload());</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;}</div>
+<div>
+<br /></div>
+<div>
+}</div>
+</div>
+<div>
+<br /></div>
+<div>
+<span style="font-size: 18px; font-weight: bold;">Payload-serializer-transformer</span> 對 payload 直接做 serialize/deserialize</div>
+<div>
+<span style="font-weight: bold;">Example</span> localId in TextMessage 是 transient, 所以不會被 serialize/deserialize</div>
+<div>
+<div>
+// XML</div>
+<div>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;</div>
+<div>
+&lt;beans xmlns="http://www.springframework.org/schema/beans"</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;xmlns:int="http://www.springframework.org/schema/integration"</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;xmlns:context="http://www.springframework.org/schema/context"</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;xsi:schemaLocation="http://www.springframework.org/schema/beans</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;http://www.springframework.org/schema/beans/spring-beans.xsd</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;http://www.springframework.org/schema/integration</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;http://www.springframework.org/schema/integration/spring-integration-5.0.xsd</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;http://www.springframework.org/schema/context</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;http://www.springframework.org/schema/context/spring-context-3.0.xsd"&gt;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;context:component-scan base-package="examples.transformer"/&gt;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;int:payload-serializing-transformer input-channel="input" output-channel="byte-array" /&gt;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;int:payload-deserializing-transformer input-channel="byte-array" output-channel="output" /&gt;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;int:channel id="byte-array" /&gt;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;int:channel id="input"/&gt;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;int:channel id="output"&gt;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;int:queue capacity="10"/&gt;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;/int:channel&gt;</div>
+<div>
+&lt;/beans&gt;</div>
+<div>
+<br /></div>
+<div>
+<br /></div>
+<div>
+public class TextMessage implements Serializable {</div>
+<div>
+<br /></div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;private final String text;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;private final transient String localId;</div>
+<div>
+<br /></div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;public TextMessage(String text) {</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this(text, UUID.randomUUID().toString());</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;}</div>
+<div>
+<br /></div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;public TextMessage(String text, String localId) {</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.text = text;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.localId = localId;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;}</div>
+<div>
+<br /></div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;@Override</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;public String toString() {</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return localId + ":" + text;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;}</div>
+<div>
+}</div>
+<div>
+<br /></div>
+<div>
+public class PayloadSerializingTransformerMain {</div>
+<div>
+<br /></div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;public static void main(String[] params) {</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("classpath:PayloadSerializingTransformerMain.xml");</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;MessageChannel input = ctx.getBean("input", MessageChannel.class);</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;PollableChannel output = ctx.getBean("output", PollableChannel.class);</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TextMessage message = new TextMessage("testa", "1");</div>
+<div>
+<br /></div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;input.send(MessageBuilder.withPayload(message).build());</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;System.out.println(output.receive().getPayload()); // localId will become null</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;}</div>
+<div>
+<br /></div>
+<div>
+}</div>
+<div>
+<br /></div>
+<div>
+<br /></div>
+</div>
+<div>
+<br /></div>
+<div>
+<span style="font-size: 18px; font-weight: bold;">Map-to-object transformer</span> 替 payload 做 marshal/unmarshal to map</div>
+<div>
+<span style="font-weight: bold;">Example</span> 這裡要注意的是 訊息必須有空的建構子與 setter/getter, 不然會失敗</div>
+<div>
+<div>
+<span style="color: #333333; font-family: &quot;monaco&quot;; font-size: 12px;">// XML</span></div>
+<div>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;</div>
+<div>
+&lt;beans xmlns="http://www.springframework.org/schema/beans"</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;xmlns:int="http://www.springframework.org/schema/integration"</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;xmlns:context="http://www.springframework.org/schema/context"</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;xsi:schemaLocation="http://www.springframework.org/schema/beans</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;http://www.springframework.org/schema/beans/spring-beans.xsd</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;http://www.springframework.org/schema/integration</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;http://www.springframework.org/schema/integration/spring-integration-5.0.xsd</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;http://www.springframework.org/schema/context</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;http://www.springframework.org/schema/context/spring-context-3.0.xsd"&gt;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;context:component-scan base-package="examples.transformer"/&gt;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;int:object-to-map-transformer input-channel="input" output-channel="map" /&gt;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;int:map-to-object-transformer input-channel="map" output-channel="output" type="examples.transformer.TextMessageEmptyConstructor" /&gt;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;int:channel id="map" /&gt;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;int:channel id="input"/&gt;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;int:channel id="output"&gt;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;int:queue capacity="10"/&gt;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;/int:channel&gt;</div>
+<div>
+&lt;/beans&gt;</div>
+<div>
+<br /></div>
+<div>
+// Payload class</div>
+<div>
+public class TextMessageEmptyConstructor {</div>
+<div>
+<br /></div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;private String text;</div>
+<div>
+<br /></div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;public TextMessageEmptyConstructor() {}</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;public TextMessageEmptyConstructor(String text) {</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.text = text;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;}</div>
+<div>
+<br /></div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;public void setText(String text) {</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.text = text;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;}</div>
+<div>
+<br /></div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;public String getText() {</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return text;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;}</div>
+<div>
+<br /></div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;@Override</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;public String toString() {</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return text;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;}</div>
+<div>
+}</div>
+<div>
+<br /></div>
+<div>
+<span style="color: #333333; font-family: &quot;monaco&quot;; font-size: 12px;">// Transformer</span></div>
+<div>
+public class MapToObjectTransformerMain {</div>
+<div>
+<br /></div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;public static void main(String[] params) {</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("classpath:MapToObjectTransformerMain.xml");</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;MessageChannel input = ctx.getBean("input", MessageChannel.class);</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;PollableChannel output = ctx.getBean("output", PollableChannel.class);</div>
+<div>
+<br /></div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TextMessageEmptyConstructor message = new TextMessageEmptyConstructor("testa");</div>
+<div>
+<br /></div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;input.send(MessageBuilder.withPayload(message).build());</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;System.out.println(output.receive().getPayload()); // localId will become null</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;}</div>
+<div>
+<br /></div>
+<div>
+}</div>
+<div>
+<br /></div>
+</div>
+<div>
+<br /></div>
+<div>
+<span style="font-size: 18px; font-weight: bold;">Object-to-json transformer</span> payload 會轉成 json 再轉回 payload 物件</div>
+<div>
+<span style="font-weight: bold;">Example</span></div>
+<div>
+<div>
+// XML</div>
+<div>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;</div>
+<div>
+&lt;beans xmlns="http://www.springframework.org/schema/beans"</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;xmlns:int="http://www.springframework.org/schema/integration"</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;xmlns:context="http://www.springframework.org/schema/context"</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;xsi:schemaLocation="http://www.springframework.org/schema/beans</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;http://www.springframework.org/schema/beans/spring-beans.xsd</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;http://www.springframework.org/schema/integration</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;http://www.springframework.org/schema/integration/spring-integration-5.0.xsd</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;http://www.springframework.org/schema/context</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;http://www.springframework.org/schema/context/spring-context-3.0.xsd"&gt;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;context:component-scan base-package="examples.transformer"/&gt;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;int:object-to-json-transformer input-channel="input" output-channel="json" /&gt;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;int:json-to-object-transformer input-channel="json" output-channel="output" type="examples.transformer.TextMessageEmptyConstructor" /&gt;</div>
+<div>
+<br /></div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;int:channel id="json" /&gt;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;int:channel id="input"/&gt;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;int:channel id="output"&gt;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;int:queue capacity="10"/&gt;</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;/int:channel&gt;</div>
+<div>
+&lt;/beans&gt;</div>
+<div>
+<br /></div>
+<div>
+// transformer</div>
+<div>
+public class ObjectToJsonTransformerMain {</div>
+<div>
+<br /></div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;public static void main(String[] params) {</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("classpath:ObjectToJsonTransformerMain.xml");</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;MessageChannel input = ctx.getBean("input", MessageChannel.class);</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;PollableChannel output = ctx.getBean("output", PollableChannel.class);</div>
+<div>
+<br /></div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TextMessageEmptyConstructor message = new TextMessageEmptyConstructor("test-object-to-json");</div>
+<div>
+<br /></div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;input.send(MessageBuilder.withPayload(message).build());</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;System.out.println(output.receive().getPayload());</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;}</div>
+<div>
+<br /></div>
+<div>
+}</div>
+<div>
+<br /></div>
+</div>
+<div>
+<br /></div>
+<div>
+<br /></div>
+</div>

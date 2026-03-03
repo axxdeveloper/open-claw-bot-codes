@@ -1,0 +1,152 @@
+---
+layout: post
+title: Java Concurrency - ForkJoinPool 的 deadlock
+date: 2018-09-17 18:02:00 +0800
+tags: [java, java concurrent]
+---
+
+<h3>
+Reference</h3>
+<div>
+前篇&nbsp;<a href="https://www.isaacnote.com/2018/09/java-concurrent-forkjoinpool.html">Java Concurrent - ForkJoinPool</a><br />
+下篇&nbsp;<span style="background-color: #edf4ff; color: #888888; font-family: Arial, Helvetica, sans-serif; font-size: 13px;"><a href="https://www.isaacnote.com/2018/09/forkjoinpool-work-stealing.html">ForkJoinPool - Work stealing</a></span></div>
+<h3>
+Will ForkJoinTask encounter deadlock problem?</h3>
+<div>
+在看 ForkJoinTask 的時候, 看到 ForkJoinTask 可以先 fork 去執行, 再來呼叫 join 等待結束.</div>
+<div>
+<div class="separator" style="clear: both; text-align: center;">
+<a href="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgoQt8owM6k-MHB9qR1fEYw3thVntzDpF_7qTGGqjA2teNXAPdjRQOMIMDuA8GOQGV7Wd_V-uK3qcfGUI0jLIFsX2Ie6W2n3wjVCjRgpz2ptWo8sAVH5FeKOe_p9rD3zVeuuYVPiCRp6w/s1600/SequenceDiagram1.jpg" imageanchor="1" style="margin-left: 1em; margin-right: 1em;"><img border="0" data-original-height="393" data-original-width="519" height="481" src="/assets/images/blog/SequenceDiagram1.jpg" width="640" /></a></div>
+如圖, 些動作總共需要幾個 thread?<br />
+原本想:<br />
+1. MainTask 一個 thread, 兩個 subtask 各一個 thread 執行.<br />
+2. 當兩個 subtask 要 join 的時候, MainTask 會等待<br />
+如此一來, 若 ForkJoinPool 的 thread 只有一個, MainTask 佔一個, 那 subtask 要 fork 再 join 不就沒有 thread 可以處理?<br />
+<br />
+測試之後發現, MainTask 的 thread 其實會在呼叫 join 的時候就被交出去.<br />
+因此當只有一個 thread, MainTask 的 thread 會執行到呼叫 subtask.join 的時候就離開, 讓出 thread 去執行 subtask 的任務.<br />
+舉例來說<br />
+<pre>public class ForkJoinSingleThreadMain {
+
+    private static final CountDownLatch latch = new CountDownLatch(1);
+
+    public static void main(String[] params) throws InterruptedException {
+        ForkJoinPool pool = new ForkJoinPool(1);
+        pool.submit(new MainTask());
+        latch.await();
+    }
+
+    private static class MainTask extends RecursiveAction {
+
+        @Override
+        protected void compute() {
+            Subtask subtask1 = new Subtask(1);
+            Subtask subtask2 = new Subtask(2);
+            System.out.println(Thread.currentThread().getName() + " fork subtask1");
+            subtask1.fork();
+            System.out.println(Thread.currentThread().getName() + " fork subtask2");
+            subtask2.fork();
+            System.out.println(Thread.currentThread().getName() + " join subtask1");
+            subtask1.join();
+            System.out.println(Thread.currentThread().getName() + " join subtask2");
+            subtask2.join();
+            System.out.println(Thread.currentThread().getName() + " join done");
+            latch.countDown();
+        }
+    }
+
+    private static class Subtask extends RecursiveAction {
+
+        private final int id;
+
+        Subtask(int id) {
+            this.id = id;
+        }
+
+        @Override
+        protected void compute() {
+            System.out.println(Thread.currentThread().getName() + ":" + id + " compute");
+            try {
+                TimeUnit.MILLISECONDS.sleep(300);
+            } catch (InterruptedException e) {
+            }
+            System.out.println(Thread.currentThread().getName() + ":" + id + " compute done");
+        }
+    }
+
+}
+</pre>
+這個 class 的執行結果是:<br />
+<div class="separator" style="clear: both; text-align: center;">
+<a href="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgeCLGYQN1pnEcPmER5ox3W6STWV35l_mBIHztPln8k7KFw_1i7GKUgkFBaXQaqpoIZ5FHFAH9BTvlZ3chQ5mgnevvK6B35ZzOp5-CHak5NsAr0FDQujrytWPfL60eiwBZkUcKjSM6a8g/s1600/%25E6%2593%25B7%25E5%258F%2596.PNG" imageanchor="1" style="margin-left: 1em; margin-right: 1em;"><img border="0" data-original-height="192" data-original-width="233" src="/assets/images/blog/擷取.png" /></a></div>
+可以看到當 MainTask 呼叫 join 的時候就把 thread 交出去了.<br />
+<br />
+那會 deadlock 嗎?<br />
+其實就是看 subtask 是否要搶 lock, 如果有就可能會 deadlock.<br />
+<span style="color: red;">下面這個例子就可以製造 deadlock.</span><br />
+不過 ForkJoinPool 不能宣告為 new ForkJoinPool(1) 因為這樣只會有一個 thread 執行<br />
+至少要 new ForkJoinPool(2) 以上, 才可以有兩個 thread 搶 lock 造成 deadlock<br />
+<br />
+<pre>public class ForkJoinPoolDeadlockMain {
+
+    private static final CountDownLatch l = new CountDownLatch(1);
+    private static final Object lock1 = new Object();
+    private static final Object lock2 = new Object();
+
+    public static void main(String[] params) throws InterruptedException {
+        ForkJoinPool pool = new ForkJoinPool(2);
+        pool.submit(ForkJoinTask.adapt(new Runnable(){
+            @Override
+            public void run() {
+                Obj1Locker locker1 = new Obj1Locker();
+                Obj2Locker locker2 = new Obj2Locker();
+                locker1.fork();
+                locker2.fork();
+                locker1.join();
+                locker2.join();
+                l.countDown();
+            }
+        }));
+        l.await();
+    }
+
+    private static class Obj1Locker extends RecursiveAction {
+
+        @Override
+        public void compute() {
+            synchronized (lock1) {
+                System.out.println("obj1Locker got lock1");
+                sleep();
+                synchronized (lock2) {
+                    System.out.println("obj1Locker got lock2");
+                }
+            }
+        }
+
+    }
+
+    private static class Obj2Locker extends RecursiveAction {
+
+        @Override
+        public void compute() {
+            synchronized (lock2) {
+                System.out.println("obj2Locker got lock2");
+                sleep();
+                synchronized (lock1) {
+                    System.out.println("obj2Locker got lock1");
+                }
+            }
+        }
+
+    }
+
+    private static void sleep() {
+        try {
+            TimeUnit.SECONDS.sleep(1);
+        } catch (InterruptedException e) {
+        }
+    }
+
+}
+</pre>
+</div>

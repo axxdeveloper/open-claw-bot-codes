@@ -1,0 +1,279 @@
+---
+layout: post
+title: MongoDB Aggregate（聚合）
+date: 2020-10-12 17:11:00 +0800
+tags: [mongodb]
+lang: zh-TW
+---
+
+<p>&nbsp;$match：跟 find 一樣</p>
+
+<div><div>&gt; db.users.aggregate([{$match:{name:"user164"}}])
+</div><div>{ "_id" : ObjectId("5f7c234602c41bd39db9af76"), "name" : "user164" }
+</div><div>{ "_id" : ObjectId("5f7c234c02c41bd39db9af77"), "name" : "user164" }
+</div><div>{ "_id" : ObjectId("5f7c23f702c41bd39db9af78"), "name" : "user164", "comments" : "abc" }
+</div></div><div><br /></div><div>$project：將輸出縮減到特定欄位
+</div><div><div>&gt; db.users.aggregate([{$match:{name:"user164"}},{$project:{_id:0,"name":1}}])
+</div><div>{ "name" : "user164" }
+</div><div>{ "name" : "user164" }
+</div><div>{ "name" : "user164" }
+</div></div><div><br /></div><div><br /></div><div>$limit：限制處理的資料&nbsp;筆數
+</div><div><div>&gt; db.users.aggregate([{$match:{name:"user164"}},{$project:{_id:0,"name":1}},{$limit:2}])
+</div><div>{ "name" : "user164" }
+</div><div>{ "name" : "user164" }
+</div></div><div><br /></div><div>$sort：依指定欄位排序
+</div><div><div>&gt; db.users.aggregate([{$match:{age:{$gt:10}}},{$project:{_id:0,"name":1,age:1}},{$limit:5},{$sort:{age:1}}])
+</div><div>{ "name" : "user4", "age" : 70 }
+</div><div>{ "name" : "user3", "age" : 84 }
+</div><div>{ "name" : "user0", "age" : 113 }
+</div><div>{ "name" : "user2", "age" : 114 }
+</div><div>{ "name" : "user1", "age" : 115 }
+</div></div><div><br /></div><div>$skip 跳過資料
+</div><div><div>&gt; db.users.aggregate([{$match:{age:{$gt:10}}},{$project:{_id:0,"name":1,age:1}},<span style="color: #ff2600;">{$skip:5}</span>,{$limit:5},{$sort:{age:1}}])
+</div><div>{ "name" : "user10", "age" : 22 }
+</div><div>{ "name" : "user6", "age" : 28 }
+</div><div>{ "name" : "user7", "age" : 36 }
+</div><div>{ "name" : "user9", "age" : 63 }
+</div><div>{ "name" : "user5", "age" : 88 }
+</div></div><div><br /></div><div><span style="font-weight: bold;">在 $project 時定義新屬性</span></div><div><div><span style="font-family: Monaco; font-size: 9pt;">// update embedded object to one user</span></div><div>&gt; db.users.updateOne({"name":"user1956"},{$set:{"aa":{"bb":"cc"}}})
+</div><div>{ "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
+</div><div><br /></div><div>// show aa.bb by element by $project
+</div><div>&gt; db.users.aggregate([{$match:{age:{$gt:10}}},{$project:{_id:0,"name":1,age:1,"name2":"$name",<b><span style="color: #e30000;">"bb":"$aa.bb"</span></b>}},{$skip:5}])
+</div><div>{ "name" : "user1864", "age" : 11, "name2" : "user1864" }
+</div><div>{ "name" : "user1907", "age" : 11, "name2" : "user1907" }
+</div><div>{ "name" : "user1929", "age" : 11, "name2" : "user1929" }
+</div><div>{ "name" : "user1956", "age" : 11, "name2" : "user1956", <b><span style="color: red;">"bb" : "cc"</span></b> }
+</div></div><div><br /></div><div>$unwind
+</div><div><div>// prepare data
+</div><div>&gt; db.unwinddata.insertOne({"k1":"v1","k2":"v2","k3":["e1","e2","e3"]})
+</div><div>{
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"acknowledged" : true,
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"insertedId" : ObjectId("5f833438651639530e9c2b82")
+</div><div>}
+</div><div>&gt; db.unwinddata.updateOne({},{$set:{"k4":{"k5":["e4","e5","e6"]}}})
+</div><div>{ "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
+</div><div>&gt; db.unwinddata.find().pretty()
+</div><div>{
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"_id" : ObjectId("5f833438651639530e9c2b82"),
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"k1" : "v1",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"k2" : "v2",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"k3" : [
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"e1",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"e2",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"e3"
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;],
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"k4" : {
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"k5" : [
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"e4",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"e5",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"e6"
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;]
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;}
+</div><div>}
+</div><div><br /></div><div>// match data in array
+</div><div>&gt; db.unwinddata.aggregate({<b><span style="color: #0433ff;">$match</span><span style="color: #ff2600;">:{</span><span style="color: #ff2600;">"k4.k5":"e4"</span></b><span style="color: #ff2600;">}</span>}, {$project:{_id:0}}).pretty()
+</div><div>{
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"k1" : "v1",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"k2" : "v2",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"k3" : [
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"e1",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"e2",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"e3"
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;],
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #ff2600;">"k4"</span> : {
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #ff2600;">"k5"</span> : [
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #ff2600;">"e4"</span>,
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"e5",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"e6"
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;]
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;}
+</div><div>}
+</div><div><br /></div><div>// unwind k3 array
+</div><div>&gt; db.unwinddata.aggregate({$match:{"k4.k5":"e4"}}, <span style="color: #ff2600;">{$unwind: "$k3"},</span> {$project:{_id:0}}).pretty()
+</div><div>{
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"k1" : "v1",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"k2" : "v2",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #ff2600;">"k3" : "e1"</span>,
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"k4" : {
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"k5" : [
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"e4",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"e5",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"e6"
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;]
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;}
+</div><div>}
+</div><div>{
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"k1" : "v1",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"k2" : "v2",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #ff2600;">"k3" : "e2"</span>,
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"k4" : {
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"k5" : [
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"e4",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"e5",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"e6"
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;]
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;}
+</div><div>}
+</div><div>{
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"k1" : "v1",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"k2" : "v2",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #ff2600;">"k3" : "e3"</span>,
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"k4" : {
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"k5" : [
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"e4",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"e5",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"e6"
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;]
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;}
+</div><div>}
+</div><div><br /></div><div>// project attribute from embedded object
+</div><div>&gt; db.unwinddata.aggregate({$match:{"k4.k5":"e4"}}, {$project:{_id:0,k1:1,k2:2,k3:3,k4:1,<span style="color: #ff2600;">kk:"$k4.k5"</span>}}).pretty()
+</div><div>{
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"k1" : "v1",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"k2" : "v2",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"k3" : [
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"e1",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"e2",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"e3"
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;],
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"k4" : {
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"k5" : <span style="color: #0433ff;">[</span>
+</div><div><span style="color: #0433ff;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"e4",</span></div><div><span style="color: #0433ff;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"e5",</span></div><div><span style="color: #0433ff;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"e6"</span></div><div><span style="color: #0433ff;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;]</span></div><div>&nbsp;&nbsp;&nbsp;&nbsp;},
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #ff2600;">"kk" : [</span>
+</div><div><span style="color: #ff2600;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"e4",</span></div><div><span style="color: #ff2600;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"e5",</span></div><div><span style="color: #ff2600;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"e6"</span></div><div><span style="color: #ff2600;">&nbsp;&nbsp;&nbsp;&nbsp;]</span></div><div>}
+</div><div><br /></div><div>// match as early as possible =&gt; match after unwind
+</div><div>&gt; db.unwinddata.aggregate({$match:{"k4.k5":"e4"}}, {$unwind: "$k3"}, {$match:{"k3":"e3"}}, {$project:{_id:0}}).pretty()
+</div><div>{
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"k1" : "v1",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"k2" : "v2",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"k3" : "e3",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"k4" : {
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"k5" : [
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"e4",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"e5",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"e6"
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;]
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;}
+</div><div>}
+</div></div><div><br /></div><div>$filter 過濾陣列
+</div><div><div>// prepare data
+</div><div>&gt; db.unwinddata.updateOne({}, {$set:{"k6":[{"kv":{"num":62}},{"kv":{"num":64}}]}})
+</div><div>{ "acknowledged" : true, "matchedCount" : 1, "modifiedCount" : 1 }
+</div><div><br /></div><div>&gt; db.unwinddata.find().pretty()
+</div><div>{
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"_id" : ObjectId("5f84074ba576e2ec23a7ec0a"),
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"k1" : "v1",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"k2" : "v2",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"k3" : [
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"e1",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"e2",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"e3"
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;],
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"k4" : {
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"k5" : [
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"e4",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"e5",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"e6"
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;]
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;},
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"k6" : [
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"kv" : {
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"num" : 62
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"kv" : {
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"num" : 64
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;]
+</div><div>}
+</div><div><br /></div><div>&gt; db.unwinddata.aggregate({$project:{k6:1,kk:<b><span style="color: #ff2600;">{$filter:{input:"$k6",as:"kvkvkv",cond:{$gte:["$$kvkvkv.kv.num",63]}}}}}</span></b>).pretty()
+</div><div>{
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"_id" : ObjectId("5f84074ba576e2ec23a7ec0a"),
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"k6" : [
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"kv" : {
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"num" : 62
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"kv" : {
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"num" : 64
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;],
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"kk" : [
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #ff2600;">{</span>
+</div><div><span style="color: #ff2600;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"kv" : {</span></div><div><span style="color: #ff2600;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"num" : 64</span></div><div><span style="color: #ff2600;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</span></div><div><span style="color: #ff2600;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</span></div><div>&nbsp;&nbsp;&nbsp;&nbsp;]
+</div><div>}
+</div></div><div><br /></div><div><b>用 $arrayElemAt 選取陣列中指定索引的元素</b></div><div><div>// $arrayElemAt with -1 select the first value
+</div><div>&gt; db.unwinddata.aggregate({$project:{k1:1,k2:1,k3:1,k4:1,k6:1,kk:{<span style="color: #ff2600;">$arrayElemAt:["$k6",-1]</span>}}}).pretty()
+</div><div>{
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"_id" : ObjectId("5f833438651639530e9c2b82"),
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"k1" : "v1",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"k2" : "v2",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"k3" : [
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"e1",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"e2",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"e3"
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;],
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"k4" : {
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"k5" : [
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"e4",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"e5",
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"e6"
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;]
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;},
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"k6" : [
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"kv" : {
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"num" : 62
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"kv" : {
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"num" : 64
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;],
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"kk" : {
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"kv" : {
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"num" : 64
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;}
+</div><div>}
+</div></div><div><br /></div><div><b>$slice 取得指定範圍的資料。</b></div><div><div>&gt; db.unwinddata.aggregate({$project:{_id:0,k6:1,kk:{$slice:<span style="color: #ff2600;">["$k6.kv.num",1,2]</span>}}}).pretty()
+</div><div>{
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"k6" : [
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"kv" : {
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"num" : 62
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"kv" : {
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"num" : 64
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;],
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #ff2600;">"kk" : [</span>
+</div><div><span style="color: #ff2600;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;64</span></div><div><span style="color: #ff2600;">&nbsp;&nbsp;&nbsp;&nbsp;]</span></div><div>}
+</div></div><div><br /></div><div><b>用 $size 取得陣列大小</b></div><div><div>&gt; db.unwinddata.aggregate({$project:{_id:0,k6:1,<span style="color: #ff2600;">kk:{$size:"$k6"}}}</span>).pretty()
+</div><div>{
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;"k6" : [
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"kv" : {
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"num" : 62
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"kv" : {
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"num" : 64
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;],
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #ff2600;">"kk" : 2</span>
+</div><div>}
+</div></div><div><br /></div><div><br /></div>

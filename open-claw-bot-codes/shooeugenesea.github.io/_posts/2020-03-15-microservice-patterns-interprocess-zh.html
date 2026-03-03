@@ -1,0 +1,139 @@
+---
+layout: post
+title: Microservice Patterns - 3.1 Microservice 架構中的行程間通訊 - 概觀
+date: 2020-03-15 14:15:00 +0800
+tags: [microservice patterns]
+lang: zh-TW
+---
+
+<br />
+<div>
+<div>
+<span style="font-size: 12pt; font-weight: bold;">參考資料</span>&nbsp;&nbsp;</div>
+<div>
+<a href="https://www.amazon.com/Microservices-Patterns-examples-Chris-Richardson/dp/1617294543"><span style="color: black;">https://www.amazon.com/Microservices-Patterns-examples-Chris-Richardson/dp/1617294543</span></a></div>
+<div>
+<br /></div>
+<div>
+<span style="font-size: 12pt;"><span style="font-size: 12pt; font-weight: bold;">Microservice 架構中的行程間通訊概觀</span></span></div>
+<div>
+<span style="font-weight: bold;">互動風格</span></div>
+<div>
+<span style="font-weight: bold;">維度一</span></div>
+<ul>
+<li><div>
+一對一 — 每個 client 請求只由一個服務處理</div>
+</li>
+<ul>
+<li><div>
+Request/response：client 發送請求並等待回應</div>
+</li>
+<li><div>
+非同步 request/response：client 發送請求給服務但不等待，服務稍後回應</div>
+</li>
+<li><div>
+單向通知：client 發送通知給服務</div>
+</li>
+</ul>
+<li><div>
+一對多 — 每個請求由多個服務處理</div>
+</li>
+</ul>
+<div>
+<span style="font-weight: bold;">維度二</span></div>
+<ul>
+<li><div>
+同步 — client 期望服務及時回應，甚至可能在等待時阻塞。</div>
+</li>
+<li><div>
+非同步 — client 不會阻塞，回應（如果有的話）不一定會立即送出</div>
+</li>
+</ul>
+<div>
+<br /></div>
+<div>
+<img src="/assets/images/extracted/microservice-patterns-interprocess-0-a4c1ed83.png" width="723" /></div>
+<div>
+<span style="font-size: 12pt;"><span style="font-size: 12pt; font-weight: bold;">使用 SEMANTIC VERSIONING</span></span></div>
+</div>
+<ul>
+<li><div>
+MAJOR — 當你對 API 做了不相容的變更</div>
+</li>
+<li><div>
+MINOR — 當你對 API 做了向後相容的增強</div>
+</li>
+<li><div>
+PATCH — 當你做了向後相容的 bug 修正</div>
+</li>
+</ul>
+<div>
+<span style="font-size: 12pt;"><br /></span></div>
+<div>
+<span style="font-size: 12pt; font-weight: bold;">穩健性原則 / Postel's law</span></div>
+<div>
+<span style="font-size: 11pt;"><a href="https://en.wikipedia.org/wiki/Robustness_principle" style="font-size: 11pt; font-style: italic;">https://en.wikipedia.org/wiki/Robustness_principle</a></span></div>
+<div>
+<span style="font-family: sans-serif; font-size: 14px; font-style: italic; letter-spacing: normal; text-indent: 0px; text-transform: none; white-space: normal; word-spacing: 0px;">對自己做的事要保守，對從別人那裡接受的東西要寬容</span><span style="font-family: sans-serif; font-size: 14px; letter-spacing: normal; text-indent: 0px; text-transform: none; white-space: normal; word-spacing: 0px;">&nbsp;</span></div>
+<div>
+<span style="font-size: 11pt;">（常被改寫為「對你送出的東西要保守，對你接受的東西要寬容」）。</span></div>
+<div>
+<span style="font-size: 11pt;"><br /></span></div>
+<div>
+<span style="font-size: 12pt; font-weight: bold;">做出重大的破壞性變更</span></div>
+<div>
+<span style="font-size: 11pt;">可以讓 API gateway 把舊版 API 轉譯到新版 API 的實作</span></div>
+<ol>
+<li><div>
+<span style="font-size: 11pt;">/v1/... 和</span> <span style="font-size: 11pt;">/v2/...</span></div>
+</li>
+<li><div>
+<span style="font-size: 11pt;">在 HTTP header 中，例如</span></div>
+<div>
+<span style="font-size: 11pt;">GET /orders/xyz HTTP/1.1</span></div>
+<div>
+<span style="font-size: 11pt;">Accept: application/vnd.example.resource+json; version=1&nbsp;</span></div>
+</li>
+</ol>
+<div>
+<span style="font-size: 11pt;"><br /></span></div>
+<div>
+<span style="color: #222222;"><b><span style="font-size: 12pt;">訊息格式</span></b></span></div>
+<ol>
+<li><div>
+<span style="font-size: 11pt;">使用跨語言的訊息格式。</span></div>
+</li>
+<li><div>
+<span style="font-size: 11pt;">例如不要使用 Java serialization</span></div>
+</li>
+<li><div>
+<span style="font-size: 11pt;">兩大類別</span></div>
+</li>
+<ol>
+<li><div>
+<span style="font-size: 11pt;">文字訊息格式。例如 JSON、XML</span></div>
+</li>
+<ol>
+<li><div>
+<span style="font-size: 11pt;">優點：這些格式不僅人類可讀，而且是自我描述的</span></div>
+</li>
+<li><div>
+<span style="font-size: 11pt;">缺點：</span></div>
+</li>
+<ol>
+<li><div>
+<span style="font-size: 11pt;">訊息容易冗長。例如 XML element name</span></div>
+</li>
+<li><div>
+<span style="font-size: 11pt;">解析文字的額外開銷，尤其是訊息很大的時候</span></div>
+</li>
+</ol>
+</ol>
+<li><div>
+<span style="font-size: 11pt;">二進位訊息格式。例如 Proto Buffer</span></div>
+</li>
+</ol>
+</ol>
+<div>
+<br /></div>
+<br />

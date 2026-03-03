@@ -1,0 +1,9 @@
+---
+layout: post
+title: 用 protobuf Any 來 parse byte array
+date: 2021-09-18 17:41:00 +0800
+tags: [protobuf]
+lang: zh-TW
+---
+
+<p>第一次錄影片分享技術議題.</p><p>Source code:&nbsp;https://github.com/axxdeveloper/study-practice/tree/gpb&nbsp;</p><p>主要其實就是之後可以用 Any.pack( gpbEntity ).toByteArray 傳送出去.<br />接收端也適用 Any.parseFrom( byteArray ).unpack( gpbEntity.class ).</p><p>這樣可以用 Any.parseFrom (byteArray).is( gpbEntity.class ) 來判斷應該要用哪個 gpbEntity 來讀資料.</p><p></p><div class="separator" style="clear: both; text-align: center;"><iframe allowfullscreen="" class="BLOG_video_class" height="399" src="https://www.youtube.com/embed/aCOzVT0QIRg" width="480" youtube-src-id="aCOzVT0QIRg"></iframe></div><br /><p></p>

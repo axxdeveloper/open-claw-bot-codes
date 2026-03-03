@@ -1,0 +1,44 @@
+---
+layout: post
+title: 如何重設計數器
+date: 2020-03-26 10:03:00 +0800
+tags: [java]
+lang: zh-TW
+---
+
+<br />
+<div>
+目的：原始值是 origVal，我們想要透過增加/減少來更新到指定的數字</div>
+<div>
+<br /></div>
+<div>
+怎麼做？</div>
+<ol>
+<li><div>
+origValue = origValue + expectedValue</div>
+</li>
+<li><div>
+diff = expectedValue - origValue</div>
+</li>
+<li><div>
+origValue = origValue + diff</div>
+</li>
+</ol>
+<div>
+<br /></div>
+<div>
+範例：origValue = 54，newValue = <span style="color: red;"><b>50</b></span></div>
+<ol>
+<li><div>
+origValue =&nbsp;origValue (54) + expectedValue (50) = 104</div>
+</li>
+<li><div>
+diff =&nbsp;expectedValue (50) - origValue (104) = -54</div>
+</li>
+<li><div>
+origValue =&nbsp;origValue (104) + diff (-54) = <span style="color: #e30000;"><b>50</b></span></div>
+</li>
+</ol>
+<div>
+<br /></div>
+<br />

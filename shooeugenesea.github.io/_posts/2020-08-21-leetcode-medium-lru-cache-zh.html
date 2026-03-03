@@ -1,0 +1,43 @@
+---
+layout: post
+title: LeetCode 中等題 - LRU Cache
+date: 2020-08-21 05:29:00 +0800
+tags: [leetcode medium, leetcode]
+lang: zh-TW
+---
+
+<div>LeetCode
+</div><div><a href="https://leetcode.com/problems/lru-cache/">https://leetcode.com/problems/lru-cache/</a></div><div><br /></div><div>程式碼
+</div><div>自己實作 LinkedList 會更好，這邊直接用 JDK 的 LinkedList
+</div><p>
+
+</p><div><div>class LRUCache {
+</div><div><br /></div><div>&nbsp;&nbsp;&nbsp;&nbsp;private LinkedList&lt;Integer&gt; list = new LinkedList&lt;&gt;();
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;private Map&lt;Integer, Integer&gt; map = new HashMap&lt;&gt;();
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;private final int cap;
+</div><div><div><br /></div><div><br /></div></div><div>&nbsp;&nbsp;&nbsp;&nbsp;public LRUCache(int capacity) {
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.cap = capacity;
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;}
+</div><div><div><br /></div><div><br /></div></div><div>&nbsp;&nbsp;&nbsp;&nbsp;public int get(int key) {
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Integer result = map.get(key);
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (result == null) {
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return -1;
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else {
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;list.remove(Integer.valueOf(key));
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;list.addFirst(key);
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return result;
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;}
+</div><div><div><br /></div><div><br /></div></div><div>&nbsp;&nbsp;&nbsp;&nbsp;public void put(int key, int value) {
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Integer result = map.get(key);
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (result != null) {
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;list.remove(Integer.valueOf(key));
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;} else {
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (map.size() == cap) {
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;map.remove(list.removeLast());
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;list.addFirst(key);
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;map.put(key, value);
+</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+</div><div>}&nbsp;</div></div>

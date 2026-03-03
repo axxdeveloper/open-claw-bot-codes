@@ -1,0 +1,135 @@
+---
+layout: post
+title: Go - Maps
+date: 2019-04-02 03:16:00 +0800
+tags: [Go]
+---
+
+<div>
+<ul>
+<li><div>
+Declared: map[KeyType]ValueType</div>
+</li>
+<ul>
+<li><div>
+Ex. m := make(map[string]int)</div>
+<div>
+m["a"]=1</div>
+<div>
+m{"b"]=2</div>
+</li>
+<li><div>
+Ex. m := map[string]int {</div>
+<div>
+&nbsp; &nbsp;"a":1,</div>
+<div>
+&nbsp; &nbsp;"b":2, //&nbsp;Please notice every entry need to be end with comma</div>
+<div>
+}</div>
+<div>
+<img src="/assets/images/extracted/go-maps-0-deda7f39.png" /></div>
+</li>
+</ul>
+<li><div>
+Key type must be comparable using ==, array can be used as a key to declare a map, but slice is not acceptable.</div>
+</li>
+<ul>
+<li><div>
+Ex. array can be used as key</div>
+<div>
+<img src="/assets/images/extracted/go-maps-1-9233827c.png" /></div>
+</li>
+<li><div>
+Ex. compile error when use slice as a key</div>
+<div>
+<img src="/assets/images/extracted/go-maps-2-cc9e696e.png" /></div>
+</li>
+</ul>
+<li><div>
+Empty map, length of nil map is 0 as well, but you can't put entry to nil map</div>
+</li>
+<ul>
+<li><div>
+m := make(map[string]int)</div>
+<div>
+m := map[string]int{}</div>
+<div>
+<img src="/assets/images/extracted/go-maps-3-57091f4d.png" /></div>
+</li>
+</ul>
+<li><div>
+Ex. Delete entry</div>
+<div>
+m := map[string]int {</div>
+<div>
+&nbsp; &nbsp; "a":1,</div>
+<div>
+&nbsp; &nbsp; "b":2</div>
+<div>
+}</div>
+<div>
+delete(m, "a")</div>
+<div>
+<img src="/assets/images/extracted/go-maps-4-18b15117.png" /></div>
+</li>
+<li><div>
+add 1 to key</div>
+<div>
+<img src="/assets/images/extracted/go-maps-5-a9a6ca69.png" /></div>
+</li>
+<li><div>
+add 1 to entry but key not exist, value will start from 0 because there is still an assignment</div>
+<div>
+<img src="/assets/images/extracted/go-maps-6-f09bcdbc.png" /></div>
+</li>
+<li><div>
+Can't get entry's address, because entry address may change after rehash.</div>
+<div>
+Will <span style="color: #eb0073;"><b>compile error</b></span> when trying to get entry's address.</div>
+<div>
+Ex. keyP := &amp;m["k"]</div>
+<div>
+<img src="/assets/images/extracted/go-maps-7-11781132.png" /></div>
+</li>
+<li><div>
+Iterate map by range, the order is random by design intent. To prevent client code depends on the implementation</div>
+<div>
+<img src="/assets/images/extracted/go-maps-8-3e1d16bd.png" /></div>
+</li>
+<li><div>
+If we want to follow order to iterate, need sort key and iterate key to get value</div>
+<div>
+<img src="/assets/images/extracted/go-maps-9-2cc5b320.png" /></div>
+</li>
+<li><div>
+Zero value of map is nil</div>
+<div>
+<img src="/assets/images/extracted/go-maps-10-ad596f42.png" /></div>
+</li>
+<li><div>
+Store a value in map's zero value will panic!! Must allocate the map before using it</div>
+<div>
+<img src="/assets/images/extracted/go-maps-11-b55cdd9d.png" /></div>
+</li>
+<li><div>
+Get value from a nil map will get zero value of the type.&nbsp;</div>
+<div>
+<img src="/assets/images/extracted/go-maps-12-2131aea0.png" /></div>
+</li>
+<li><div>
+Check key exist or not</div>
+<div>
+<img src="/assets/images/extracted/go-maps-13-2c8e9f86.png" /></div>
+</li>
+<li><div>
+m = make(map[string]map[string]int)</div>
+<div>
+<img src="/assets/images/extracted/go-maps-14-c0ef6454.png" /></div>
+</li>
+</ul>
+<div>
+<br /></div>
+</div>
+<br />
+<div>
+<br /></div>

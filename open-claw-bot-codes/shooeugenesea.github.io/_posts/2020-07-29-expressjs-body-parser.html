@@ -1,0 +1,9 @@
+---
+layout: post
+title: express.js - body-parser
+date: 2020-07-29 17:13:00 +0800
+tags: [expressjs, javascript, nodejs]
+lang: en
+---
+
+<span><div><div>Commit</div><div><a href="https://github.com/shooeugenesea/test-express/commit/eb0ac341b2ad17a6abff18d0b16ba3a1255beb9a">https://github.com/shooeugenesea/test-express/commit/eb0ac341b2ad17a6abff18d0b16ba3a1255beb9a</a></div><div><br /></div><div><div>npm install body-parser</div></div><div><br /></div><div>code</div><div><div>var express = require('express');</div><div>var bodyParser = require('body-parser')</div><div>var app = express()</div><div>&nbsp;&nbsp;&nbsp;&nbsp;.use( bodyParser() ).use(function (req, res) {</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log("body", req.body)</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log("foo", req.body.foo)</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;res.send(req.body)</div><div>&nbsp;&nbsp;&nbsp;&nbsp;})</div><div>&nbsp;&nbsp;&nbsp;&nbsp;.listen(3000);</div></div><div><br /></div><div><div>$ curl -s&nbsp;&nbsp;http://127.0.0.1:3000/&nbsp;&nbsp;-H "content-type: application/json" -d&nbsp;&nbsp;"{\"foo\":123}"</div><div>{"foo":123}</div></div><div><br /></div><div><br /></div><div><br /></div><div><br /></div><ul><li><div><br /></div></li></ul></div><div><br /></div></span><br />

@@ -1,0 +1,185 @@
+---
+layout: post
+title: Microservice Patterns - 用 Saga 管理交易 - 4.2 協調 Saga
+date: 2020-04-20 17:43:00 +0800
+tags: [microservice patterns]
+lang: zh-TW
+---
+
+<br />
+<div>
+<div>
+<span style="font-size: 12pt; font-weight: bold;">參考資料</span></div>
+<div>
+<a href="https://www.amazon.com/Microservices-Patterns-examples-Chris-Richardson/dp/1617294543" style="color: black;">https://www.amazon.com/Microservices-Patterns-examples-Chris-Richardson/dp/1617294543</a></div>
+<div>
+<br /></div>
+<div>
+<span style="font-size: 12pt;"><span style="font-size: 12pt; font-weight: bold;">Saga 流程</span></span></div>
+<ol>
+<li><div>
+Saga 由系統命令啟動</div>
+</li>
+<li><div>
+協調邏輯選擇並告訴第一個 Saga 參與者執行本地交易</div>
+</li>
+<li><div>
+完成後，Saga 的排序協調選擇並呼叫下一個 Saga 參與者</div>
+</li>
+<li><div>
+持續到所有步驟都執行完畢</div>
+</li>
+<li><div>
+如果任何本地交易失敗，Saga 必須以相反順序執行補償交易。</div>
+</li>
+</ol>
+<div>
+<br /></div>
+<div>
+<span style="font-weight: bold;">建構 Saga 協調邏輯的方式</span></div>
+<ul>
+<li><div>
+Choreography — 將決策和排序分散在 Saga 參與者之間。主要透過交換 event 來溝通。</div>
+</li>
+<li><div>
+Orchestration — 將協調邏輯集中在一個 Saga Orchestration class 中。Saga orchestrator 發送 command 給 Saga 參與者，告訴他們要執行哪個操作。</div>
+</li>
+</ul>
+<div>
+<br /></div>
+<div>
+<span style="font-size: 12pt;"><span style="font-size: 12pt; font-weight: bold;">基於 Choreography 的 Saga</span></span></div>
+<ul>
+<li><div>
+Saga 參與者訂閱彼此的 event 並相應地回應</div>
+</li>
+</ul>
+<div>
+<br /></div>
+<div>
+<span style="font-weight: bold;">用 CHOREOGRAPHY 實作 CREATE ORDER SAGA</span></div>
+<div>
+每個參與者更新自己的資料庫並發佈 event 來觸發下一個參與者</div>
+<div>
+<br /></div>
+<div>
+<br /></div>
+<div>
+<br /></div>
+<div>
+<span style="font-weight: bold;">可靠的基於 EVENT 的通訊</span></div>
+<div>
+實作基於 choreography 的 saga 時需要考慮以下事項：</div>
+<ol>
+<li><div>
+確保 saga 參與者更新資料庫和發佈 event 是作為資料庫交易的一部分 =&gt; 原子性。
+<div>
+為了可靠地通訊，saga 參與者必須使用交易式 messaging。</div>
+</div>
+</li>
+<li><div>
+Saga 參與者必須能夠將收到的每個 event 對應到自己的資料。
+<div>
+=&gt; 當 Order Service 收到一個 event 時，必須能找到對應的 Order。</div>
+<div>
+=&gt; 解決方案：發佈包含 correlation id 的 event，讓其他參與者能做對應。</div>
+<div>
+=&gt; 例如 Order Id</div>
+</div>
+</li>
+</ol>
+<div>
+<br /></div>
+<div>
+<span style="font-weight: bold;">基於 CHOREOGRAPHY 的 SAGA 優缺點</span></div>
+<ul>
+<li><div>
+優點</div>
+</li>
+<ul>
+<li><div>
+簡單：服務只需發佈自己的 event</div>
+</li>
+<li><div>
+鬆耦合：每個服務透過 event 溝通，不需要直接知道彼此</div>
+</li>
+</ul>
+<li><div>
+缺點</div>
+</li>
+<ul>
+<li><div>
+難以理解：不像 orchestration，沒有一個集中的地方定義 Saga。開發者很難理解 Saga 是怎麼運作的。</div>
+</li>
+<li><div>
+服務之間的循環依賴</div>
+</li>
+<li><div>
+有緊耦合的風險</div>
+</li>
+</ul>
+<li><div>
+因為這些缺點，比較複雜的 Saga 會使用 orchestration。</div>
+</li>
+</ul>
+<div>
+<br /></div>
+<div>
+<br /></div>
+<div>
+<span style="font-size: 12pt;"><span style="font-size: 12pt; font-weight: bold;">基於 Orchestration 的 Saga</span></span><span style="font-size: 12pt; font-weight: bold;"></span></div>
+<ol>
+<li><div>
+orchestrator class 的唯一職責是告訴 saga 參與者該做什麼</div>
+</li>
+<li><div>
+orchestrator 使用 command/async reply 風格的互動與參與者溝通</div>
+</li>
+<li><div>
+它發送 command message 給參與者，告訴它要執行什麼操作。</div>
+</li>
+<li><div>
+saga 參與者執行完操作後，發送 reply message 給 orchestrator</div>
+</li>
+<li><div>
+orchestrator 接著處理訊息並決定下一步要執行哪個 saga 步驟</div>
+</li>
+</ol>
+<div>
+<br /></div>
+<div>
+<span style="font-weight: bold;">將 SAGA ORCHESTRATOR 建模為 STATE MACHINE</span></div>
+<ul>
+<li><div>
+把 saga orchestrator 建模成 state machine 是個好方法</div>
+</li>
+</ul>
+<div>
+<br /></div>
+<div>
+<b>基於 ORCHESTRATION 的 SAGA 優缺點</b></div>
+<div>
+<br /></div>
+<ul>
+<li><div>
+更簡單的依賴關係</div>
+</li>
+<li><div>
+更少的耦合</div>
+</li>
+<li><div>
+改善關注點分離並簡化商業邏輯</div>
+</li>
+</ul>
+<div>
+<br /></div>
+<div>
+<b>缺點</b></div>
+<div>
+有把太多商業邏輯集中在 orchestrator 的風險</div>
+<div>
+<br /></div>
+</div>
+<div>
+<br /></div>
+<br />

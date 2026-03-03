@@ -1,0 +1,249 @@
+---
+layout: post
+title: Microservice Patterns - 3.3 Microservice 架構中的行程間通訊 - 使用非同步 Messaging 溝通 - 2
+date: 2020-04-05 18:04:00 +0800
+tags: [microservice patterns]
+lang: zh-TW
+---
+
+<br />
+<div>
+<div>
+<span style="font-size: 12pt; font-weight: bold;">參考資料</span></div>
+<div>
+<a href="https://www.amazon.com/Microservices-Patterns-examples-Chris-Richardson/dp/1617294543" style="color: black;">https://www.amazon.com/Microservices-Patterns-examples-Chris-Richardson/dp/1617294543</a></div>
+<div>
+<br /></div>
+<div>
+<span style="font-size: 12pt; font-weight: bold;">使用 Message Broker</span></div>
+<ul>
+<li><div>
+基於 broker 的架構</div>
+</li>
+<li><div>
+基於 brokerless 的 messaging 架構</div>
+</li>
+</ul>
+<div>
+<img src="/assets/images/extracted/microservice-patterns-interprocess-0-ff8cacfe.png" width="593" /></div>
+<div>
+<br /></div>
+<div>
+<span style="font-weight: bold;">BROKERLESS MESSAGING</span></div>
+<ul>
+<li><div>
+ZeroMQ：http:// <a href="http://zeromq.org/">zeromq.org</a></div>
+</li>
+<li><div>
+優點</div>
+</li>
+<ul>
+<li><div>
+更輕量的網路流量和更低的延遲，因為沒有中間的 broker</div>
+</li>
+<li><div>
+不會有 broker 成為瓶頸</div>
+</li>
+<li><div>
+較少的營運複雜度，因為沒有 broker</div>
+</li>
+</ul>
+<li><div>
+缺點</div>
+</li>
+<ul>
+<li><div>
+服務需要知道彼此的位置</div>
+</li>
+<li><div>
+可用性降低，因為發送者和接收者都必須可用（跟使用同步 request/response 一樣）</div>
+</li>
+<li><div>
+很難實作保證送達</div>
+</li>
+</ul>
+</ul>
+<div>
+<br /></div>
+<div>
+<span style="font-weight: bold;">基於 BROKER 的 MESSAGING 概觀</span></div>
+<ul>
+<li><div>
+範例</div>
+</li>
+<ul>
+<li><div>
+ActiveMQ（<a href="http://activemq.apache.org/">http://activemq.apache.org</a>）</div>
+</li>
+<li><div>
+RabbitMQ（<a href="https://www.rabbitmq.com/">https://www.rabbitmq.com</a>）</div>
+</li>
+<li><div>
+Apache Kafka（<a href="http://kafka.apache.org/">http://kafka.apache.org</a>）</div>
+</li>
+<li><div>
+AWS Kinesis（<a href="https://aws.amazon/">https://aws.amazon</a> .com/kinesis/）</div>
+</li>
+<li><div>
+AWS SQS（<a href="https://aws.amazon.com/sqs/">https://aws.amazon.com/sqs/</a></div>
+</li>
+</ul>
+<li><div>
+優點</div>
+</li>
+<ul>
+<li><div>
+發送者不需要知道消費者的位置</div>
+</li>
+<li><div>
+Broker 會緩衝訊息直到消費者可用</div>
+</li>
+</ul>
+<li><div>
+選擇 MQ 的考量</div>
+</li>
+<ul>
+<li><div>
+支援的程式語言</div>
+</li>
+<li><div>
+支援的 messaging 標準，如 AMQP 或 STOMP</div>
+</li>
+<li><div>
+訊息排序（低延遲的 broker 可能不支援排序）</div>
+</li>
+<li><div>
+送達保證（高延遲）</div>
+</li>
+<li><div>
+持久化（高延遲）</div>
+</li>
+<li><div>
+耐久性：斷線時 broker 的行為是什麼？</div>
+</li>
+<li><div>
+可擴展性</div>
+</li>
+<li><div>
+延遲</div>
+</li>
+<li><div>
+競爭消費者：broker 是否支援？</div>
+</li>
+</ul>
+</ul>
+<div>
+<br /></div>
+<div>
+<span style="font-weight: bold;">使用 MESSAGE BROKER 實作 MESSAGE CHANNEL</span></div>
+<div>
+<img src="/assets/images/extracted/microservice-patterns-interprocess-1-6bf5e692.png" width="769" /></div>
+<div>
+<br /></div>
+<div>
+<span style="font-weight: bold;">基於 BROKER 的 MESSAGING 的優缺點</span></div>
+<ul>
+<li><div>
+優點</div>
+</li>
+<ul>
+<li><div>
+鬆耦合</div>
+</li>
+<li><div>
+訊息緩衝</div>
+</li>
+<li><div>
+靈活的溝通方式</div>
+</li>
+<li><div>
+明確的行程間通訊</div>
+</li>
+</ul>
+<li><div>
+缺點</div>
+</li>
+<ul>
+<li><div>
+潛在的效能瓶頸</div>
+</li>
+<li><div>
+潛在的單點故障</div>
+</li>
+<li><div>
+額外的營運複雜度</div>
+</li>
+</ul>
+</ul>
+<div>
+<br /></div>
+<div>
+<span style="font-size: 12pt;"><span style="font-size: 12pt; font-weight: bold;">競爭接收者與訊息排序</span></span></div>
+<ul>
+<li><div>
+如何在維持訊息排序的同時擴展訊息接收者 =&gt; 在 Kafka 中使用 sharded（partitioned）channel</div>
+</li>
+</ul>
+<div>
+<img src="/assets/images/extracted/microservice-patterns-interprocess-2-48340532.png" width="763" /></div>
+<div>
+<br /></div>
+<div>
+<br /></div>
+<div>
+<b><span style="font-size: 12pt;">處理重複訊息</span></b></div>
+<ul>
+<li><div>
+撰寫冪等的 message handler</div>
+</li>
+<ul>
+<li><div>
+重複的訊息是無害的</div>
+</li>
+</ul>
+<li><div>
+追蹤訊息並丟棄重複的。</div>
+</li>
+<ul>
+<li><div>
+<img src="/assets/images/extracted/microservice-patterns-interprocess-3-b13644df.png" width="669" /></div>
+</li>
+</ul>
+</ul>
+<div>
+<b><span style="font-size: 12pt;">交易式 Messaging</span></b></div>
+<ul>
+<li><div>
+分散式交易對現代應用程式來說不是好的選擇</div>
+</li>
+</ul>
+<div>
+<br /></div>
+<div>
+<b>使用資料庫表格作為 MESSAGE QUEUE</b></div>
+<div>
+<img src="/assets/images/extracted/microservice-patterns-interprocess-4-9bd6a053.png" width="834" /></div>
+<div>
+<br /></div>
+<div>
+<b>使用 POLLING PUBLISHER PATTERN 發佈事件</b></div>
+<div>
+透過輪詢資料庫中的 outbox 來發佈訊息。參見 <a href="http://microservices.io/patterns/data/polling-publisher.html">http://microservices.io/patterns/data/polling-publisher.html</a>。</div>
+<div>
+<br /></div>
+<div>
+<b>套用 TRANSACTION LOG TAILING PATTERN 發佈事件</b></div>
+<div>
+Pattern: Transaction log tailing 透過追蹤 transaction log 來發佈對資料庫所做的變更。參見 <a href="http://microservices.io/patterns/data/transaction-log-tailing.html">http://microservices.io/patterns/data/transaction-log-tailing.html</a>。</div>
+<div>
+<img src="/assets/images/extracted/microservice-patterns-interprocess-5-71e92e7d.png" width="501" /></div>
+<div>
+<br /></div>
+<div>
+<br /></div>
+<div>
+<br /></div>
+</div>
+<div>
+<br /></div>
+<br />

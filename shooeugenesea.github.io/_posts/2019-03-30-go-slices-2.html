@@ -1,0 +1,47 @@
+---
+layout: post
+title: Go - Slices - 2
+date: 2019-03-30 13:13:00 +0800
+tags: [Go]
+---
+
+<br />
+<div>
+<span><ul>
+<li><div>
+Slice is NOT comparable</div>
+<div>
+<img src="/assets/images/extracted/go-slices-2-0-2429d004.png" /></div>
+</li>
+<li><div>
+Standard library provide a way to compare 2 byte slices</div>
+<div>
+<img src="/assets/images/extracted/go-slices-2-1-08c321c6.png" /></div>
+</li>
+<li><div>
+Reference type such as pointers and channels, the == test whether two entities refer to the same thing</div>
+</li>
+<li><div>
+The only legal slice comparison is against nil</div>
+<div>
+<img src="/assets/images/extracted/go-slices-2-2-759fa44d.png" /></div>
+</li>
+<li><div>
+Zero value of slice is nil. Capacity of nil slice is 0. Not nil slice capacity may be 0 as well.&nbsp;</div>
+<div>
+<img src="/assets/images/extracted/go-slices-2-3-d68f3460.png" /></div>
+</li>
+<li><div>
+Use built-in append function to add element to a slice</div>
+<div>
+It seems underlying array become another reference after slice capacity bigger than declared one</div>
+<div>
+<img src="/assets/images/extracted/go-slices-2-4-069f1d69.png" /></div>
+</li>
+<li><div>
+Append element to slice to exceed capacity, what will happen?&nbsp;</div>
+<div>
+=&gt; New slice will be generated</div>
+</li>
+</ul>
+</span></div>

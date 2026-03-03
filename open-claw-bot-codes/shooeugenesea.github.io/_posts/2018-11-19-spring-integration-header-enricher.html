@@ -1,0 +1,224 @@
+---
+layout: post
+title: Spring Integration - Header Enricher
+date: 2018-11-19 18:17:00 +0800
+tags: [spring, java, spring integration]
+---
+
+<div>
+<span style="font-size: 18pt; font-weight: bold;">Reference</span></div>
+<div>
+Pro Spring Integration -&nbsp;<a href="https://www.amazon.com/Pro-Spring-Integration-Experts-Voice-ebook-dp-B005PZ29OA/dp/B005PZ29OA/ref=mt_kindle?_encoding=UTF8&amp;me=&amp;qid=">https://www.amazon.com/Pro-Spring-Integration-Experts-Voice-ebook-dp-B005PZ29OA/dp/B005PZ29OA/ref=mt_kindle?_encoding=UTF8&amp;me=&amp;qid=</a>&nbsp;
+</div>
+<div>
+<span style="font-size: 12pt;">前篇:&nbsp;</span><span style="font-size: 16px;"><a href="https://www.isaacnote.com/2018/11/spring-integration-integrate-with-tomcat.html">https://www.isaacnote.com/2018/11/spring-integration-integrate-with-tomcat.html</a>&nbsp;</span><br />
+<span style="font-size: 16px;">下篇:<a href="https://www.isaacnote.com/2018/11/spring-integration-message-flow-filter.html">Spring Integration Message Flow - Router</a></span></div>
+<div>
+<br /></div>
+<div>
+<span style="font-weight: bold;">Enrich Header XML</span></div>
+<ol>
+<li><div>
+Header-enricher 可以改變 msg 的 header, 這裡把 mykey 加入 message
+</div>
+</li>
+<li><div>
+Transformer 可以透過 @Header 或 @Headers 來取得 headers
+</div>
+</li>
+</ol>
+<div>
+<div>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+</div>
+<div>
+&lt;beans xmlns="http://www.springframework.org/schema/beans"
+</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;xmlns:int="http://www.springframework.org/schema/integration"
+</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;xmlns:context="http://www.springframework.org/schema/context"
+</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;xsi:schemaLocation="http://www.springframework.org/schema/beans
+</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;http://www.springframework.org/schema/beans/spring-beans.xsd
+</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;http://www.springframework.org/schema/integration
+</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;http://www.springframework.org/schema/integration/spring-integration-5.0.xsd
+</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;http://www.springframework.org/schema/context
+</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;http://www.springframework.org/schema/context/spring-context-3.0.xsd"&gt;
+</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;context:component-scan base-package="examples"/&gt;
+</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;int:header-enricher input-channel="input" output-channel="inteceptor"&gt;
+</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;int:header name="mykey" value="myval" /&gt;
+</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;/int:header-enricher&gt;
+</div>
+<div>
+<br /></div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;int:transformer input-channel="inteceptor" output-channel="output" ref="mapper" /&gt;
+</div>
+<div>
+<br /></div>
+<div>
+<br /></div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;int:channel id="inteceptor" /&gt;
+</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;int:channel id="input"/&gt;
+</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;int:channel id="output"&gt;
+</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;int:queue capacity="10"/&gt;
+</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;/int:channel&gt;
+</div>
+<div>
+&lt;/beans&gt;
+</div>
+</div>
+<div>
+<br /></div>
+<div>
+<span style="font-weight: bold;">HeaderEnricherMain</span></div>
+<div>
+<div>
+public class HeaderEnricherMain {
+</div>
+<div>
+<br /></div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;public static void main(String[] params) {
+</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ClassPathXmlApplicationContext ctx = new ClassPathXmlApplicationContext("classpath:HeaderEnricherMain.xml");
+</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;MessageChannel input = ctx.getBean("input", MessageChannel.class);
+</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;input.send(MessageBuilder.withPayload("test").build());
+</div>
+<div>
+<br /></div>
+<div>
+<br /></div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;PollableChannel output = ctx.getBean("output", PollableChannel.class);
+</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;System.out.println(output.receive().getHeaders().get("mykey")); // print myval
+</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;}
+</div>
+<div>
+<br /></div>
+<div>
+}
+</div>
+<div>
+<br /></div>
+</div>
+<div>
+<br /></div>
+<div>
+<span style="font-weight: bold;">Transformer</span> 用 ＠Header or @Headers 取值
+</div>
+<div>
+<div>
+@Component
+</div>
+<div>
+public class Mapper {
+</div>
+<div>
+<br /></div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;@Transformer
+</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;public TextMessage map(Map&lt;String, String&gt; message) {
+</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;System.out.println("transform from " + message + " to TextMessage");
+</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return new TextMessage(message.get("text"));
+</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;}
+</div>
+<div>
+<br /></div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;@Transformer
+</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;public TextMessage map(String message) {
+</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;System.out.println("transform from string to TextMessage");
+</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return new TextMessage(message);
+</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;}
+</div>
+<div>
+<br /></div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;@Transformer
+</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;public TextMessage mapMyKey(@Header("mykey") String myval, @Headers Map&lt;String,String&gt; headerMap, String message) {
+</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;System.out.println("headerMap:" + headerMap);
+</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return new TextMessage(myval); // myval</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;}
+</div>
+<div>
+<br /></div>
+<div>
+}
+</div>
+<div>
+<br /></div>
+<div>
+<div>
+<br /></div>
+</div>
+</div>
+<div>
+<br /></div>
+
+<br />

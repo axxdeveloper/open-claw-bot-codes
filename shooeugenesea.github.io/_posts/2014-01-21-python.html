@@ -1,0 +1,28 @@
+---
+layout: post
+title: python compress/decompress file
+date: 2014-01-21 00:07:00 +0800
+tags: [python]
+---
+
+<h3>
+Reference</h3>
+<div>
+http://docs.python.org/3/library/shutil.html#module-shutil</div>
+<div>
+<br /></div>
+<h3>
+Description</h3>
+<div>
+把 d:/nginx-1.4.3 壓縮到 d:/ziptarget/test.zip<br />
+再把 d:/ziptarget/test.zip 解壓縮到 d:/unziptarget/</div>
+<h3>
+Codes (適合 python 3.2 以上)</h3>
+<pre>import shutil
+
+unzipfile_folder = 'd:/unziptarget'
+archive_name = 'd:/ziptarget/test'
+root_dir = 'd:/nginx-1.4.3'
+archive_path = shutil.make_archive(archive_name, 'zip', root_dir)
+shutil.unpack_archive(archive_path, unzipfile_folder)
+</pre>

@@ -1,0 +1,211 @@
+---
+layout: post
+title: Microservice Patterns - 3.3 Microservice 架構中的行程間通訊 - 使用非同步 Messaging 溝通 - 1
+date: 2020-03-30 16:47:00 +0800
+tags: [microservice patterns]
+lang: zh-TW
+---
+
+<br />
+<div>
+<div>
+<div>
+<br /></div>
+<div>
+<span style="font-size: 12pt; font-weight: bold;">參考資料</span></div>
+<div>
+<a href="https://www.amazon.com/Microservices-Patterns-examples-Chris-Richardson/dp/1617294543" style="color: black;">https://www.amazon.com/Microservices-Patterns-examples-Chris-Richardson/dp/1617294543</a></div>
+<div>
+<br /></div>
+<div>
+<br /></div>
+<div>
+<span style="font-weight: bold;">Pattern: Messaging</span></div>
+<div>
+Client 使用非同步 messaging 來呼叫服務。參見 <a href="http://microservices/">http://microservices</a> .io/patterns/communication-style/messaging.html。</div>
+<div>
+<br /></div>
+<div>
+<span style="font-weight: bold;">基於 messaging 的應用程式</span></div>
+<ol>
+<li><div>
+message broker：broker 作為服務之間的中介</div>
+</li>
+<li><div>
+brokerless 架構：服務之間直接溝通</div>
+</li>
+</ol>
+<div>
+<br /></div>
+<div>
+<span style="font-weight: bold;">訊息</span></div>
+<div>
+由 header 和 message body 組成：</div>
+<ol>
+<li><div>
+Header 是一組 name-value pair</div>
+</li>
+<li><div>
+由訊息的發送者提供</div>
+</li>
+<li><div>
+例如由發送者或 messaging 基礎設施產生的唯一 message id</div>
+</li>
+</ol>
+<div>
+<br /></div>
+<div>
+<span style="font-weight: bold;">Message body 是被傳送的資料</span></div>
+<ul>
+<li><div>
+Document：只包含資料。對 command 的回覆就是一個 document message 的例子</div>
+</li>
+<li><div>
+Command：等同於 RPC 請求。</div>
+</li>
+<li><div>
+Event：一個訊息，表示發送者端發生了某個值得注意的事</div>
+</li>
+</ul>
+<div>
+<br /></div>
+<div>
+<span style="font-weight: bold;">Message Channel</span></div>
+<ol>
+<li><div>
+發送者呼叫 sending port interface</div>
+</li>
+<li><div>
+sending port 由 message sender adapter class 實作，透過 message channel 將訊息發送給接收者。</div>
+</li>
+<li><div>
+Message channel 是 messaging 基礎設施的抽象</div>
+</li>
+<li><div>
+接收者端的 message handler adapter class 被呼叫來處理訊息</div>
+</li>
+<li><div>
+Message handler 呼叫由消費者商業邏輯實作的 receiving port interface。</div>
+</li>
+<li><div>
+兩種 channel 類型</div>
+</li>
+<ol>
+<li><div>
+point-to-point：將訊息只傳遞給其中一個消費者</div>
+</li>
+<li><div>
+publish-subscribe：將每個訊息傳遞給所有已訂閱的消費者</div>
+</li>
+</ol>
+</ol>
+<div>
+<br /></div>
+<div>
+<img src="/assets/images/extracted/microservice-patterns-interprocess_31-0-4dc534d7.png" width="736" /></div>
+<div>
+<br /></div>
+<div>
+<br /></div>
+</div>
+<div>
+<span style="font-size: 12pt; font-weight: bold;">使用 messaging 實作互動風格</span></div>
+<div>
+<img src="/assets/images/extracted/microservice-patterns-interprocess_31-1-5f88542f.png" width="619" /></div>
+<ul>
+<li><div>
+Client 發送一個帶有 reply channel header 的 command message</div>
+</li>
+<li><div>
+Server 將 reply message 寫入 reply channel，其中包含一個 <span style="font-weight: bold;">correlation id</span>，值與 <span style="font-weight: bold;">message identifier</span> 相同</div>
+</li>
+<li><div>
+Client 使用 <span style="font-weight: bold;">correlation id</span> 將 reply message 與 request 配對</div>
+</li>
+</ul>
+<div>
+<span style="font-size: 10pt;"><br /></span></div>
+<div>
+<span style="font-size: 10pt; font-weight: bold;">實作單向通知</span></div>
+<div>
+服務訂閱 channel 並處理訊息</div>
+<div>
+<br /></div>
+<div>
+<span style="font-size: 10pt; font-weight: bold;">實作 PUBLISH/SUBSCRIBE</span></div>
+<div>
+Client 將訊息發佈到一個 publish-subscribe channel，由多個消費者讀取</div>
+<div>
+發佈 domain event 的服務擁有一個 publish-subscribe channel，名稱取自 domain class</div>
+<div>
+<br /></div>
+<div>
+<span style="font-size: 10pt; font-weight: bold;">實作 PUBLISH/ASYNC RESPONSES</span></div>
+<div>
+Client 將一個帶有 reply channel header 的訊息發佈到 publish-subscribe channel</div>
+<div>
+消費者將帶有 correlation id 的 reply message 寫入 reply channel。</div>
+<div>
+Client 透過 correlation id 將 reply message 與 request 配對來收集回應</div>
+<div>
+<br /></div>
+<div>
+<span style="font-size: 12pt;"><span style="font-size: 12pt; font-weight: bold;">為基於 messaging 的服務 API 建立規格</span></span></div>
+<div>
+服務非同步 API 的規格必須指定 message channel 的名稱、每個 channel 上交換的訊息類型及其格式。</div>
+<div>
+<img src="/assets/images/extracted/microservice-patterns-interprocess_31-2-1a54fd7f.png" width="704" /></div>
+<div>
+<br /></div>
+<div>
+<b>記錄非同步操作</b></div>
+<ul>
+<li><div>
+Request/async response 風格的 API</div>
+</li>
+<ul>
+<li><div>
+服務的 command message channel</div>
+</li>
+<li><div>
+command message 的類型和格式</div>
+</li>
+<li><div>
+reply message 的類型和格式</div>
+</li>
+</ul>
+<li><div>
+單向通知風格的 API</div>
+</li>
+<ul>
+<li><div>
+服務的 command message channel</div>
+</li>
+<li><div>
+command message 的類型和格式</div>
+</li>
+</ul>
+<li><div>
+一個服務可以對 asynchronous request/response 和 one-way notification 使用相同的 request channel</div>
+</li>
+</ul>
+<div>
+<br /></div>
+<div>
+<b>記錄發佈的 Event</b></div>
+<div>
+服務也可以使用 publish/subscribe 互動風格來發佈 event</div>
+<ul>
+<li><div>
+event channel</div>
+</li>
+<li><div>
+event message 的類型和格式</div>
+</li>
+</ul>
+<div>
+<br /></div>
+</div>
+<div>
+<br /></div>
+<br />

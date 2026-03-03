@@ -1,0 +1,113 @@
+---
+layout: post
+title: Microservice Patterns - 4.1 Managing transactions with sagas - Transaction management in a microservice architecture
+date: 2020-04-11 17:46:00 +0800
+tags: [microservice patterns]
+lang: en
+---
+
+<br />
+<div>
+<div>
+<span style="font-size: 12pt; font-weight: bold;">Reference</span></div>
+<div>
+<a href="https://www.amazon.com/Microservices-Patterns-examples-Chris-Richardson/dp/1617294543" style="color: black;">https://www.amazon.com/Microservices-Patterns-examples-Chris-Richardson/dp/1617294543</a></div>
+<div>
+<br /></div>
+<div>
+<span style="font-size: 12pt;"><span style="font-size: 12pt; font-weight: bold;">Challenges</span></span></div>
+<div>
+In a monolithic system, a createOrder operation only need to rely on a relational database with transactional annotation.</div>
+<div>
+In a microservice system, a createOreder operation need make sure operations in Kitchen Service, Customer Service, Order Service, Accounting Service all success. Because each service has its own database.</div>
+<div>
+<img src="/assets/images/extracted/managing-transactions-with-sagas-0-b00b24bf.png" /></div>
+<div>
+<br /></div>
+<div>
+<span style="font-size: 12pt; font-weight: bold;">Traditional Approach</span></div>
+<div>
+Simply to say: two-phase commit. Ex. Java EE can complete multiple service transaction by JTA.</div>
+<div>
+<br /></div>
+<div>
+<span style="font-size: 10pt; font-weight: bold;">Problem</span></div>
+<ol>
+<li><div>
+Modern technology such as No-SQL database or Message broker such as Kafka doesn't support it.</div>
+</li>
+<li><div>
+Traditional approach is synchronous operation with lower availability (all services must be available)</div>
+<div>
+2 Services with 99.5% aviliability, overall availability become 99%</div>
+</li>
+</ol>
+<div>
+<br /></div>
+<div>
+<span style="font-size: 12pt; font-weight: bold;">Using the Saga pattern to maintain data consistency</span></div>
+<div>
+Saga: Maintain data consistency across services using a sequence of local transactions that are coordinated using asynchronous messaging. See <a href="http://microservices.io/">http://microservices.io/</a> patterns/data/saga.html.</div>
+<div>
+Each local transaction updates data within a single service using the familiar ACID transaction frameworks and libraries mentioned earlier</div>
+<div>
+<br /></div>
+<ol>
+<li><div>
+System operation init the first step of Saga</div>
+</li>
+<li><div>
+Completion of local transaction triggers the execution of next local transaction</div>
+</li>
+<li><div>
+a saga must be rolled back using compensating transactions</div>
+</li>
+</ol>
+<div>
+<br /></div>
+<div>
+<span style="font-weight: bold;">Example: Create Order Saga</span></div>
+<ol>
+<li><div>
+Init by external createOrder request</div>
+</li>
+<li><div>
+Other five transactions are triggered after previous done</div>
+</li>
+</ol>
+<div>
+<img src="/assets/images/extracted/managing-transactions-with-sagas-1-93d20ba4.png" width="707" /></div>
+<div>
+<br /></div>
+<div>
+<b>Challenges</b></div>
+<ol>
+<li><div>
+Lack of isolations between Sagas</div>
+</li>
+<li><div>
+Rollback when error occurs</div>
+</li>
+</ol>
+<div>
+<br /></div>
+<div>
+<b>SAGAS USE COMPENSATING TRANSACTIONS TO ROLL BACK CHANGES</b></div>
+<div>
+When a step fail, previous sagas need undo changes (must be undone)</div>
+<div>
+<br /></div>
+<div>
+<img src="/assets/images/extracted/managing-transactions-with-sagas-2-9a8db41d.png" width="660" /></div>
+<div>
+<br /></div>
+<div>
+<br /></div>
+<div>
+<br /></div>
+<div>
+<br /></div>
+</div>
+<div>
+<br /></div>
+<br />

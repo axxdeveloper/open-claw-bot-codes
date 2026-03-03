@@ -1,0 +1,14 @@
+<link rel="icon" type="image/svg+xml" href="/assets/images/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
+>
+<meta name="baseurl" content="{{ site.baseurl }}">
+{% assign social_image = page.image | default: site.og_image | absolute_url %}
+<meta property="og:image" content="{{ social_image }}">
+<meta name="twitter:image" content="{{ social_image }}">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="alternate" type="application/atom+xml" title="Isaac Note — 技術" href="{{ site.url }}/feed/tech.xml">
+<link rel="alternate" type="application/atom+xml" title="Isaac Note — 總經" href="{{ site.url }}/feed/macro.xml">

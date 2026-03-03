@@ -1,0 +1,9 @@
+---
+layout: post
+title: express.js - serveStatic - index file
+date: 2020-07-28 17:27:00 +0800
+tags: [expressjs]
+lang: en
+---
+
+<span><div><div><ul><li>Commit</li></ul><div><a href="https://github.com/shooeugenesea/test-express/commit/06d3978359b38d7160f94a716625e1ef92687533">https://github.com/shooeugenesea/test-express/commit/06d3978359b38d7160f94a716625e1ef92687533</a></div></div><ul><li><div>specufy in the&nbsp;second argument</div></li></ul><div><div>&lt;!DOCTYPE html&gt;</div><div>&lt;html lang="en"&gt;</div><div>&lt;head&gt;</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&lt;meta charset="UTF-8"&gt;</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&lt;title&gt;Index - lalala&lt;/title&gt;</div><div>&lt;/head&gt;</div><div>&lt;body&gt;</div><div>This is index page - lalala</div><div>&lt;/body&gt;</div><div>&lt;/html&gt;</div></div><div><br /></div><div><div>var express = require('express');</div><div>var serveStatic =&nbsp;&nbsp;require('serve-static');</div><div>var app = express().use(&nbsp;&nbsp;serveStatic(__dirname + '/public', <b><font color="#EB0073">{'index': ['lalala.html']}</font></b>)&nbsp;&nbsp;).listen(3000);</div></div><div><br /></div><div><div>$curl http://localhost:3000</div><div>&lt;!DOCTYPE html&gt;</div><div>&lt;html lang="en"&gt;</div><div>&lt;head&gt;</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&lt;meta charset="UTF-8"&gt;</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&lt;title&gt;Index - lalala&lt;/title&gt;</div><div>&lt;/head&gt;</div><div>&lt;body&gt;</div><div>This is index page - lalala</div><div>&lt;/body&gt;</div><div>&lt;/html&gt;</div></div><div><br /></div></div></span>

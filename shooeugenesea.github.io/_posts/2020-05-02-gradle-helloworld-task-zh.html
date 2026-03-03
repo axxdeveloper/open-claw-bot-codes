@@ -1,0 +1,64 @@
+---
+layout: post
+title: Gradle Helloworld Task 入門
+date: 2020-05-02 18:21:00 +0800
+tags: [gradle]
+lang: zh-TW
+---
+
+<br />
+<div>
+<b>編輯 build.gradle</b></div>
+<div>
+<div>
+task helloworld {</div>
+<div>
+&nbsp;&nbsp;&nbsp;&nbsp;println "Hello world"</div>
+<div>
+}</div>
+</div>
+<div>
+<br /></div>
+<div>
+<b>列出所有 task 並找到 helloworld</b></div>
+<div>
+<div>
+$gradle tasks --all</div>
+<div>
+<br /></div>
+<div>
+...</div>
+<div>
+Other tasks</div>
+<div>
+-----------</div>
+<div>
+helloworld</div>
+<div>
+prepareKotlinBuildScriptModel</div>
+<div>
+<br /></div>
+<div>
+BUILD SUCCESSFUL in 1s</div>
+<div>
+1 actionable task: 1 executed</div>
+</div>
+<div>
+<b><br /></b></div>
+<div>
+<b>執行 task</b></div>
+<div>
+<div>
+$ gradle helloworld</div>
+<div>
+&gt; Configure project :</div>
+<div>
+Hello world</div>
+<div>
+<br /></div>
+<div>
+BUILD SUCCESSFUL in 931ms</div>
+</div>
+<div>
+<br /></div>
+<br />

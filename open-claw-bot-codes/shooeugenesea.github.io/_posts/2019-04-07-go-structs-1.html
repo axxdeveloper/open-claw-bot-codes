@@ -1,0 +1,58 @@
+---
+layout: post
+title: Go - Structs - 1
+date: 2019-04-07 06:28:00 +0800
+tags: [Go]
+---
+
+<div>
+
+<ul>
+<li>Declare type Employee struct {ID int}; var isaac Employee
+</li>
+<li>Use . to access field.&nbsp;
+</li>
+<li style="list-style: none;"><ul>
+<li>Ex. isaac.ID = 123
+</li>
+</ul>
+</li>
+<li>Use &amp; and * to access by pointet
+</li>
+<li style="list-style: none;"><ul>
+<li>Ex. id = &amp;isaac.ID;&nbsp;*id=1+*id
+</li>
+</ul>
+</li>
+<li>Pointer to a struct
+</li>
+<li style="list-style: none;"><ul>
+<li>Ex. var s *Employee = &amp;isaac; s.ID += 1
+</li>
+<li><div>
+It equals to: var s *Employee; (*s).ID +=1
+</div>
+<div>
+<img src="/assets/images/extracted/go-structs-1-0-71c61af9.png" width="386" /></div>
+</li>
+</ul>
+</li>
+<li>Return struct pointer from a function
+</li>
+<li style="list-style: none;"><ul>
+<li><div>
+Ex. func EmployeeByID(id int) *Employee { var found Employee; return *found }; EmployeeByID(1).ID=2
+</div>
+<div>
+<img src="/assets/images/extracted/go-structs-1-1-00a23db3.png" width="527" /></div>
+</li>
+</ul>
+</li>
+<li><div>
+Field name will be exported if it begins with a capital letter
+</div>
+<div>
+<img src="/assets/images/extracted/go-structs-1-2-9c829279.png" width="622" /></div>
+</li>
+</ul>
+</div>

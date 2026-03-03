@@ -1,0 +1,13 @@
+---
+layout: post
+title: java.lang.ref
+date: 2020-08-20 08:47:00 +0800
+tags: [java, java 11]
+lang: en
+---
+
+<div><a href="https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/ref/package-summary.html">https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/lang/ref/package-summary.html</a></div><div><a href="https://dzone.com/articles/weak-soft-and-phantom-references-in-java-and-why-they-matter">https://dzone.com/articles/weak-soft-and-phantom-references-in-java-and-why-they-matter</a></div><div><br /></div><p>
+
+</p><ol><li>SoftReference: Cleared when GC is response to memory demand. Often used to implement memory-sensitive cache.
+</li><li>WeakReference: Don’t prevent to be finalized. Often used to implement canonicalizing mapping. (Mapping only reachable object instances)
+</li><li>PhantomReference: Are enqueued after determining to be reclaimed. Not automatically cleared by GC. Object referenced via phantom reference won’t be cleared by GC automatically until phantom reference cleared.&nbsp;</li></ol>

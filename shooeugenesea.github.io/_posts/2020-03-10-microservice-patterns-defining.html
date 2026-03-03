@@ -1,0 +1,147 @@
+---
+layout: post
+title: "Microservice Patterns - 2.2 Defining an application's microservice architecture"
+date: 2020-03-10 11:23:00 +0800
+tags: [microservice patterns]
+lang: en
+---
+
+<br />
+<div>
+<div>
+<div>
+<span style="font-size: 12pt;"><span style="font-size: 12pt; font-weight: bold;">Reference</span></span>&nbsp;&nbsp;</div>
+<div>
+<a href="https://www.amazon.com/Microservices-Patterns-examples-Chris-Richardson/dp/1617294543">https://www.amazon.com/Microservices-Patterns-examples-Chris-Richardson/dp/1617294543</a></div>
+<div>
+<a href="https://microservices.io/patterns/decomposition/decompose-by-business-capability.html">https://microservices.io/patterns/decomposition/decompose-by-business-capability.html</a></div>
+<div>
+<br /></div>
+<div>
+<span style="font-size: 12pt; font-weight: bold;">3 steps:</span></div>
+<ol>
+<li><div>
+Identify system operations</div>
+</li>
+<li><div>
+Identify services</div>
+</li>
+<li><div>
+Define services APIs and collaborations</div>
+</li>
+</ol>
+<div>
+<img src="/assets/images/extracted/microservice-patterns-defining-0-104d512a.png" /></div>
+<div>
+<br /></div>
+<div>
+<span style="font-size: 12pt;"><span style="font-size: 12pt; font-weight: bold;">Step1: Identifying system operations&nbsp;</span></span></div>
+<ol>
+<li><div>
+Create a high level domain model</div>
+</li>
+<li><div>
+Define system operations</div>
+</li>
+</ol>
+<div>
+<br /></div>
+<div>
+<br /></div>
+<div>
+<img src="/assets/images/extracted/microservice-patterns-defining-1-9db188bd.png" /></div>
+<div>
+<br /></div>
+<div>
+<span style="font-size: 12pt;"><span style="font-size: 12pt; font-weight: bold;">Step 2: Identity services</span></span></div>
+<ul>
+<li><div>
+Define services corresponding to business capabilities</div>
+</li>
+<li><div>
+Organize services around domain-driven design subdomains</div>
+</li>
+<li><div>
+Organize services around business concepts rather than technical concepts</div>
+</li>
+</ul>
+<div>
+<img src="/assets/images/extracted/microservice-patterns-defining-2-c4b6c0bb.png" width="507" /></div>
+</div>
+<div>
+<br /></div>
+<div>
+<span style="font-size: 12pt;"><span style="font-size: 12pt; font-weight: bold;">Defining services by applying the Decompose by sub-domain pattern</span></span></div>
+<div>
+<img src="/assets/images/extracted/microservice-patterns-defining-3-63e88a24.png" /></div>
+<div>
+<span style="font-size: 12pt;"><span style="font-size: 12pt; font-weight: bold;">Decomposition guidelines</span></span></div>
+<ol>
+<li><div>
+SINGLE RESPONSIBILITY PRINCIPLE:&nbsp; A class should have only one reason to change</div>
+</li>
+<li><div>
+COMMON CLOSURE PRINCIPLE:&nbsp; The classes in a package should be closed together against the same kinds of changes. A change that affects a package affects all the classes in that package. ( We can apply CCP when creating a microservice architecture and package components that change for the same reason into the same service.)</div>
+</li>
+</ol>
+<div>
+<br /></div>
+<div>
+<span style="font-size: 12pt;"><span style="font-size: 12pt; font-weight: bold;">Obstacles to decomposing an application into services</span></span></div>
+<ul>
+<li><div>
+Network latency</div>
+</li>
+<li><div>
+Reduced availability due to synchronous communication</div>
+</li>
+<li><div>
+Maintaining data consistency across services</div>
+</li>
+<li><div>
+Obtaining a consistent view of the data</div>
+</li>
+<li><div>
+God classes preventing decomposition</div>
+</li>
+</ul>
+<div>
+<span style="font-size: 12pt;"><b>God classes</b></span></div>
+<div>
+" A god class typically implements business logic for many different aspects of the application. It normally has a large number of fields mapped to a database table with many columns. Most applications have at least one of these classes, each representing a concept that’s central to the domain: accounts in banking, orders in e-commerce, policies in insurance, and so on. "</div>
+<div>
+<br /></div>
+<div>
+<span style="font-size: 12pt;"><b>Defining service APIs</b></span></div>
+<div>
+A service API operation exists for one of two reasons:&nbsp;</div>
+<ul>
+<li><div>
+some operations correspond to system operations. They are invoked by external clients and perhaps by other services.</div>
+</li>
+<li><div>
+The other operations exist to support collaboration between services. These operations are only invoked by other services.</div>
+</li>
+</ul>
+<ol>
+<li><div>
+ASSIGNING SYSTEM OPERATIONS TO SERVICES</div>
+<div>
+<img src="/assets/images/extracted/microservice-patterns-defining-4-e51c4a6d.png" width="695" /></div>
+</li>
+<li><div>
+DETERMINING THE APIS REQUIRED TO SUPPORT COLLABORATION BETWEEN SERVICES</div>
+<div>
+<img src="/assets/images/extracted/microservice-patterns-defining-5-40fe0ab7.png" width="671" /></div>
+</li>
+</ol>
+<div>
+<br /></div>
+<div>
+<br /></div>
+<div>
+<br /></div>
+</div>
+<div>
+<br /></div>
+<br />

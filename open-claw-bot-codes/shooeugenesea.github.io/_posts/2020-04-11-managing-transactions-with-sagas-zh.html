@@ -1,0 +1,114 @@
+---
+layout: post
+title: Microservice Patterns - 4.1 用 Saga 管理交易 - Microservice 架構中的交易管理
+date: 2020-04-11 17:46:00 +0800
+tags: [microservice patterns]
+lang: zh-TW
+---
+
+<br />
+<div>
+<div>
+<span style="font-size: 12pt; font-weight: bold;">參考資料</span></div>
+<div>
+<a href="https://www.amazon.com/Microservices-Patterns-examples-Chris-Richardson/dp/1617294543" style="color: black;">https://www.amazon.com/Microservices-Patterns-examples-Chris-Richardson/dp/1617294543</a></div>
+<div>
+<br /></div>
+<div>
+<span style="font-size: 12pt;"><span style="font-size: 12pt; font-weight: bold;">挑戰</span></span></div>
+<div>
+在單體系統中，createOrder 操作只需要依賴帶有 transactional annotation 的關聯式資料庫。</div>
+<div>
+在 microservice 系統中，createOrder 操作需要確保 Kitchen Service、Customer Service、Order Service、Accounting Service 中的操作全部成功。因為每個服務都有自己的資料庫。</div>
+<div>
+<img src="/assets/images/extracted/managing-transactions-with-sagas-0-b00b24bf.png" /></div>
+<div>
+<br /></div>
+<div>
+<span style="font-size: 12pt; font-weight: bold;">傳統做法</span></div>
+<div>
+簡單來說：兩階段提交。例如 Java EE 可以透過 JTA 完成多個服務的交易。</div>
+<div>
+<br /></div>
+<div>
+<span style="font-size: 10pt; font-weight: bold;">問題</span></div>
+<ol>
+<li><div>
+現代技術如 No-SQL 資料庫或 Message broker（如 Kafka）不支援它。</div>
+</li>
+<li><div>
+傳統做法是同步操作且可用性較低（所有服務必須都可用）
+<div>
+兩個 99.5% 可用性的服務，整體可用性變成 99%</div>
+</div>
+</li>
+</ol>
+<div>
+<br /></div>
+<div>
+<span style="font-size: 12pt; font-weight: bold;">使用 Saga Pattern 維護資料一致性</span></div>
+<div>
+Saga：透過一連串用非同步 messaging 協調的本地交易來維護跨服務的資料一致性。參見 <a href="http://microservices.io/">http://microservices.io/</a> patterns/data/saga.html。</div>
+<div>
+每個本地交易在單一服務內使用我們熟悉的 ACID 交易框架和函式庫來更新資料</div>
+<div>
+<br /></div>
+<ol>
+<li><div>
+系統操作啟動 Saga 的第一步</div>
+</li>
+<li><div>
+本地交易完成後觸發下一個本地交易的執行</div>
+</li>
+<li><div>
+Saga 必須使用補償交易來回滾</div>
+</li>
+</ol>
+<div>
+<br /></div>
+<div>
+<span style="font-weight: bold;">範例：Create Order Saga</span></div>
+<ol>
+<li><div>
+由外部的 createOrder 請求啟動</div>
+</li>
+<li><div>
+其他五個交易在前一個完成後觸發</div>
+</li>
+</ol>
+<div>
+<img src="/assets/images/extracted/managing-transactions-with-sagas-1-93d20ba4.png" width="707" /></div>
+<div>
+<br /></div>
+<div>
+<b>挑戰</b></div>
+<ol>
+<li><div>
+Saga 之間缺乏隔離性</div>
+</li>
+<li><div>
+發生錯誤時的回滾</div>
+</li>
+</ol>
+<div>
+<br /></div>
+<div>
+<b>SAGA 使用補償交易來回滾變更</b></div>
+<div>
+當某一步失敗時，先前的 saga 需要復原變更（必須被復原）</div>
+<div>
+<br /></div>
+<div>
+<img src="/assets/images/extracted/managing-transactions-with-sagas-2-9a8db41d.png" width="660" /></div>
+<div>
+<br /></div>
+<div>
+<br /></div>
+<div>
+<br /></div>
+<div>
+<br /></div>
+</div>
+<div>
+<br /></div>
+<br />

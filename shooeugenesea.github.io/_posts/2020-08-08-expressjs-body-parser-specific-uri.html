@@ -1,0 +1,9 @@
+---
+layout: post
+title: express.js - body-parser - specific uri
+date: 2020-08-08 19:04:00 +0800
+tags: [nodejs, expressjs, javascript]
+lang: en
+---
+
+<p>&nbsp;</p><span><div><b>Commit</b></div><div><a href="https://github.com/shooeugenesea/test-express/commit/b81676332041570e3d05c70dc3dcf7371001ef4c">https://github.com/shooeugenesea/test-express/commit/b81676332041570e3d05c70dc3dcf7371001ef4c</a></div><div><br /></div><div><b>code</b></div><div><div>var express = require('express');</div><div>var bodyParser = require('body-parser')</div><div>var app = express()</div><div>&nbsp;&nbsp;&nbsp;&nbsp;.use( '/test', bodyParser() ).use(function (req, res) {</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log("body", req.body)</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;console.log("foo", req.body.foo)</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;res.send(req.body)</div><div>&nbsp;&nbsp;&nbsp;&nbsp;})</div><div>&nbsp;&nbsp;&nbsp;&nbsp;.listen(3000);</div></div><div><br /></div><div><b>execute</b></div><div><div><span style="color: #333333; font-family: Monaco; font-size: 9pt;">$ node app.js</span></div></div><div><br /></div><div><b>curl</b></div><div><div>$ curl -s&nbsp;&nbsp;http://127.0.0.1:3000/test/&nbsp;&nbsp;-H "content-type: application/json" -d&nbsp;&nbsp;&nbsp;"{\"foo\":123}"</div><div>{"foo":123}</div></div><div><br /></div></span>
