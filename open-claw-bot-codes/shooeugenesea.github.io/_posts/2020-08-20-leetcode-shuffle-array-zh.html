@@ -1,9 +1,0 @@
----
-layout: post
-title: LeetCode - 洗牌陣列
-date: 2020-08-20 02:45:00 +0800
-tags: [leetcode, leetcode easy]
-lang: zh-TW
----
-
-<p>&nbsp;</p><span><div>LeetCode</div><div><a href="https://leetcode.com/problems/shuffle-the-array/">https://leetcode.com/problems/shuffle-the-array/</a></div><div><br /></div><div>程式碼</div><div><div>class Solution {</div><div>&nbsp;&nbsp;&nbsp;&nbsp;public int[] shuffle(int[] nums, int n) {</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int[] result = new int[nums.length];</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int currentIdx = 0;</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for (int i = 0; i &lt; n; i++) {</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;result[currentIdx] = nums[i];</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;result[currentIdx+1] = nums[i+n];</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;currentIdx += 2;</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return result;</div><div>&nbsp;&nbsp;&nbsp;&nbsp;}</div><div>}</div></div><div><br /></div></span>

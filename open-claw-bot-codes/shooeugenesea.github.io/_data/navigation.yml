@@ -1,9 +1,0 @@
-main:
-  - title: "技術"
-    url: /tech/
-  - title: "總經"
-    url: /macro/
-  - title: "標籤"
-    url: /tags/
-  - title: "關於"
-    url: /about/

@@ -1,9 +1,0 @@
----
-layout: post
-title: Kotlin 字串模板（String Template）
-date: 2020-05-19 17:28:00 +0800
-tags: [kotlin]
-lang: zh-TW
----
-
-<span><ul><li><div>until</div></li><li><div>downTo</div></li><li><div>用字元比較</div></li><li><div>轉換成 list</div></li></ul><div><div>package examples</div><div><br /></div><div>fun main() {</div><div>&nbsp;&nbsp;&nbsp;&nbsp;val age = 100</div><div>&nbsp;&nbsp;&nbsp;&nbsp;if (age in 150 downTo 0) {</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;println("downTo")</div><div>&nbsp;&nbsp;&nbsp;&nbsp;}</div><div>&nbsp;&nbsp;&nbsp;&nbsp;if (age in 0 until 100) {</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;println("until")</div><div>&nbsp;&nbsp;&nbsp;&nbsp;}</div><div>&nbsp;&nbsp;&nbsp;&nbsp;val c = 'X'</div><div>&nbsp;&nbsp;&nbsp;&nbsp;val s = c in 'a'..'q'</div><div>&nbsp;&nbsp;&nbsp;&nbsp;println(s)</div><div><br /></div><div><br /></div><div>&nbsp;&nbsp;&nbsp;&nbsp;val downToList = (10 downTo 0).toList()</div><div>&nbsp;&nbsp;&nbsp;&nbsp;println(downToList)</div><div><br /></div><div><br /></div><div>&nbsp;&nbsp;&nbsp;&nbsp;val untilList = (0 until 10).toList()</div><div>&nbsp;&nbsp;&nbsp;&nbsp;println(untilList)</div><div><br /></div><div><br /></div><div>&nbsp;&nbsp;&nbsp;&nbsp;val b = false</div><div>&nbsp;&nbsp;&nbsp;&nbsp;val ss = "${if(b) "Yes" else "No"}"</div><div>&nbsp;&nbsp;&nbsp;&nbsp;println(ss)</div><div>}</div></div><div><br /></div></span><br />
