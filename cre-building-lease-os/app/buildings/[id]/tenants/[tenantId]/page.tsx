@@ -33,14 +33,22 @@ export default async function TenantDetailPage({
 
   if (!building || !tenant) return <main>找不到租戶資料</main>;
 
+  const leaseRows = tenant.leases.map((lease) => ({
+    id: lease.id,
+    period: `${lease.startDate.toISOString().slice(0, 10)} ~ ${lease.endDate.toISOString().slice(0, 10)}`,
+    status: lease.status,
+    unitLabels: lease.leaseUnits.map((leaseUnit) => `${leaseUnit.unit.floor.label}-${leaseUnit.unit.code}`),
+    totalGrossArea: lease.leaseUnits.reduce((sum, leaseUnit) => sum + Number(leaseUnit.unit.grossArea || 0), 0),
+  }));
+
+  const primaryLease = leaseRows.find((lease) => lease.status === "ACTIVE") || leaseRows[0];
+
+  const fallbackUnitLabels = tenant.occupancies
+    .map((occupancy) => `${occupancy.unit.floor.label}-${occupancy.unit.code}`)
+    .filter((label, index, arr) => arr.indexOf(label) === index);
+
   return (
     <main className="space-y-4">
-      <div className="text-xs text-gray-500">
-        <Link href="/buildings" className="underline">大樓總覽</Link> / <Link href={`/buildings/${id}`} className="underline">{building.name}</Link> / <Link href={`/buildings/${id}/tenants`} className="underline">租戶</Link> / {tenant.name}
-      </div>
-
-      <h1 className="text-2xl font-semibold">{tenant.name}</h1>
-
       <TenantDetailWorkspace
         buildingId={id}
         tenant={{
@@ -52,9 +60,18 @@ export default async function TenantDetailPage({
           taxId: tenant.taxId || "",
           notes: tenant.notes || "",
         }}
-        leases={tenant.leases.map((lease) => ({
+        header={{
+          buildingName: building.name,
+          tenantName: tenant.name,
+          address: building.address || "",
+          leaseStatus: primaryLease?.status || "-",
+          areaLabel: primaryLease?.totalGrossArea ? `${primaryLease.totalGrossArea.toFixed(2)} 坪` : "-",
+          unitSummary: (primaryLease?.unitLabels && primaryLease.unitLabels.length > 0 ? primaryLease.unitLabels : fallbackUnitLabels).join("、") || "-",
+        }}
+        leases={leaseRows.map((lease) => ({
           id: lease.id,
-          period: `${lease.startDate.toISOString().slice(0, 10)} ~ ${lease.endDate.toISOString().slice(0, 10)}`,
+          period: lease.period,
+          status: lease.status,
         }))}
         attachments={tenant.leases.flatMap((lease) =>
           lease.leaseAttachments.map((attachment) => ({
@@ -73,6 +90,11 @@ export default async function TenantDetailPage({
           startDate: occupancy.startDate.toISOString().slice(0, 10),
           endDate: occupancy.endDate?.toISOString().slice(0, 10) || "迄今",
         }))}
+        breadcrumb={
+          <div className="text-xs text-gray-500">
+            <Link href="/buildings" className="underline">大樓總覽</Link> / <Link href={`/buildings/${id}`} className="underline">{building.name}</Link> / <Link href={`/buildings/${id}/tenants`} className="underline">租戶</Link> / {tenant.name}
+          </div>
+        }
       />
     </main>
   );
