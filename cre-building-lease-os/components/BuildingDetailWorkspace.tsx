@@ -100,9 +100,6 @@ export default function BuildingDetailWorkspace({ buildingId, initial, floors }:
       <section className="rounded border bg-white">
         <div className="flex items-center justify-between border-b px-3 py-2">
           <div className="text-sm font-semibold">樓層總表</div>
-          <Link href={`/buildings/${buildingId}/manage`} className="text-xs underline">
-            + 新增樓層/單位
-          </Link>
         </div>
         <table className="w-full text-sm">
           <thead className="border-b bg-gray-50">
