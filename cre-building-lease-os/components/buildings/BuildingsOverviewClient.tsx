@@ -1,10 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
 
 type BuildingCategory = "Commercial" | "Residential" | "Mixed Use" | "Unknown";
-type FilterValue = "All" | "Commercial" | "Residential" | "Mixed Use";
 
 type BuildingItem = {
   id: string;
@@ -25,13 +23,6 @@ function formatRate(numerator: number, denominator: number) {
   return `${Math.round((numerator / denominator) * 100)}%`;
 }
 
-const FILTERS: { value: FilterValue; label: string }[] = [
-  { value: "All", label: "全部" },
-  { value: "Commercial", label: "商辦" },
-  { value: "Residential", label: "住宅" },
-  { value: "Mixed Use", label: "住商混合" },
-];
-
 const CATEGORY_LABEL: Record<BuildingCategory, string> = {
   Commercial: "商辦",
   Residential: "住宅",
@@ -40,12 +31,6 @@ const CATEGORY_LABEL: Record<BuildingCategory, string> = {
 };
 
 export default function BuildingsOverviewClient({ buildings }: Props) {
-  const [activeFilter, setActiveFilter] = useState<FilterValue>("All");
-
-  const visibleBuildings = useMemo(() => {
-    return buildings.filter((b) => activeFilter === "All" || b.category === activeFilter);
-  }, [activeFilter, buildings]);
-
   return (
     <main className="space-y-4">
       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
@@ -56,23 +41,6 @@ export default function BuildingsOverviewClient({ buildings }: Props) {
         <Link href="/buildings/new" className="w-full rounded bg-black px-3 py-2 text-center text-white md:w-auto">
           新增大樓
         </Link>
-      </div>
-
-      <div className="space-y-3 rounded border bg-white p-3">
-        <div className="flex flex-wrap gap-2">
-          {FILTERS.map((filter) => (
-            <button
-              key={filter.value}
-              type="button"
-              onClick={() => setActiveFilter(filter.value)}
-              className={`rounded-full border px-3 py-1 text-sm ${
-                activeFilter === filter.value ? "border-black bg-black text-white" : "border-gray-300 bg-white text-gray-700"
-              }`}
-            >
-              {filter.label}
-            </button>
-          ))}
-        </div>
       </div>
 
       <div className="overflow-hidden rounded border bg-white">
@@ -86,11 +54,11 @@ export default function BuildingsOverviewClient({ buildings }: Props) {
           <div />
         </div>
 
-        {visibleBuildings.length === 0 ? (
-          <div className="p-8 text-center text-sm text-gray-500">目前篩選條件下找不到任何大樓。</div>
+        {buildings.length === 0 ? (
+          <div className="p-8 text-center text-sm text-gray-500">目前沒有任何大樓資料。</div>
         ) : (
           <div className="divide-y">
-            {visibleBuildings.map((b) => {
+            {buildings.map((b) => {
               const occupancyText = formatRate(b.activeOccupancies, b.totalUnits);
               return (
                 <Link key={b.id} href={`/buildings/${b.id}`} className="block px-4 py-3 hover:bg-gray-50">
