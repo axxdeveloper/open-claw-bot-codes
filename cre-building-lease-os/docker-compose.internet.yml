@@ -13,7 +13,7 @@ services:
 
   frontend:
     build:
-      context: ./frontend
+      context: .
       dockerfile: Dockerfile
     container_name: cre-frontend
     restart: unless-stopped

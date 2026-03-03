@@ -23,7 +23,7 @@
 ### 子專案
 
 - `backend/`: Spring Boot API（JPA, Validation, Flyway）
-- `frontend/`: Next.js App Router UI（僅透過 REST 呼叫 backend）
+- `app/`, `components/`, `lib/`: Next.js App Router UI（僅透過 REST 呼叫 backend）
 - `docs/`: 商用化與資產文件
 
 ### API 回傳契約
@@ -85,10 +85,9 @@ cd backend
 mvn spring-boot:run
 ```
 
-3) 啟 frontend
+3) 啟 frontend（Next.js）
 
 ```bash
-cd frontend
 npm install
 npm run dev
 ```
@@ -128,10 +127,7 @@ mvn test
 ## Frontend 測試
 
 ```bash
-cd frontend
-npm run test:component    # RTL / Vitest
-npm run test:ui           # Playwright E2E + visual snapshots
-npm run test:ui:headed    # 本機可視化除錯
+npm run test
 ```
 
 ### 已補 happy flows（Playwright）
@@ -146,8 +142,8 @@ npm run test:ui:headed    # 本機可視化除錯
 
 - Pipeline 分層：
   1) backend unit/integration
-  2) frontend build + component test
-  3) UI E2E（需要可啟動 browser）
+  2) frontend build + vitest
+  3) UI E2E（若有設置 Playwright 再啟用）
 - 無 Docker runner：使用 backend `fallback` profile。
 - 有 Docker runner：可加跑 Testcontainers integration。
 
@@ -204,15 +200,15 @@ npm run test:ui:headed    # 本機可視化除錯
 
 ## 7) 品牌資產來源與替換方式
 
-- 圖片資產：`frontend/public/brand`
+- 圖片資產：`public/brand`
 - 來源與授權：`docs/ui-assets-sources.md`
 
 ### 替換方式
 
-1. 將新圖放到 `frontend/public/brand`
+1. 將新圖放到 `public/brand`
 2. 更新頁面引用（或維持同檔名）
 3. 更新 `docs/ui-assets-sources.md` 的來源/授權
-4. 重新跑 UI snapshot / E2E
+4. 重新跑 UI 測試
 
 ---
 

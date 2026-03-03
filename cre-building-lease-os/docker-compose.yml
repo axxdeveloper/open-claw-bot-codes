@@ -30,7 +30,7 @@ services:
 
   frontend:
     build:
-      context: ./frontend
+      context: .
       dockerfile: Dockerfile
     container_name: cre-lease-os-frontend
     environment:
