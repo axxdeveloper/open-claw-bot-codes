@@ -34,21 +34,6 @@ export default async function BuildingOverviewPage({
         / {building.name}
       </div>
 
-      <div className="grid gap-2 md:grid-cols-4">
-        <Link href={`/buildings/${id}/floors`} className="rounded border bg-white p-3 text-sm hover:bg-gray-50">
-          樓層明細
-        </Link>
-        <Link href={`/buildings/${id}/tenants`} className="rounded border bg-white p-3 text-sm hover:bg-gray-50">
-          租戶明細
-        </Link>
-        <Link href={`/buildings/${id}/leases`} className="rounded border bg-white p-3 text-sm hover:bg-gray-50">
-          租約明細
-        </Link>
-        <Link href={`/buildings/${id}/repairs`} className="rounded border bg-white p-3 text-sm hover:bg-gray-50">
-          維修流程
-        </Link>
-      </div>
-
       <BuildingDetailWorkspace
         buildingId={id}
         initial={{
