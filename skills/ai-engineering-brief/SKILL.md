@@ -36,3 +36,6 @@ Pick only terms that appear in today’s stories, e.g.:
 - Any acronym used in body must appear in the term-primer section (or be fully expanded once).
 - Keep each story concise and actionable.
 - If source lacks depth, replace with next candidate.
+- Append one final line with runtime metadata:
+  - `執行設定：model=<model_id>｜reasoning=<level>｜think=<level>`
+  - If unknown, use `unknown`.
