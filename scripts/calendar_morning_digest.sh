@@ -16,7 +16,11 @@ fi
 
 fetch_raw() {
   local to_ts="$1"
-  gog calendar events primary --account "$ACC" --from "$FROM_TS" --to "$to_ts" --no-input 2>/dev/null || true
+  local out
+  if ! out="$(gog calendar events primary --account "$ACC" --from "$FROM_TS" --to "$to_ts" --no-input 2>&1)"; then
+    return 1
+  fi
+  echo "$out"
 }
 
 extract_lines() {
@@ -24,7 +28,12 @@ extract_lines() {
   echo "$raw" | tail -n +2 | sed '/^[[:space:]]*$/d'
 }
 
-raw_7d="$(fetch_raw "$TO_TS_7D")"
+if ! raw_7d="$(fetch_raw "$TO_TS_7D")"; then
+  echo "【06:00 行程預告】$NOW ($TZ_NAME)"
+  echo "讀取 Google Calendar 失敗（可能是授權過期），請重新登入 gog。"
+  exit 0
+fi
+
 lines_7d="$(extract_lines "$raw_7d")"
 count_7d="$(echo "$lines_7d" | sed '/^[[:space:]]*$/d' | wc -l | tr -d ' ')"
 
@@ -32,10 +41,15 @@ window_label="接下來 7 天"
 lines_to_show="$lines_7d"
 
 if [[ "${count_7d:-0}" -lt 10 ]]; then
-  raw_30d="$(fetch_raw "$TO_TS_30D")"
-  lines_30d="$(extract_lines "$raw_30d")"
-  window_label="接下來 30 天（7 天內少於 10 筆）"
-  lines_to_show="$lines_30d"
+  if raw_30d="$(fetch_raw "$TO_TS_30D")"; then
+    lines_30d="$(extract_lines "$raw_30d")"
+    window_label="接下來 30 天（7 天內少於 10 筆）"
+    lines_to_show="$lines_30d"
+  else
+    # fallback to 7d results if 30d query fails
+    window_label="接下來 7 天"
+    lines_to_show="$lines_7d"
+  fi
 fi
 
 echo "【06:00 行程預告】$NOW ($TZ_NAME)"
