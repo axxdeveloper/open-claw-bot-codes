@@ -22,6 +22,7 @@ Deliver one practical backend knowledge brief per run that is understandable to 
 
 ## Topic selection rules
 - Prefer **recently hot or high-impact** backend topics first (new incidents, major release notes, widely shared engineering posts).
+- Include AI engineering topics regularly: target at least **1 AI-related brief every 3 runs**.
 - If no strong new topic exists, pick evergreen fundamentals with high practical value.
 - Rotate categories and avoid repeating the same topic family within 3 consecutive runs.
 
@@ -32,11 +33,13 @@ Deliver one practical backend knowledge brief per run that is understandable to 
 - Distributed systems: consistency, idempotency, retries, queues, partitioning
 - APIs/platform: gRPC, REST, API versioning, rate limit
 - Operations: observability, SLO, incident patterns, capacity/perf tuning
+- AI Engineering（新增）: 新模型發布、推理框架/工具（vLLM/Triton/TensorRT/ONNX Runtime）、RAG infra、向量資料庫、AI 系統可靠性/成本治理
 
 ## Source quality rules
 - Minimum 2 links; target 3 when available.
 - At least 1 official/primary source (official docs, vendor engineering blog, standards doc).
 - Prefer reputable sources: official docs, major engineering blogs, cloud providers, CNCF, well-known maintainers.
+- AI topics must include at least one of: model card / official release notes / framework docs.
 - Do not output unverifiable claims.
 
 ## Version-news handling (mandatory)
