@@ -8,7 +8,7 @@ fi
 
 AUDIO_FILE="$1"
 LANG="${2:-zh}"
-MODEL_PATH="${WHISPER_MODEL_PATH:-/Users/openclaw-user/.openclaw/models/whisper/ggml-base.bin}"
+MODEL_PATH="${WHISPER_MODEL_PATH:-/Users/openclaw-user/.openclaw/models/whisper/ggml-small.bin}"
 
 if [[ ! -f "$AUDIO_FILE" ]]; then
   echo "找不到音訊檔：$AUDIO_FILE"
