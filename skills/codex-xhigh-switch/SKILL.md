@@ -17,6 +17,14 @@ description: Correctly use xhigh reasoning with Codex and OpenClaw. Use when use
   - 不依賴 agentTurn runtime 直接產文，避免默默退回 `gpt-5.3-codex`。
 - 只有在 OpenClaw 升級並驗證 through 後，才恢復讓 cron 直接走 agent runtime。
 
+### Skill/設定調整後必做（新規則）
+
+- 只要有改動 skill 或 cron 設定，**當下就要再做一次實跑驗證**（不要等下次排程）。
+- 驗證至少包含：
+  1) 手動觸發一次對應任務
+  2) 檢查 run 記錄中的實際 `model` 與 `reasoning/think`
+  3) 回報 pass/fail 與下一步處置（例如 fallback 擋下、改走 CLI）
+
 ## OpenClaw（sessions_spawn）
 
 用這種寫法：
