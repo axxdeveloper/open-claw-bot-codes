@@ -39,6 +39,16 @@ Deliver one practical backend knowledge brief per run that is understandable to 
 - Prefer reputable sources: official docs, major engineering blogs, cloud providers, CNCF, well-known maintainers.
 - Do not output unverifiable claims.
 
+## Version-news handling (mandatory)
+When the topic is a version/release announcement (e.g., minor release, out-of-cycle patch), do **not** stop at version numbers.
+Must explain the practical mechanics:
+1) What exactly broke (regression/bug class)
+2) Real impact path (which workload/user flow can fail)
+3) Trigger conditions (when it happens, who is affected)
+4) What operators should do now (verification checklist / rollback / upgrade order)
+
+If you cannot explain these 4 points, skip that story and pick another topic with clearer implementation value.
+
 ## Language rules
 - Traditional Chinese (Taiwan tone).
 - Avoid jargon dumps; every acronym in body should appear in `先看懂名詞` or be expanded once.
