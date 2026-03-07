@@ -8,9 +8,14 @@ description: Correctly use xhigh reasoning with Codex and OpenClaw. Use when use
 ## 核心規則
 
 - 把 `xhigh` 視為**推理強度**，不要當成 model 名稱。
-- 先選模型，再指定推理強度：
-  - 模型例：`gpt-5.3-codex`
-  - 推理強度：`xhigh`（或 OpenClaw 的 `thinking: high`）
+- 先選模型，再指定推理強度。
+
+### 升級 OpenClaw 前的臨時策略（Base Rule）
+
+- 在 OpenClaw cron/session runtime 對 `gpt-5.4` 仍可能 fallback 的期間：
+  - **凡是要求 `gpt-5.4 + xhigh` 的任務，一律優先走 `codex exec`（CLI）執行**。
+  - 不依賴 agentTurn runtime 直接產文，避免默默退回 `gpt-5.3-codex`。
+- 只有在 OpenClaw 升級並驗證 through 後，才恢復讓 cron 直接走 agent runtime。
 
 ## OpenClaw（sessions_spawn）
 
@@ -19,8 +24,8 @@ description: Correctly use xhigh reasoning with Codex and OpenClaw. Use when use
 ```json
 {
   "mode": "run",
-  "model": "openai-codex/gpt-5.3-codex",
-  "thinking": "high",
+  "model": "openai-codex/gpt-5.4",
+  "thinking": "xhigh",
   "task": "..."
 }
 ```
@@ -38,13 +43,13 @@ description: Correctly use xhigh reasoning with Codex and OpenClaw. Use when use
 ### 正確
 
 ```bash
-codex exec -m gpt-5.3-codex --full-auto "your task"
+codex exec -m gpt-5.4 -c model_reasoning_effort='"xhigh"' "your task"
 ```
 
 若要顯示目前模式，執行後確認輸出裡有：
 
-- `model: gpt-5.3-codex`
-- 推理等級為高（例如 `reasoning effort: high` / `xhigh`）
+- `model: gpt-5.4`
+- 推理等級為 `xhigh`（例如 `reasoning effort: xhigh`）
 
 ### 錯誤
 
@@ -57,7 +62,7 @@ codex exec -m xhigh "your task"
 1. 先跑最小任務：
 
 ```bash
-codex exec -m gpt-5.3-codex --full-auto "Reply with exactly: ok"
+codex exec -m gpt-5.4 -c model_reasoning_effort='"xhigh"' "Reply with exactly: ok"
 ```
 
 2. 若成功，再跑正式任務。
@@ -70,7 +75,7 @@ codex exec -m gpt-5.3-codex --full-auto "Reply with exactly: ok"
 
 ## 回報格式（建議）
 
-- model：`gpt-5.3-codex`
-- reasoning：`xhigh/high`
+- model：`gpt-5.4`（OpenClaw 若用 provider 前綴則 `openai-codex/gpt-5.4`）
+- reasoning：`xhigh`
 - smoke test：pass/fail
 - 正式任務：run id / commit / 輸出檔案
