@@ -25,6 +25,9 @@ Deliver one practical backend knowledge brief per run that is understandable to 
 - Include AI engineering topics regularly: target at least **1 AI-related brief every 3 runs**.
 - If no strong new topic exists, pick evergreen fundamentals with high practical value.
 - Rotate categories and avoid repeating the same topic family within 3 consecutive runs.
+- Anti-repeat hard rule:
+  - Do not use the exact same core subject (e.g., PostgreSQL 18.3 regression) in consecutive runs.
+  - If a related topic must be repeated, the angle must be materially different (incident recovery, rollout strategy, performance tuning, or architecture trade-off) and include at least 2 new links not used in the previous run.
 
 ### Topic pool
 - Messaging/Streaming: Kafka, RabbitMQ, Pulsar
@@ -40,6 +43,7 @@ Deliver one practical backend knowledge brief per run that is understandable to 
 - At least 1 official/primary source (official docs, vendor engineering blog, standards doc).
 - Prefer reputable sources: official docs, major engineering blogs, cloud providers, CNCF, well-known maintainers.
 - AI topics must include at least one of: model card / official release notes / framework docs.
+- Source diversity rule: avoid using the same 1-2 domains for every run; rotate domains and include at least 2 distinct source domains per brief.
 - Do not output unverifiable claims.
 
 ## Version-news handling (mandatory)

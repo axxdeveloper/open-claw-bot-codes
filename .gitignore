@@ -7,3 +7,4 @@
 
 # runtime state for release watch cron
 memory/cli-release-watch.json
+memory/backend-hourly-knowledge-state.tsv
