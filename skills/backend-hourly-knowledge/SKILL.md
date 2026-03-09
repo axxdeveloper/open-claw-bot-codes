@@ -26,8 +26,10 @@ Deliver one practical backend knowledge brief per run that is understandable to 
 - If no strong new topic exists, pick evergreen fundamentals with high practical value.
 - Rotate categories and avoid repeating the same topic family within 3 consecutive runs.
 - Anti-repeat hard rule:
-  - Do not use the exact same core subject (e.g., PostgreSQL 18.3 regression) in consecutive runs.
-  - If a related topic must be repeated, the angle must be materially different (incident recovery, rollout strategy, performance tuning, or architecture trade-off) and include at least 2 new links not used in the previous run.
+  - Do not use the same core subject in consecutive runs.
+  - Do not repeat the same core subject within 24 hours (e.g., Kafka Share Groups, PostgreSQL 18.3 regression).
+  - If a related topic must be repeated after 24h, the angle must be materially different (incident recovery, rollout strategy, performance tuning, or architecture trade-off) and include at least 2 new links not used in the previous coverage.
+  - If no fresh angle exists, switch to a different category instead of forcing repetition.
 
 ### Topic pool
 - Messaging/Streaming: Kafka, RabbitMQ, Pulsar
