@@ -18,7 +18,7 @@ Deliver one practical backend knowledge brief per run that is understandable to 
    - `2) ...`
    - `3) ...`
 6) `延伸閱讀（至少 2 條）`
-7) `語音稿（TypeScript，30-60 秒，可直接朗讀）`
+7) `完整語音導覽（TypeScript，2-3 分鐘，可直接朗讀，約 350-550 字）`
 8) `執行設定：model=<model_id>｜reasoning=<level>｜think=<level>`
 
 ## Topic selection rules
