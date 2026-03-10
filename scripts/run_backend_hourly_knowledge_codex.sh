@@ -63,6 +63,7 @@ ${RECENT_24H_TOPICS:-- 無}
 - 硬性規則：不要再選與最近 24 小時相同核心主題（例如 Kafka Share Groups / PostgreSQL 18.3 回歸）。
 - 若主題相近，必須改成不同角度，且至少 2 條新連結。
 - 額外去重限制：${BAN_HINTS:-\n- 無}
+- 必須包含「語音稿（TypeScript，30-60秒，可直接朗讀）」
 - 最後一行固定輸出：執行設定：model=openai-codex/gpt-5.4｜reasoning=xhigh｜think=xhigh
 
 只輸出最終內容，不要輸出流程說明。

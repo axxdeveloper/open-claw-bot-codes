@@ -18,7 +18,8 @@ Deliver one practical backend knowledge brief per run that is understandable to 
    - `2) ...`
    - `3) ...`
 6) `延伸閱讀（至少 2 條）`
-7) `執行設定：model=<model_id>｜reasoning=<level>｜think=<level>`
+7) `語音稿（TypeScript，30-60 秒，可直接朗讀）`
+8) `執行設定：model=<model_id>｜reasoning=<level>｜think=<level>`
 
 ## Topic selection rules
 - Prefer **recently hot or high-impact** backend topics first (new incidents, major release notes, widely shared engineering posts).

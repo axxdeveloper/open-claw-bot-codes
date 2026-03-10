@@ -28,6 +28,7 @@ read -r -d '' PROMPT <<EOF || true
 - 持股觀察固定包含：${HOLDINGS}
 - 最後附來源連結至少 3 條
 - 必須包含「先看懂名詞（3-6 個）」放在開頭
+- 必須包含「語音稿（TypeScript，45-75秒，可直接朗讀）」
 - 最後一行固定輸出：執行設定：model=openai-codex/gpt-5.4｜reasoning=xhigh｜think=xhigh
 
 只輸出最終摘要內容，不要輸出流程說明。
