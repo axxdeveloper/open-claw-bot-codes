@@ -12,7 +12,7 @@ Deliver AI/backend news so non-specialists can understand it in one read.
 1) `【AI 後端晨報】` + time
 2) `先看懂名詞（3-6 個）`
 3) Top 3 stories
-4) `完整語音導覽（TypeScript，2-3 分鐘，可直接朗讀，約 350-550 字）`
+4) `完整語音導覽（中文口播稿，2-3 分鐘，可直接朗讀，約 350-550 字）`
 
 ## Section: 先看懂名詞（mandatory)
 For each term, use one-line plain explanation:
