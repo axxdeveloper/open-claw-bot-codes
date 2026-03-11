@@ -26,6 +26,9 @@ read -r -d '' PROMPT <<EOF || true
 - 繁體中文（台灣）
 - 不得使用技術分析術語
 - 持股觀察固定包含：${HOLDINGS}
+- 必須新增「融資餘額觀察」段落：
+  - 台股：引用 market_brief_data.sh 的 [MARGIN_BALANCE]（融資餘額交易單位 + 融資餘額金額）
+  - 美股：引用 market_brief_data.sh 的 [MARGIN_BALANCE]（FINRA 客戶融資借款最近月份 + MoM）
 - 最後附來源連結至少 3 條
 - 必須包含「先看懂名詞（3-6 個）」放在開頭
 - 必須包含「完整語音導覽（中文口播稿，2-3分鐘，可直接朗讀，約350-550字）」
