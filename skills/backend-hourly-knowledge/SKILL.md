@@ -22,7 +22,8 @@ Deliver one practical backend knowledge brief per run that is understandable to 
 
 ## Topic selection rules
 - Prefer **recently hot or high-impact** backend topics first (new incidents, major release notes, widely shared engineering posts).
-- ByteByteGo priority rule: check ByteByteGo first on each run. If there is a new ByteByteGo article worth reading, prioritize it as the primary topic.
+- Expert triage rule (mandatory): first compile up to 50 candidate stories from the last 24-48 hours, then deduplicate/merge same-topic items and rank by (1) cross-source citation frequency, (2) source authority, (3) implementation value.
+- ByteByteGo priority rule: if ByteByteGo has a new article and it ranks inside the top-50 triage pool, prefer it as the primary topic.
 - Include AI engineering topics regularly: target at least **1 AI-related brief every 3 runs**.
 - If no strong new topic exists, pick evergreen fundamentals with high practical value.
 - Rotate categories and avoid repeating the same topic family within 3 consecutive runs.

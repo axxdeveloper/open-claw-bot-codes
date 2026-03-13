@@ -53,7 +53,8 @@ read -r -d '' PROMPT <<EOF || true
 依 skill 規範產出一則每小時後端知識摘要。
 要求：
 - 先看懂名詞（3-6 個）
-- 先檢查 ByteByteGo 是否有新文章；若有可用新文，優先以 ByteByteGo 為主題
+- 先做「前 50 熱門候選」整理（過去 24-48 小時，後端/AI 工程），再去重合併同題，依「引用數、來源權威度、技術實作價值」排序
+- 先檢查 ByteByteGo 是否有新文章；若 ByteByteGo 新文在前 50 名單內，優先以 ByteByteGo 為主題
 - 優先近期熱門/重要文章；若沒有就做 evergreen 精煉
 - 至少 2 條連結，至少 1 條官方/primary source
 - 繁體中文（台灣）
