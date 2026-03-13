@@ -29,6 +29,10 @@ read -r -d '' PROMPT <<EOF || true
 - 必須新增「融資餘額觀察」段落：
   - 台股：引用 market_brief_data.sh 的 [MARGIN_BALANCE]（融資餘額交易單位 + 融資餘額金額）
   - 美股：引用 market_brief_data.sh 的 [MARGIN_BALANCE]（FINRA 客戶融資借款最近月份 + MoM）
+- 必須新增「資金面判斷（資金去處/來源）」段落：
+  - 台股：引用 [CAPITAL_FLOW]（外資/投信/自營商/三大法人買賣差額）判讀當日資金方向
+  - 美股：引用 [CAPITAL_FLOW]（SPY/QQQ/IWM/XLK/XLE/XLF 的日漲跌與成交量變化 proxy）判讀資金偏好
+  - 若資料不足，必須明確標示「資料暫缺」，不得自行臆測
 - 最後附來源連結至少 3 條
 - 必須包含「先看懂名詞（3-6 個）」放在開頭
 - 最後一行固定輸出：執行設定：model=openai-codex/gpt-5.4｜reasoning=xhigh｜think=xhigh

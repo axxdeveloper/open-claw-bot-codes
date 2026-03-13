@@ -45,12 +45,16 @@ def stooq_last_two(symbol: str):
     c = float(last["Close"])
     chg = c - p
     pct = (chg / p) * 100 if p else 0.0
+    pv = to_num(prev.get("Volume"))
+    lv = to_num(last.get("Volume"))
     return {
         "date": last["Date"],
         "prev_close": p,
         "close": c,
         "chg": chg,
         "pct": pct,
+        "prev_volume": pv,
+        "volume": lv,
     }
 
 def parse_rss(url: str, limit=12):
@@ -153,6 +157,43 @@ def fetch_us_margin_finra():
         return None
 
 
+def fetch_tw_institutional_flow():
+    base = "https://www.twse.com.tw/rwd/zh/fund/BFI82U"
+    today = dt.datetime.now(dt.timezone(dt.timedelta(hours=8))).date()
+    for back in range(0, 10):
+        d = today - dt.timedelta(days=back)
+        url = f"{base}?dayDate={d.strftime('%Y%m%d')}&type=day&response=json"
+        try:
+            obj = json.loads(fetch_text(url))
+        except Exception:
+            continue
+        if obj.get("stat") != "OK":
+            continue
+        rows = obj.get("data") or []
+        if not rows:
+            continue
+        picked = {str(r[0]).strip(): r for r in rows if r}
+
+        def diff(name):
+            r = picked.get(name)
+            return to_num(r[3]) if r and len(r) > 3 else None
+
+        dealer_self = diff("自營商(自行買賣)")
+        dealer_hedge = diff("自營商(避險)")
+        dealer_total = None
+        if dealer_self is not None or dealer_hedge is not None:
+            dealer_total = (dealer_self or 0) + (dealer_hedge or 0)
+
+        return {
+            "date": obj.get("date", d.strftime('%Y%m%d')),
+            "foreign_diff": diff("外資及陸資(不含外資自營商)"),
+            "trust_diff": diff("投信"),
+            "dealer_diff": dealer_total,
+            "total_diff": diff("合計"),
+        }
+    return None
+
+
 now = dt.datetime.now(dt.timezone(dt.timedelta(hours=8)))
 
 if mode == "us":
@@ -237,6 +278,48 @@ else:
             if mom is not None else
             f"- US|{m.get('month','N/A')}|FINRA客戶融資借款(USD million)={latest:,.0f}|MoM=N/A"
         )
+
+print("[CAPITAL_FLOW]")
+if mode == "tw":
+    f = fetch_tw_institutional_flow()
+    if not f:
+        print("- TW|N/A|三大法人買賣超資料暫缺")
+    else:
+        def fmt_ntd(v):
+            return "N/A" if v is None else f"{v:,.0f}"
+        print(f"- TW|{f.get('date','N/A')}|外資及陸資買賣差額(元)={fmt_ntd(f.get('foreign_diff'))}")
+        print(f"- TW|{f.get('date','N/A')}|投信買賣差額(元)={fmt_ntd(f.get('trust_diff'))}")
+        print(f"- TW|{f.get('date','N/A')}|自營商合計買賣差額(元)={fmt_ntd(f.get('dealer_diff'))}")
+        print(f"- TW|{f.get('date','N/A')}|三大法人合計買賣差額(元)={fmt_ntd(f.get('total_diff'))}")
+else:
+    us_symbols = [
+        ("SPY", "spy.us"),
+        ("QQQ", "qqq.us"),
+        ("IWM", "iwm.us"),
+        ("XLK", "xlk.us"),
+        ("XLE", "xle.us"),
+        ("XLF", "xlf.us"),
+    ]
+    flow_rows = []
+    latest_date = "N/A"
+    for label, sym in us_symbols:
+        d = stooq_last_two(sym)
+        if not d:
+            continue
+        latest_date = d.get("date", latest_date)
+        vol = d.get("volume")
+        pvol = d.get("prev_volume")
+        vchg = ((vol - pvol) / pvol * 100.0) if (vol is not None and pvol) else None
+        flow_rows.append((label, d.get("pct"), vchg))
+    if not flow_rows:
+        print("- US|N/A|ETF 資金 proxy 資料暫缺")
+    else:
+        row_txt = []
+        for label, p, v in flow_rows:
+            ptxt = "N/A" if p is None else f"{p:+.2f}%"
+            vtxt = "N/A" if v is None else f"{v:+.2f}%"
+            row_txt.append(f"{label}:{ptxt},Vol{vtxt}")
+        print(f"- US|{latest_date}|ETF 資金 proxy（日漲跌 + 成交量變化）|" + " ; ".join(row_txt))
 
 print("[HEADLINES]")
 seen = set()
