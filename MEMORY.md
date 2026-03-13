@@ -35,6 +35,7 @@
   - TW: 0050, 中鋼
 - During current tuning phase, Isaac prefers **high-frequency, tight collaboration and active monitoring** (not low-interruption mode).
 - Task update reliability protocol (adopted): for every Google Tasks add/update/done action, enforce write-after-read verification and report evidence fields (`list id`, `task id`, `status`, `read-back title/updated time`); if read-back mismatch, retry 2–3 times then report failure explicitly (no optimistic success claims).
+- Execution preference (2026-03-13): when Isaac says **"gpt-5.4 xhigh"**, always use **Codex CLI route** (`codex exec` + `model_reasoning_effort=xhigh`) instead of relying only on agent/cron `thinking` parameter.
 
 ## Reliability rule
 
