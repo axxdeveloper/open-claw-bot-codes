@@ -15,7 +15,7 @@ NOW="$(TZ=$TZ_NAME date '+%Y-%m-%d %H:%M (%Z)')"
 
 # 1) 最近行程（未來30天）
 CAL_JSON="$TMP_DIR/recent_calendar_30d_future.json"
-gog calendar events primary --from "$FROM" --to "$TO" --json --no-input > "$CAL_JSON"
+python3 "$BASE/scripts/google_calendar_events.py" --calendar-id primary --from "$FROM" --to "$TO" > "$CAL_JSON"
 
 python3 - "$CAL_JSON" <<'PY' > "$TMP_DIR/doc_recent_schedule.txt"
 import json

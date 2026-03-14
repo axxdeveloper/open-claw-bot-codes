@@ -2,7 +2,7 @@
 """Write text to a specific Google Docs tab.
 
 Features:
-- Authenticate via existing `gog` login (no extra Python deps)
+- Authenticate via OAuth refresh token (env vars or local JSON; no `gog` runtime)
 - Target a tab by `--tab-title` or `--tab-id`
 - Input content from `--text` or `--file`
 - Choose `--mode replace` (default) or `--mode append`
@@ -36,9 +36,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import subprocess
 import sys
-import tempfile
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -51,11 +49,6 @@ OAUTH_TOKEN_URL = "https://oauth2.googleapis.com/token"
 
 class TabWriteError(RuntimeError):
     """Domain-specific error for tab writing operations."""
-
-
-def run_cmd(cmd: List[str]) -> str:
-    p = subprocess.run(cmd, check=True, text=True, capture_output=True)
-    return p.stdout
 
 
 def http_json(
@@ -89,68 +82,61 @@ def http_json(
         raise TabWriteError(f"HTTP {e.code} {method} {url}: {detail}") from e
 
 
-def get_access_token_from_gog() -> str:
-    status = json.loads(run_cmd(["gog", "auth", "status", "--json"]))
-    account = status.get("account") or {}
-    email = account.get("email")
-    credentials_path = account.get("credentials_path")
+def _load_oauth_file(path: Path) -> Dict[str, str]:
+    if not path.exists():
+        return {}
+    data = json.loads(path.read_text(encoding="utf-8"))
+    return {
+        "client_id": data.get("client_id", ""),
+        "client_secret": data.get("client_secret", ""),
+        "refresh_token": data.get("refresh_token", ""),
+    }
 
-    if not email:
-        raise TabWriteError("No gog account email found in `gog auth status --json`.")
-    if not credentials_path or not os.path.exists(credentials_path):
+
+def _load_google_oauth_config(oauth_file: Optional[str]) -> Dict[str, str]:
+    cfg = {
+        "client_id": os.getenv("GOOGLE_OAUTH_CLIENT_ID", ""),
+        "client_secret": os.getenv("GOOGLE_OAUTH_CLIENT_SECRET", ""),
+        "refresh_token": os.getenv("GOOGLE_OAUTH_REFRESH_TOKEN", ""),
+    }
+    path = Path(
+        oauth_file
+        or os.getenv("OPENCLAW_GOOGLE_OAUTH_FILE", "")
+        or Path.home() / ".config" / "openclaw" / "google-oauth.json"
+    )
+
+    file_cfg = _load_oauth_file(path)
+    for k in ("client_id", "client_secret", "refresh_token"):
+        if not cfg[k]:
+            cfg[k] = file_cfg.get(k, "")
+
+    missing = [k for k, v in cfg.items() if not v]
+    if missing:
         raise TabWriteError(
-            "No gog OAuth credentials file found. Check `gog auth status --json`."
+            "Missing Google OAuth config: "
+            + ", ".join(missing)
+            + ". Set env vars or create "
+            + str(path)
         )
+    return cfg
 
-    with open(credentials_path, "r", encoding="utf-8") as f:
-        creds = json.load(f)
-    client_id = creds.get("client_id")
-    client_secret = creds.get("client_secret")
-    if not client_id or not client_secret:
-        raise TabWriteError("Missing client_id/client_secret in gog credentials file.")
 
-    tmp = tempfile.NamedTemporaryFile(prefix="gog-refresh-", suffix=".json", delete=False)
-    tmp_path = tmp.name
-    tmp.close()
-
-    try:
-        run_cmd(
-            [
-                "gog",
-                "auth",
-                "tokens",
-                "export",
-                email,
-                "--out",
-                tmp_path,
-                "--overwrite",
-            ]
-        )
-        with open(tmp_path, "r", encoding="utf-8") as f:
-            token_doc = json.load(f)
-        refresh_token = token_doc.get("refresh_token")
-        if not refresh_token:
-            raise TabWriteError("Exported token JSON missing refresh_token.")
-
-        token_resp = http_json(
-            "POST",
-            OAUTH_TOKEN_URL,
-            form={
-                "client_id": client_id,
-                "client_secret": client_secret,
-                "refresh_token": refresh_token,
-                "grant_type": "refresh_token",
-            },
-        )
-        access_token = token_resp.get("access_token")
-        if not access_token:
-            raise TabWriteError(f"No access_token in OAuth response: {token_resp}")
-        return access_token
-    finally:
-        try:
-            os.remove(tmp_path)
-        except OSError:
-            pass
+def get_access_token(oauth_file: Optional[str]) -> str:
+    cfg = _load_google_oauth_config(oauth_file)
+    token_resp = http_json(
+        "POST",
+        OAUTH_TOKEN_URL,
+        form={
+            "client_id": cfg["client_id"],
+            "client_secret": cfg["client_secret"],
+            "refresh_token": cfg["refresh_token"],
+            "grant_type": "refresh_token",
+        },
+    )
+    access_token = token_resp.get("access_token")
+    if not access_token:
+        raise TabWriteError(f"No access_token in OAuth response: {token_resp}")
+    return access_token
 
 
 def flatten_tabs(tabs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -320,6 +306,7 @@ def write_text_to_tab(
 def main() -> int:
     ap = argparse.ArgumentParser(description="Write text to a specific Google Docs tab")
     ap.add_argument("--doc-id", required=True, help="Google Docs document ID")
+    ap.add_argument("--oauth-file", help="Path to google-oauth.json")
     ap.add_argument("--list-tabs", action="store_true", help="List tab titles/tabIds and exit")
     ap.add_argument(
         "--mode",
@@ -345,7 +332,7 @@ def main() -> int:
         if args.text is None and args.file is None:
             ap.error("One of --text or --file is required unless --list-tabs is used")
 
-    access_token = get_access_token_from_gog()
+    access_token = get_access_token(args.oauth_file)
 
     if args.list_tabs:
         doc = get_doc_with_tabs(args.doc_id, access_token)
@@ -387,4 +374,4 @@ if __name__ == "__main__":
         raise SystemExit(main())
     except Exception as e:
         print(json.dumps({"ok": False, "error": str(e)}, ensure_ascii=False, indent=2), file=sys.stderr)
-        raise
+        raise SystemExit(1)
