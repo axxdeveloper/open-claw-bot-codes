@@ -111,7 +111,7 @@ for li in lists:
 
     print(f"- {ltitle}")
     printed_any = True
-    for i, t in enumerate(pending[:10], start=1):
+    for i, t in enumerate(pending, start=1):
         title = (t.get("title") or "(無標題)").strip()
         due = fmt_due(t.get("due") or "")
         print(f"  {i}. {title}{due}")
