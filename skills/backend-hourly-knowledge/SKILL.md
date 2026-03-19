@@ -9,15 +9,15 @@ description: Generate hourly backend-engineering knowledge briefs in Traditional
 Deliver one practical backend knowledge brief per run that is understandable to non-experts, with clickable sources.
 
 ## Output format (mandatory)
+Use natural Chinese prose with short sections. Avoid rigid report labels.
+
+Required order:
 1) `【每小時後端知識】YYYY-MM-DD HH:mm（Asia/Taipei）`
 2) `主題：...`
-3) `先看懂名詞（3-6 個）`
-4) `為什麼重要：...`
-5) `重點摘要：`
-   - `1) ...`
-   - `2) ...`
-   - `3) ...`
-6) `延伸閱讀（至少 2 條）`
+3) 開場段（2-4 句）：交代背景與今天要解的實務問題（不要寫「為什麼重要」這種模板標題）
+4) `重點筆記`（3-5 點條列）：每點都要有「現象/做法/影響」其中至少兩項
+5) `可能疑點與補充`（1-2 點）：明確寫出容易誤解處與限制條件
+6) `延伸閱讀`（至少 2 條）
 7) `執行設定：model=<model_id>｜reasoning=<level>｜think=<level>`
 
 ## Topic selection rules
@@ -62,7 +62,8 @@ If you cannot explain these 4 points, skip that story and pick another topic wit
 
 ## Language rules
 - Traditional Chinese (Taiwan tone).
-- Avoid jargon dumps; every acronym in body should appear in `先看懂名詞` or be expanded once.
+- 平鋪直述，避免「這篇重點是／最重要的是／不是…而是…」等 AI 常見轉折句。
+- Avoid jargon dumps; acronyms should be expanded once on first use.
 - Keep actionable and concise.
 
 ## Fallback
