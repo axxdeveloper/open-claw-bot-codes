@@ -15,8 +15,8 @@ Required order:
 1) `【每小時後端知識】YYYY-MM-DD HH:mm（Asia/Taipei）`
 2) `主題：...`
 3) 開場段（2-4 句）：交代背景與今天要解的實務問題（不要寫「為什麼重要」這種模板標題）
-4) `重點筆記`（3-5 點條列）：每點都要有「現象/做法/影響」其中至少兩項
-5) `可能疑點與補充`（1-2 點）：明確寫出容易誤解處與限制條件
+4) 主體內容（3-5 點條列）：每點都要有「現象/做法/影響」其中至少兩項
+5) 補充說明（1-2 點）：明確寫出容易誤解處與限制條件
 6) `延伸閱讀`（至少 2 條）
 7) `執行設定：model=<model_id>｜reasoning=<level>｜think=<level>`
 
@@ -62,7 +62,14 @@ If you cannot explain these 4 points, skip that story and pick another topic wit
 
 ## Language rules
 - Traditional Chinese (Taiwan tone).
-- 平鋪直述，避免「這篇重點是／最重要的是／不是…而是…」等 AI 常見轉折句。
+- 平鋪直述，直接進內容。
+- 禁用流程旁白句型：
+  - 「這篇重點是…」
+  - 「最重要的是…」
+  - 「不是…而是…」
+  - 「現在要重看的是…」
+  - 「接下來我們看…」
+  - 「先抓一條主線…」
 - Avoid jargon dumps; acronyms should be expanded once on first use.
 - Keep actionable and concise.
 
