@@ -1,16 +1,17 @@
 ---
 name: relevant-search-writing
-description: Generate Relevant Search study notes and tech blog drafts in Traditional Chinese (Taiwan) using bullet-first style. Use for daily reading outputs and blog drafts where user wants low-AI tone, no narration, and direct point-form notes.
+description: Generate Relevant Search study notes and tech blog drafts in Traditional Chinese (Taiwan) with direct bullet points only. Use when user wants zero template tone: no generic section headings, no narration, no teaching voice.
 ---
 
 # relevant-search-writing
 
-## Output rules
+## Hard style rules
 
-- 條列優先，短句。
-- 不用流程旁白。
-- 不用反面轉折句。
-- 不用教學口吻。
+- 只用條列重點，短句。
+- 不用「重點/名詞/結論/摘要」這類模板標題。
+- 若需要小標，標題本身要是內容判斷（例如「排序先決定體感」），不能是分類詞。
+- 不寫流程旁白，不寫說教句。
+- 每個 bullet 只講一件事，優先放可驗證資訊。
 
 ## Forbidden phrases
 
@@ -20,17 +21,14 @@ description: Generate Relevant Search study notes and tech blog drafts in Tradit
 - 不只…更…
 - 關鍵是…
 - 最重要的是…
+- 今日重點
+- 名詞解釋
+- 常見誤區
+- 一句話總結
 
-## Required sections
+## Output shape
 
-1. 今日重點（3-6 點）
-2. 名詞（最多 3 個）
-3. 常見誤區（至少 2 點）
-4. 可落地做法（2-4 點）
-5. 一句話
-
-## Style
-
-- 正面表列。
-- 每點只講一件事。
-- 優先可驗證描述。
+- 6-12 個 bullet。
+- 至少 2 個 bullet 要有數字、對比或可驗證條件。
+- 至少 1 個 bullet 寫疑點與限制。
+- 至少 1 個 bullet 寫可落地動作。
