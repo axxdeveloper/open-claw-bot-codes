@@ -40,3 +40,19 @@
 ## Reliability rule
 
 When user references prior work/project names, first check this MEMORY.md and then verify paths in workspace before answering.
+
+## Writing-style hard constraints (Isaac)
+
+- Default writing must avoid AI template tone.
+- Use direct, positive declarative bullet writing; content first.
+- Use Taiwan-local wording; avoid CN phrasing (e.g., 「第一屏」).
+- Ban template/meta/rhetorical lead-ins in normal writing:
+  - 「這篇要講…」「接下來…」「重點在…」「這段重點…」「關鍵是…」「最重要的是…」
+  - 「不是…而是…」「不只…更…」「同一…不同…」
+- Avoid section-label template headings unless explicitly requested.
+- If adding headings, headings must be concrete content statements.
+
+### Anti-AI writing references to reuse
+- https://github.com/blader/humanizer
+- https://github.com/debgotwired/humanize
+- https://github.com/puneethkotha/humanizer-workbench
