@@ -42,27 +42,18 @@ PY
 fetch_tasks_lines() {
   python3 - <<'PY'
 import json
-import shutil
 import subprocess
 from datetime import datetime
 
-TZ_OFFSET = "+08:00"
+TASKS_FETCH = "/Users/openclaw-user/.openclaw/workspace/scripts/google_tasks_lists.py"
 WEEKDAY = ["一", "二", "三", "四", "五", "六", "日"]
-
-def run(cmd):
-    p = subprocess.run(cmd, text=True, capture_output=True)
-    return p.returncode, p.stdout, p.stderr
 
 def fmt_due(due: str) -> str:
     if not due:
         return ""
     try:
-        # ex: 2026-03-20T00:00:00.000Z
         if due.endswith("Z"):
-            dt = datetime.fromisoformat(due.replace("Z", "+00:00"))
-            # convert to +08
-            dt = dt.astimezone().astimezone()  # keep local conversion behavior
-            # fallback: only date is enough for task reminder
+            dt = datetime.fromisoformat(due.replace("Z", "+00:00")).astimezone()
             y, m, d = dt.year, dt.month, dt.day
         else:
             dstr = due.split("T", 1)[0]
@@ -72,18 +63,15 @@ def fmt_due(due: str) -> str:
     except Exception:
         return f"（截止 {due}）"
 
-if shutil.which("gog") is None:
-    print("（未安裝 gog，略過 Google Tasks）")
-    raise SystemExit(0)
-
-code, out, err = run(["gog", "tasks", "lists", "--json", "--no-input"])
-if code != 0:
-    msg = (err or out).strip().splitlines()[-1] if (err or out).strip() else "未知錯誤"
+p = subprocess.run(["python3", TASKS_FETCH], text=True, capture_output=True)
+if p.returncode != 0:
+    msg = (p.stderr or p.stdout).strip().splitlines()[-1] if (p.stderr or p.stdout).strip() else "未知錯誤"
     print(f"（讀取 Tasks 清單失敗：{msg}）")
     raise SystemExit(0)
 
 try:
-    lists = (json.loads(out).get("tasklists") or [])
+    payload = json.loads(p.stdout)
+    lists = payload.get("tasklists") or []
 except Exception:
     print("（讀取 Tasks 清單失敗：JSON 解析錯誤）")
     raise SystemExit(0)
@@ -94,18 +82,8 @@ if not lists:
 
 printed_any = False
 for li in lists:
-    lid = li.get("id")
     ltitle = li.get("title") or "(未命名清單)"
-    if not lid:
-        continue
-    code, tout, terr = run(["gog", "tasks", "list", lid, "--json", "--no-input"])
-    if code != 0:
-        continue
-    try:
-        tasks = (json.loads(tout).get("tasks") or [])
-    except Exception:
-        continue
-    pending = [t for t in tasks if t.get("status") != "completed"]
+    pending = li.get("tasks") or []
     if not pending:
         continue
 
