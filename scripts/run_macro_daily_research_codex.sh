@@ -55,7 +55,19 @@ OUT_FILE="$(mktemp)"
 LOG_FILE="$(mktemp)"
 
 cd "$REPO"
-if ! codex exec -m gpt-5.4 -c model_reasoning_effort='"xhigh"' --dangerously-bypass-approvals-and-sandbox -o "$OUT_FILE" "$PROMPT" >"$LOG_FILE" 2>&1; then
+
+# Run codex in background and emit periodic keepalive to avoid no-output watchdog termination.
+codex exec -m gpt-5.4 -c model_reasoning_effort='"xhigh"' --dangerously-bypass-approvals-and-sandbox -o "$OUT_FILE" "$PROMPT" >"$LOG_FILE" 2>&1 &
+CODEX_PID=$!
+
+while kill -0 "$CODEX_PID" >/dev/null 2>&1; do
+  sleep 45
+  if kill -0 "$CODEX_PID" >/dev/null 2>&1; then
+    echo "[keepalive] macro-post research still running ($(TZ=Asia/Taipei date '+%H:%M:%S'))" >&2
+  fi
+done
+
+if ! wait "$CODEX_PID"; then
   echo "macro-post 每日研究執行失敗"
   tail -n 120 "$LOG_FILE"
   exit 1
