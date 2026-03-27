@@ -6,8 +6,6 @@ TODAY="$(TZ=Asia/Taipei date +%Y-%m-%d)"
 TODAY_COMPACT="$(TZ=Asia/Taipei date +%Y%m%d)"
 REPORT_PATH="reports/macro-post-research/${TODAY}.md"
 BRANCH_NAME="research/macro-post-${TODAY_COMPACT}"
-DOC_SCRIPT="/Users/openclaw-user/.openclaw/workspace/open-claw-bot-codes/scripts/google_docs_tab_write.py"
-DOC_ID="1mzXODGSERSuNMUPDeLhleoTNYgOZitpJpLYkUklb9YM"
 
 run_codex_with_keepalive() {
   local prompt_file="$1"
@@ -42,7 +40,7 @@ PHASE1_LOG="$(mktemp)"
 cat >"$PHASE1_PROMPT_FILE" <<'EOF'
 到 repo 內執行每日 macro-post 深度研究（使用 .codex/skills/macro-post/SKILL.md 為規範）。
 
-這一階段只做內容，不做 git/pr/doc：
+這一階段只做內容，不做 git/pr：
 1) 讀取 .codex/skills/macro-post/SKILL.md
 2) 讀取 .codex/skills/macro-post-improvement/SKILL.md（若存在）
 3) 產生深入選題與研究報告，寫入 reports/macro-post-research/$(TZ=Asia/Taipei date +%Y-%m-%d).md
@@ -114,18 +112,12 @@ cat >"$PHASE2_PROMPT_FILE" <<EOF
 1) 建立/切換分支：$BRANCH_NAME
 2) git add/commit/push（包含上述兩個檔案）
 3) 用 gh pr create 建 PR（title: "macro-post research+publish $TODAY"）
-4) 將報告全文同步寫入 Google Doc：
-   - script: $DOC_SCRIPT
-   - doc id: $DOC_ID
-   - tab title: 研究報告
-   - mode: replace
 
 最終輸出格式：
 【macro-post 每日研究完成】
 - PR 連結：<url 或 N/A>
 - 報告檔案：$REPORT_PATH_FROM_PHASE1
 - 發佈文章檔案：$POST_PATH_FROM_PHASE1
-- Google Doc：tab「研究報告」已更新（doc: $DOC_ID, mode=replace）
 - 今日可用結論（3~5 點、人話）
 
 最後一行固定輸出：執行設定：model=openai-codex/gpt-5.4｜reasoning=xhigh｜think=xhigh
