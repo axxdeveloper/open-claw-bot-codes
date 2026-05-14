@@ -1,0 +1,1210 @@
+version: 1
+last_reviewed: 2026-05-10
+
+# Machine-readable source registry for OpenClaw source watchers.
+# Keep values on one line; scripts/source_pool_watch.py intentionally parses a
+# small YAML subset to avoid adding runtime dependencies.
+
+sources:
+  - id: openai-news
+    name: OpenAI News
+    category: AI
+    tier: 1
+    type: official_blog
+    url: https://openai.com/blog/
+    fetch_mode: rss
+    fetch_url: https://openai.com/news/rss.xml
+    cadence: daily
+    weight: 1.60
+    use_for: [long_video, short, research]
+    tags: [model_release, api, agents, safety, product]
+    enabled: true
+    notes: Official OpenAI news and release explanations.
+  - id: google-deepmind-blog
+    name: Google DeepMind Blog
+    category: AI
+    tier: 1
+    type: official_research_blog
+    url: https://deepmind.google/en/blog/
+    fetch_mode: rss
+    fetch_url: https://deepmind.google/blog/rss.xml
+    cadence: daily
+    weight: 1.70
+    use_for: [long_video, short, research]
+    tags: [research, model_release, training, safety, systems]
+    enabled: true
+    notes: Includes important DeepMind researcher and team posts.
+  - id: anthropic-news
+    name: Anthropic News
+    category: AI
+    tier: 1
+    type: official_blog
+    url: https://www.anthropic.com/news
+    fetch_mode: sitemap
+    fetch_url: https://www.anthropic.com/sitemap.xml
+    url_prefixes: [https://www.anthropic.com/news/]
+    cadence: daily
+    weight: 1.60
+    use_for: [long_video, short, research]
+    tags: [model_release, safety, agents, product]
+    enabled: true
+    notes: Official Anthropic news; verify major claims against linked docs or research.
+  - id: anthropic-research
+    name: Anthropic Research
+    category: AI
+    tier: 1
+    type: official_research_blog
+    url: https://www.anthropic.com/research
+    fetch_mode: sitemap
+    fetch_url: https://www.anthropic.com/sitemap.xml
+    url_prefixes: [https://www.anthropic.com/research/]
+    cadence: daily
+    weight: 1.75
+    use_for: [long_video, short, research]
+    tags: [research, interpretability, safety, evaluations, agents]
+    enabled: true
+    notes: High-priority Anthropic researcher and team posts.
+  - id: anthropic-engineering
+    name: Anthropic Engineering
+    category: AI
+    tier: 1
+    type: researcher_team_blog
+    url: https://www.anthropic.com/engineering
+    fetch_mode: sitemap
+    fetch_url: https://www.anthropic.com/sitemap.xml
+    url_prefixes: [https://www.anthropic.com/engineering/]
+    cadence: daily
+    weight: 1.75
+    use_for: [long_video, short, research]
+    tags: [engineering, agents, systems, reliability, deployment]
+    enabled: true
+    notes: Treat Anthropic engineering/team blog posts as high-value primary-adjacent sources.
+  - id: huggingface-blog
+    name: Hugging Face Blog
+    category: AI
+    tier: 1
+    type: official_blog
+    url: https://huggingface.co/blog
+    fetch_mode: rss
+    fetch_url: https://huggingface.co/blog/feed.xml
+    cadence: daily
+    weight: 1.45
+    use_for: [long_video, short, research]
+    tags: [models, open_source, inference, tooling]
+    enabled: true
+    notes: Strong for open model releases, inference, and practical tooling.
+  - id: google-research-blog
+    name: Google Research Blog
+    category: AI
+    tier: 1
+    type: official_research_blog
+    url: https://research.google/blog/
+    fetch_mode: rss
+    fetch_url: https://research.google/blog/rss/
+    cadence: daily
+    weight: 1.50
+    use_for: [long_video, short, research]
+    tags: [research, systems, ml, ai]
+    enabled: true
+    notes: Use when the post has enough mechanism and citations.
+  - id: arxiv-cs-ai
+    name: arXiv cs.AI
+    category: AI
+    tier: 2
+    type: research_feed
+    url: https://arxiv.org/list/cs.AI/recent
+    fetch_mode: rss
+    fetch_url: https://export.arxiv.org/api/query?search_query=cat:cs.AI&sortBy=submittedDate&sortOrder=descending&max_results=20
+    cadence: daily
+    max_items: 6
+    weight: 1.35
+    use_for: [research, long_video]
+    tags: [papers, research, ai]
+    enabled: true
+    notes: Official arXiv API feed; prioritize only papers with clear AI user/developer impact plus method/eval/code/artifact evidence.
+  - id: arxiv-cs-lg
+    name: arXiv cs.LG
+    category: AI
+    tier: 2
+    type: research_feed
+    url: https://arxiv.org/list/cs.LG/recent
+    fetch_mode: rss
+    fetch_url: https://export.arxiv.org/api/query?search_query=cat:cs.LG&sortBy=submittedDate&sortOrder=descending&max_results=20
+    cadence: daily
+    max_items: 6
+    weight: 1.35
+    use_for: [research, long_video]
+    tags: [papers, machine_learning, ai]
+    enabled: true
+    notes: Discovery source; prioritize only papers with clear AI user/developer impact plus official code, evals, artifacts, or clear mechanism.
+  - id: arxiv-cs-cl
+    name: arXiv cs.CL
+    category: AI
+    tier: 2
+    type: research_feed
+    url: https://arxiv.org/list/cs.CL/recent
+    fetch_mode: rss
+    fetch_url: https://export.arxiv.org/api/query?search_query=cat:cs.CL&sortBy=submittedDate&sortOrder=descending&max_results=20
+    cadence: daily
+    max_items: 6
+    weight: 1.35
+    use_for: [research, long_video]
+    tags: [papers, llm, nlp, language_models, agents, evals]
+    enabled: true
+    notes: LLM/NLP paper feed; prioritize reasoning, agents, evals, reliability, RAG, post-training, and deployment-relevant papers with user/developer impact.
+  - id: arxiv-cs-cv
+    name: arXiv cs.CV
+    category: AI
+    tier: 2
+    type: research_feed
+    url: https://arxiv.org/list/cs.CV/recent
+    fetch_mode: rss
+    fetch_url: https://export.arxiv.org/api/query?search_query=cat:cs.CV&sortBy=submittedDate&sortOrder=descending&max_results=20
+    cadence: daily
+    max_items: 3
+    weight: 1.25
+    use_for: [research, long_video]
+    tags: [papers, computer_vision, multimodal, video_generation, diffusion]
+    enabled: true
+    notes: Vision/multimodal paper feed; use sparingly when the paper affects practical AI media/multimodal workflows, not narrow CV domains.
+  - id: arxiv-stat-ml
+    name: arXiv stat.ML
+    category: AI
+    tier: 2
+    type: research_feed
+    url: https://arxiv.org/list/stat.ML/recent
+    fetch_mode: rss
+    fetch_url: https://export.arxiv.org/api/query?search_query=cat:stat.ML&sortBy=submittedDate&sortOrder=descending&max_results=20
+    cadence: daily
+    max_items: 3
+    weight: 1.20
+    use_for: [research, long_video]
+    tags: [papers, machine_learning, statistics, theory, evals]
+    enabled: true
+    notes: Statistical ML feed; use sparingly when the paper changes AI evaluation, reliability, uncertainty, serving, or development workflows.
+  - id: huggingface-papers
+    name: Hugging Face Papers
+    category: AI
+    tier: 2
+    type: paper_discovery
+    url: https://huggingface.co/papers
+    fetch_mode: html
+    fetch_url: https://huggingface.co/papers
+    url_prefixes: [https://huggingface.co/papers/]
+    cadence: daily
+    max_items: 8
+    weight: 1.40
+    use_for: [research, long_video, short]
+    tags: [papers, community_discussion, open_source, models, evals]
+    enabled: true
+    notes: Paper discovery with community signals; verify selected papers against arXiv/PDF, official repo, code, evals, or lab post, and require clear AI user/developer impact before publication.
+
+  - id: dwarkesh-podcast
+    name: Dwarkesh Podcast
+    category: AI
+    tier: 1
+    type: ai_leader_interview
+    url: https://www.dwarkesh.com/
+    fetch_mode: rss
+    fetch_url: https://www.dwarkesh.com/feed
+    cadence: daily
+    max_items: 8
+    weight: 1.65
+    use_for: [long_video, research]
+    tags: [ai_interviews, frontier_labs, researchers, founders, strategy]
+    enabled: true
+    notes: High-priority long-form interviews; choose AI episodes with frontier lab leaders, researchers, infrastructure builders, or market-shaping operators.
+  - id: latent-space-podcast
+    name: Latent Space
+    category: AI
+    tier: 1
+    type: ai_engineering_interview
+    url: https://www.latent.space/podcast
+    fetch_mode: rss
+    fetch_url: https://api.substack.com/feed/podcast/1084089.rss
+    cadence: daily
+    max_items: 8
+    weight: 1.55
+    use_for: [long_video, short, research]
+    tags: [ai_engineering, ai_interviews, agents, inference, tooling, evals]
+    enabled: true
+    notes: AI Engineer interview source; prefer episodes with transcripts, system design, evals, inference, agents, or production lessons.
+  - id: no-priors-podcast
+    name: No Priors
+    category: AI
+    tier: 1
+    type: ai_leader_interview
+    url: https://www.youtube.com/@nopriorspodcast
+    fetch_mode: rss
+    fetch_url: https://www.youtube.com/feeds/videos.xml?channel_id=UCSI7h9hydQ40K5MJHnCrQvw
+    cadence: daily
+    max_items: 6
+    weight: 1.45
+    use_for: [long_video, short, research]
+    tags: [ai_interviews, founders, researchers, startups, inference]
+    exclude_url_substrings: [/shorts/]
+    exclude_title_patterns: [shorts?]
+    enabled: true
+    notes: AI founder/researcher/operator interviews; prefer full episodes with concrete technical or market mechanism.
+  - id: cognitive-revolution-podcast
+    name: The Cognitive Revolution
+    category: AI
+    tier: 1
+    type: ai_podcast_interview
+    url: https://www.cognitiverevolution.ai/
+    fetch_mode: rss
+    fetch_url: https://feeds.megaphone.fm/RINTP3108857801
+    cadence: daily
+    max_items: 8
+    weight: 1.45
+    use_for: [long_video, short, research]
+    tags: [ai_interviews, builders, researchers, agents, evals, safety]
+    exclude_title_patterns: [AI in the AM, newsletter]
+    enabled: true
+    notes: AI builders and researchers; prefer episodes with mechanisms, failure modes, evals, or deployment tradeoffs.
+  - id: twiml-ai-podcast
+    name: The TWIML AI Podcast
+    category: AI
+    tier: 2
+    type: ai_research_interview
+    url: https://twimlai.com/podcast/twimlai/
+    fetch_mode: rss
+    fetch_url: https://feeds.megaphone.fm/MLN2155636147
+    cadence: daily
+    max_items: 8
+    weight: 1.35
+    use_for: [long_video, short, research]
+    tags: [ai_research, ml_systems, interviews, evals, inference]
+    enabled: true
+    notes: Strong source for research and ML systems interviews; verify claims against linked papers/repos when possible.
+  - id: machine-learning-street-talk
+    name: Machine Learning Street Talk
+    category: AI
+    tier: 2
+    type: ai_research_interview
+    url: https://www.mlst.ai/
+    fetch_mode: rss
+    fetch_url: https://www.mlst.ai/feed
+    cadence: daily
+    max_items: 6
+    weight: 1.35
+    use_for: [long_video, research]
+    tags: [ai_research, ml_theory, interviews, alignment, cognition]
+    enabled: true
+    notes: Long technical conversations; prefer episodes with named researchers and clear concepts to explain.
+  - id: lex-fridman-ai-interviews
+    name: Lex Fridman AI Interviews
+    category: AI
+    tier: 2
+    type: ai_video_interview
+    url: https://www.youtube.com/@lexfridman
+    fetch_mode: rss
+    fetch_url: https://www.youtube.com/feeds/videos.xml?channel_id=UCSHZKyawb77ixDdsGog4iWA
+    cadence: daily
+    max_items: 4
+    weight: 1.30
+    use_for: [long_video, research]
+    tags: [ai_interviews, researchers, founders, systems]
+    exclude_url_substrings: [/shorts/]
+    exclude_title_patterns: [shorts?]
+    enabled: true
+    notes: Broad interview feed; select only AI-relevant episodes with enough technical or strategic substance.
+  - id: a16z-ai-podcast
+    name: AI + a16z
+    category: AI
+    tier: 2
+    type: ai_podcast_interview
+    url: https://a16z.com/podcasts/ai-a16z/
+    fetch_mode: html
+    fetch_url: https://a16z.com/podcasts/ai-a16z/
+    url_prefixes: [https://a16z.com/podcast/]
+    cadence: daily
+    max_items: 8
+    weight: 1.25
+    use_for: [long_video, short, research]
+    tags: [ai_business, ai_infra, interviews, startups, evals]
+    enabled: true
+    notes: Good for AI market and infrastructure interviews; avoid pure investor positioning unless the episode teaches a mechanism.
+  - id: sequoia-training-data
+    name: Sequoia Training Data
+    category: AI
+    tier: 2
+    type: ai_podcast_interview
+    url: https://sequoiacap.com/series/training-data/
+    fetch_mode: html
+    fetch_url: https://sequoiacap.com/series/training-data/
+    url_prefixes: [https://sequoiacap.com/podcast/]
+    cadence: daily
+    max_items: 8
+    weight: 1.25
+    use_for: [long_video, short, research]
+    tags: [ai_founders, ai_business, interviews, agents, startups]
+    enabled: true
+    notes: AI operator and founder interview source; prefer episodes with product, distribution, infra, or market structure lessons.
+  - id: sequoia-capital-youtube
+    name: Sequoia Capital YouTube
+    category: AI
+    tier: 2
+    type: ai_video_interview
+    url: https://www.youtube.com/@sequoiacapital/videos
+    fetch_mode: youtube_channel
+    fetch_url: https://www.youtube.com/@sequoiacapital/videos
+    cadence: daily
+    max_items: 24
+    weight: 1.35
+    use_for: [long_video, research]
+    tags: [ai_interviews, ai_ascent, frontier_labs, researchers, builders]
+    exclude_url_substrings: [/shorts/]
+    exclude_title_patterns: [shorts?]
+    enabled: true
+    notes: Catch Sequoia AI Ascent and video-only frontier AI interviews/keynotes that do not appear on the Training Data podcast page; select only episodes with concrete claims, chapters, transcript/captions, or enough description to explain mechanisms, tradeoffs, risk, and impact.
+  - id: invest-like-the-best-youtube
+    name: Invest Like The Best YouTube
+    category: AI
+    tier: 2
+    type: ai_podcast_interview
+    url: https://www.youtube.com/@ILTB_Podcast/videos
+    fetch_mode: youtube_channel
+    fetch_url: https://www.youtube.com/@ILTB_Podcast/videos
+    cadence: daily
+    max_items: 16
+    weight: 1.25
+    use_for: [long_video, research]
+    tags: [ai_product, ai_operators, interviews, product_strategy, company_building]
+    exclude_url_substrings: [/shorts/]
+    exclude_title_patterns: [shorts?, buffett, stocks?, trader, markets?, public software companies, private equity, PE firm]
+    enabled: true
+    notes: Broad operator/investing channel; use only AI/product/operator episodes with concrete lessons about AI-era product design, company operating models, consumer AI, engineering/product teams, or AI adoption. Reject market, stock, fund, valuation, and pure investing episodes.
+  - id: practical-ai-podcast
+    name: Practical AI
+    category: AI
+    tier: 2
+    type: ai_podcast_interview
+    url: https://practicalai.fm/
+    fetch_mode: rss
+    fetch_url: https://feeds.transistor.fm/practical-ai-machine-learning-data-science-llm
+    cadence: daily
+    max_items: 6
+    weight: 1.15
+    use_for: [short, research]
+    tags: [practical_ai, machine_learning, llm, interviews, tooling]
+    enabled: true
+    notes: Practical AI/ML conversations; use as source when the episode has concrete implementation or decision lessons.
+
+  - id: cloudflare-engineering
+    name: Cloudflare Blog Engineering
+    category: Backend
+    tier: 1
+    type: engineering_blog
+    url: https://blog.cloudflare.com/tag/engineering/
+    fetch_mode: rss
+    fetch_url: https://blog.cloudflare.com/rss/
+    cadence: daily
+    weight: 1.20
+    use_for: [long_video, short, research]
+    tags: [infra, networking, reliability, security, performance]
+    enabled: true
+    notes: Filter for engineering and systems posts.
+  - id: aws-architecture
+    name: AWS Architecture Blog
+    category: Backend
+    tier: 1
+    type: engineering_blog
+    url: https://aws.amazon.com/blogs/architecture/
+    fetch_mode: rss
+    fetch_url: https://aws.amazon.com/blogs/architecture/feed/
+    cadence: daily
+    weight: 1.05
+    use_for: [long_video, research]
+    tags: [architecture, distributed_systems, cloud]
+    enabled: true
+    notes: Good for patterns; avoid thin customer marketing posts.
+  - id: aws-database
+    name: AWS Database Blog
+    category: Backend
+    tier: 1
+    type: engineering_blog
+    url: https://aws.amazon.com/blogs/database/
+    fetch_mode: rss
+    fetch_url: https://aws.amazon.com/blogs/database/feed/
+    cadence: daily
+    weight: 1.05
+    use_for: [long_video, research]
+    tags: [database, storage, scaling]
+    enabled: true
+    notes: Good when posts include implementation detail and tradeoffs.
+  - id: netflix-techblog
+    name: Netflix TechBlog
+    category: Backend
+    tier: 1
+    type: engineering_blog
+    url: https://netflixtechblog.com/
+    fetch_mode: rss
+    fetch_url: https://netflixtechblog.com/feed
+    cadence: daily
+    weight: 1.15
+    use_for: [long_video, research]
+    tags: [architecture, reliability, data, platform]
+    enabled: true
+    notes: Strong for deep engineering narratives.
+  - id: meta-engineering
+    name: Meta Engineering
+    category: Backend
+    tier: 1
+    type: engineering_blog
+    url: https://engineering.fb.com/
+    fetch_mode: rss
+    fetch_url: https://engineering.fb.com/feed/
+    cadence: daily
+    weight: 1.10
+    use_for: [long_video, research]
+    tags: [infra, ai_systems, performance, reliability]
+    enabled: true
+    notes: Strong when posts include architecture or production lessons.
+  - id: cncf-blog
+    name: CNCF Blog
+    category: Backend
+    tier: 2
+    type: project_ecosystem_blog
+    url: https://www.cncf.io/blog/
+    fetch_mode: rss
+    fetch_url: https://www.cncf.io/feed/
+    cadence: daily
+    weight: 0.95
+    use_for: [short, research]
+    tags: [cloud_native, kubernetes, platform]
+    enabled: true
+    notes: Discovery/context source; prefer maintainer or project-authored posts.
+  - id: kubernetes-blog
+    name: Kubernetes Blog
+    category: Backend
+    tier: 1
+    type: project_blog
+    url: https://kubernetes.io/blog/
+    fetch_mode: rss
+    fetch_url: https://kubernetes.io/feed.xml
+    cadence: daily
+    weight: 1.10
+    use_for: [long_video, short, research]
+    tags: [kubernetes, platform, containers]
+    enabled: true
+    notes: Primary project source.
+  - id: postgresql-news
+    name: PostgreSQL News
+    category: Backend
+    tier: 1
+    type: project_news
+    url: https://www.postgresql.org/about/newsarchive/
+    fetch_mode: rss
+    fetch_url: https://www.postgresql.org/news.rss
+    cadence: daily
+    weight: 1.00
+    use_for: [short, research]
+    tags: [database, release, security]
+    enabled: true
+    notes: Primary project release/security source.
+  - id: kafka-blog
+    name: Apache Kafka Blog
+    category: Backend
+    tier: 1
+    type: project_blog
+    url: https://kafka.apache.org/blog
+    fetch_mode: rss
+    fetch_url: https://kafka.apache.org/blog/index.xml
+    cadence: daily
+    weight: 1.05
+    use_for: [long_video, short, research]
+    tags: [streaming, data, distributed_systems]
+    enabled: true
+    notes: Primary project source.
+  - id: redis-blog
+    name: Redis Blog
+    category: Backend
+    tier: 1
+    type: project_blog
+    url: https://redis.io/blog/
+    fetch_mode: rss
+    fetch_url: https://redis.io/blog/feed/
+    cadence: daily
+    weight: 0.95
+    use_for: [short, research]
+    tags: [cache, database, performance]
+    enabled: true
+    notes: Prefer release, architecture, and performance posts.
+  - id: opensearch-blog
+    name: OpenSearch Blog
+    category: Backend
+    tier: 1
+    type: project_blog
+    url: https://opensearch.org/blog/
+    fetch_mode: rss
+    fetch_url: https://opensearch.org/feed/
+    cadence: daily
+    weight: 0.95
+    use_for: [short, research]
+    tags: [search, observability, database]
+    enabled: true
+    notes: Primary project source.
+  - id: elastic-blog
+    name: Elastic Blog
+    category: Backend
+    tier: 2
+    type: engineering_blog
+    url: https://www.elastic.co/blog/
+    fetch_mode: rss
+    fetch_url: https://www.elastic.co/blog/feed
+    cadence: daily
+    weight: 0.90
+    use_for: [short, research]
+    tags: [search, observability, security]
+    enabled: true
+    notes: Prefer technical posts over product marketing.
+  - id: databricks-blog
+    name: Databricks Blog
+    category: Backend
+    tier: 1
+    type: engineering_blog
+    url: https://www.databricks.com/blog
+    fetch_mode: rss
+    fetch_url: https://www.databricks.com/feed
+    cadence: daily
+    weight: 1.20
+    use_for: [long_video, short, research]
+    tags: [databricks, data_platform, lakehouse, spark, ai_systems, database]
+    enabled: true
+    notes: Prefer engineering, release, lakehouse, Spark, DBSQL, ML infra, and architecture posts over customer marketing.
+  - id: mongodb-blog
+    name: MongoDB Blog
+    category: Backend
+    tier: 1
+    type: database_blog
+    url: https://www.mongodb.com/company/blog
+    fetch_mode: rss
+    fetch_url: https://www.mongodb.com/company/blog/rss
+    cadence: daily
+    weight: 1.05
+    use_for: [long_video, short, research]
+    tags: [database, document_database, release, indexing, distributed_systems]
+    enabled: true
+    notes: Prefer database internals, release, performance, indexing, scaling, and architecture posts.
+  - id: planetscale-blog
+    name: PlanetScale Blog
+    category: Backend
+    tier: 1
+    type: database_blog
+    url: https://planetscale.com/blog
+    fetch_mode: rss
+    fetch_url: https://planetscale.com/blog/rss.xml
+    cadence: daily
+    weight: 1.05
+    use_for: [long_video, short, research]
+    tags: [database, mysql, vitess, scaling, release]
+    enabled: true
+    notes: Strong for MySQL/Vitess scaling, schema changes, and practical database engineering.
+  - id: neon-blog
+    name: Neon Blog
+    category: Backend
+    tier: 1
+    type: database_blog
+    url: https://neon.com/blog
+    fetch_mode: rss
+    fetch_url: https://neon.com/blog/rss.xml
+    cadence: daily
+    weight: 1.05
+    use_for: [long_video, short, research]
+    tags: [database, postgres, serverless, storage, release]
+    enabled: true
+    notes: Prefer Postgres storage, branching, serverless architecture, release, and performance posts.
+  - id: clickhouse-blog
+    name: ClickHouse Blog
+    category: Backend
+    tier: 1
+    type: database_blog
+    url: https://clickhouse.com/blog
+    fetch_mode: html
+    fetch_url: https://clickhouse.com/blog
+    url_prefixes: [https://clickhouse.com/blog/]
+    cadence: daily
+    weight: 1.10
+    use_for: [long_video, short, research]
+    tags: [database, analytics, olap, performance, release]
+    enabled: true
+    notes: Prefer performance, storage engine, release, and analytical database internals posts.
+  - id: cockroachlabs-blog
+    name: Cockroach Labs Blog
+    category: Backend
+    tier: 1
+    type: database_blog
+    url: https://www.cockroachlabs.com/blog/
+    fetch_mode: html
+    fetch_url: https://www.cockroachlabs.com/blog/
+    url_prefixes: [https://www.cockroachlabs.com/blog/]
+    cadence: daily
+    weight: 1.05
+    use_for: [long_video, short, research]
+    tags: [database, distributed_sql, transactions, consistency, release]
+    enabled: true
+    notes: Prefer distributed SQL, transactions, consistency, performance, and release posts.
+  - id: mysql-release-notes
+    name: MySQL Release Notes
+    category: Backend
+    tier: 1
+    type: project_release_notes
+    url: https://dev.mysql.com/doc/relnotes/mysql/8.4/en/
+    fetch_mode: html
+    fetch_url: https://dev.mysql.com/doc/relnotes/mysql/8.4/en/
+    url_prefixes: [https://dev.mysql.com/doc/relnotes/mysql/8.4/en/]
+    exclude_url_substrings: [/index.html, /preface.html]
+    cadence: weekly
+    max_items: 8
+    weight: 1.00
+    use_for: [short, research]
+    tags: [database, mysql, release, security, performance]
+    enabled: true
+    notes: Official MySQL LTS release notes; use when a release has explainable behavior, security, optimizer, or replication changes.
+  - id: mariadb-blog
+    name: MariaDB Blog
+    category: Backend
+    tier: 1
+    type: database_blog
+    url: https://mariadb.org/
+    fetch_mode: rss
+    fetch_url: https://mariadb.org/feed/
+    cadence: daily
+    weight: 0.95
+    use_for: [short, research]
+    tags: [database, mysql, mariadb, release, storage]
+    enabled: true
+    notes: Prefer release, optimizer, storage engine, replication, and database operations posts.
+  - id: apache-cassandra-blog
+    name: Apache Cassandra Blog
+    category: Backend
+    tier: 1
+    type: project_blog
+    url: https://cassandra.apache.org/_/blog.html
+    fetch_mode: html
+    fetch_url: https://cassandra.apache.org/_/blog.html
+    url_prefixes: [https://cassandra.apache.org/_/blog/]
+    cadence: weekly
+    max_items: 10
+    weight: 1.05
+    use_for: [long_video, short, research]
+    tags: [database, cassandra, nosql, lsm, distributed_systems, release]
+    enabled: true
+    notes: Primary Cassandra source; prefer release, storage, indexing, repair, consistency, and operational posts.
+  - id: opentext-vertica-community
+    name: OpenText Analytics Database Vertica Community Blog
+    category: Backend
+    tier: 2
+    type: database_blog
+    url: https://blogs.opentext.com/tag/vertica/
+    fetch_mode: rss
+    fetch_url: https://blogs.opentext.com/tag/vertica/feed/
+    cadence: weekly
+    max_items: 8
+    weight: 0.85
+    use_for: [short, research]
+    tags: [database, vertica, analytics, olap, columnar, lakehouse]
+    enabled: true
+    notes: Use only when Vertica posts include concrete OLAP, workload routing, storage, query, or lakehouse mechanics.
+  - id: apache-flink-blog
+    name: Apache Flink Blog
+    category: Backend
+    tier: 1
+    type: project_blog
+    url: https://flink.apache.org/posts/
+    fetch_mode: rss
+    fetch_url: https://flink.apache.org/posts/index.xml
+    cadence: daily
+    max_items: 8
+    weight: 1.10
+    use_for: [long_video, short, research]
+    tags: [streaming, flink, data_platform, stateful_processing, lakehouse]
+    enabled: true
+    notes: Primary Flink source; prefer state, checkpointing, connectors, CDC, Kubernetes operator, and production streaming tradeoffs.
+  - id: apache-pulsar-blog
+    name: Apache Pulsar Blog
+    category: Backend
+    tier: 1
+    type: project_blog
+    url: https://pulsar.apache.org/blog/
+    fetch_mode: rss
+    fetch_url: https://pulsar.apache.org/blog/rss.xml
+    cadence: daily
+    max_items: 8
+    weight: 1.05
+    use_for: [long_video, short, research]
+    tags: [messaging, streaming, pulsar, pubsub, distributed_systems]
+    enabled: true
+    notes: Primary Pulsar source; prefer broker architecture, BookKeeper storage, geo-replication, durability, and latency posts.
+  - id: rabbitmq-blog
+    name: RabbitMQ Blog
+    category: Backend
+    tier: 1
+    type: project_blog
+    url: https://www.rabbitmq.com/blog
+    fetch_mode: html
+    fetch_url: https://www.rabbitmq.com/blog
+    url_prefixes: [https://www.rabbitmq.com/blog/]
+    cadence: daily
+    max_items: 8
+    weight: 0.95
+    use_for: [short, research]
+    tags: [messaging, queue, rabbitmq, reliability, operations]
+    enabled: true
+    notes: Prefer release, quorum queues, streams, reliability, routing, and operational posts over event announcements.
+  - id: nats-blog
+    name: NATS Blog
+    category: Backend
+    tier: 1
+    type: project_blog
+    url: https://nats.io/blog/
+    fetch_mode: rss
+    fetch_url: https://nats.io/blog/index.xml
+    cadence: daily
+    max_items: 8
+    weight: 0.95
+    use_for: [short, research]
+    tags: [messaging, queue, nats, pubsub, distributed_systems]
+    enabled: true
+    notes: Prefer JetStream, routing, superclusters, durability, and request-reply patterns.
+  - id: debezium-blog
+    name: Debezium Blog
+    category: Backend
+    tier: 1
+    type: project_blog
+    url: https://debezium.io/blog/
+    fetch_mode: html
+    fetch_url: https://debezium.io/blog/
+    url_prefixes: [https://debezium.io/blog/]
+    cadence: weekly
+    max_items: 8
+    weight: 1.00
+    use_for: [short, research]
+    tags: [cdc, database, streaming, kafka, connectors]
+    enabled: true
+    notes: Primary CDC source; prefer schema evolution, connectors, consistency, ordering, and operational failure modes.
+  - id: redpanda-blog
+    name: Redpanda Blog
+    category: Backend
+    tier: 2
+    type: engineering_blog
+    url: https://redpanda.com/blog
+    fetch_mode: rss
+    fetch_url: https://redpanda.com/blog/rss.xml
+    cadence: daily
+    max_items: 6
+    weight: 0.90
+    use_for: [short, research]
+    tags: [kafka, streaming, messaging, performance, storage]
+    enabled: true
+    notes: Vendor source; use only when posts include benchmarks, protocol details, storage internals, or operational tradeoffs.
+  - id: scylladb-engineering
+    name: ScyllaDB Engineering Blog
+    category: Backend
+    tier: 2
+    type: database_blog
+    url: https://www.scylladb.com/category/engineering/
+    fetch_mode: rss
+    fetch_url: https://www.scylladb.com/category/engineering/feed/
+    cadence: daily
+    max_items: 6
+    weight: 0.95
+    use_for: [short, research]
+    tags: [database, cassandra, nosql, lsm, performance, storage]
+    enabled: true
+    notes: Cassandra-compatible database internals source; verify claims and avoid product-positioning posts.
+  - id: duckdb-blog
+    name: DuckDB Blog
+    category: Backend
+    tier: 1
+    type: project_blog
+    url: https://duckdb.org/
+    fetch_mode: rss
+    fetch_url: https://duckdb.org/feed.xml
+    cadence: daily
+    max_items: 8
+    weight: 1.05
+    use_for: [long_video, short, research]
+    tags: [database, duckdb, analytics, olap, query_engine, embedded]
+    enabled: true
+    notes: Prefer query execution, storage, vectorized processing, file formats, and embedded analytics tradeoffs.
+  - id: tigerdata-blog
+    name: TigerData Timescale Blog
+    category: Backend
+    tier: 2
+    type: database_blog
+    url: https://www.tigerdata.com/blog
+    fetch_mode: html
+    fetch_url: https://www.tigerdata.com/blog
+    url_prefixes: [https://www.tigerdata.com/blog/]
+    exclude_url_substrings: [/tag/, /author/]
+    exclude_title_patterns: [^PostgreSQL$, ^Timescale$, ^By ]
+    cadence: daily
+    max_items: 6
+    weight: 0.90
+    use_for: [short, research]
+    tags: [database, postgres, timeseries, performance, storage]
+    enabled: true
+    notes: Timescale/TigerData source; use for Postgres time-series, compression, hypertables, and operational tradeoffs.
+  - id: yugabyte-blog
+    name: YugabyteDB Blog
+    category: Backend
+    tier: 2
+    type: database_blog
+    url: https://www.yugabyte.com/blog/
+    fetch_mode: rss
+    fetch_url: https://www.yugabyte.com/blog/feed/
+    cadence: daily
+    max_items: 6
+    weight: 0.90
+    use_for: [short, research]
+    tags: [database, distributed_sql, postgres, transactions, consistency]
+    enabled: true
+    notes: Vendor source; prefer distributed SQL, transaction, consistency, failover, and Postgres compatibility mechanics.
+  - id: materialize-blog
+    name: Materialize Blog
+    category: Backend
+    tier: 2
+    type: database_blog
+    url: https://materialize.com/blog/
+    fetch_mode: html
+    fetch_url: https://materialize.com/blog/
+    url_prefixes: [https://materialize.com/blog/]
+    cadence: daily
+    max_items: 6
+    weight: 0.90
+    use_for: [short, research]
+    tags: [database, streaming, sql, materialized_views, data_platform]
+    enabled: true
+    notes: Use when posts explain streaming SQL, materialized views, freshness, latency, consistency, or operational architecture.
+  - id: aws-builders-library
+    name: Amazon Builders Library
+    category: Backend
+    tier: 1
+    type: engineering_reference
+    url: https://aws.amazon.com/builders-library/
+    fetch_mode: html
+    fetch_url: https://aws.amazon.com/builders-library/
+    url_prefixes: [https://aws.amazon.com/builders-library/]
+    cadence: weekly
+    max_items: 12
+    weight: 1.05
+    use_for: [long_video, research]
+    tags: [architecture, distributed_systems, reliability, operations, scaling]
+    enabled: false
+    notes: Evergreen manual reference; disabled in watcher until a stable feed/parser is available.
+  - id: google-sre-resources
+    name: Google SRE Resources
+    category: Backend
+    tier: 1
+    type: engineering_reference
+    url: https://sre.google/resources/
+    fetch_mode: html
+    fetch_url: https://sre.google/resources/
+    url_prefixes: [https://sre.google/resources/]
+    cadence: weekly
+    max_items: 12
+    weight: 1.00
+    use_for: [long_video, research]
+    tags: [sre, reliability, observability, incident, operations]
+    enabled: true
+    notes: Evergreen SRE source; use for incident response, SLOs, toil, capacity, and reliability mental models.
+  - id: opentelemetry-blog
+    name: OpenTelemetry Blog
+    category: Backend
+    tier: 1
+    type: project_blog
+    url: https://opentelemetry.io/blog/
+    fetch_mode: rss
+    fetch_url: https://opentelemetry.io/blog/index.xml
+    cadence: daily
+    max_items: 8
+    weight: 1.05
+    use_for: [long_video, short, research]
+    tags: [observability, opentelemetry, tracing, metrics, profiling, reliability]
+    enabled: true
+    notes: Primary observability standard source; prefer collector, semantic conventions, profiling, instrumentation, and scale stories.
+  - id: grafana-blog
+    name: Grafana Labs Blog
+    category: Backend
+    tier: 2
+    type: engineering_blog
+    url: https://grafana.com/blog/
+    fetch_mode: rss
+    fetch_url: https://grafana.com/blog/index.xml
+    cadence: daily
+    max_items: 6
+    weight: 0.90
+    use_for: [short, research]
+    tags: [observability, metrics, logs, tracing, grafana, prometheus]
+    enabled: true
+    notes: Vendor source; prefer engineering, Prometheus, Loki, Mimir, Tempo, incident, and scale posts over product announcements.
+  - id: datadog-engineering
+    name: Datadog Engineering Blog
+    category: Backend
+    tier: 2
+    type: engineering_blog
+    url: https://www.datadoghq.com/blog/engineering/
+    fetch_mode: rss
+    fetch_url: https://www.datadoghq.com/blog/engineering/index.xml
+    cadence: daily
+    max_items: 6
+    weight: 0.95
+    use_for: [short, research]
+    tags: [observability, reliability, infrastructure, performance, scale]
+    enabled: true
+    notes: Prefer incident, scale, observability pipeline, and infrastructure engineering posts with concrete lessons.
+  - id: github-engineering
+    name: GitHub Engineering Blog
+    category: Backend
+    tier: 1
+    type: engineering_blog
+    url: https://github.blog/engineering/
+    fetch_mode: rss
+    fetch_url: https://github.blog/engineering.atom
+    cadence: daily
+    max_items: 6
+    weight: 1.05
+    use_for: [long_video, short, research]
+    tags: [devtools, platform, reliability, security, developer_experience]
+    enabled: true
+    notes: Prefer developer platform, CI, code search, security, incident, and large-scale product engineering posts.
+  - id: stripe-engineering
+    name: Stripe Engineering Blog
+    category: Backend
+    tier: 1
+    type: engineering_blog
+    url: https://stripe.com/blog/engineering
+    fetch_mode: html
+    fetch_url: https://stripe.com/blog/engineering
+    url_prefixes: [https://stripe.com/blog/]
+    cadence: weekly
+    max_items: 8
+    weight: 1.05
+    use_for: [long_video, research]
+    tags: [api, database, platform, reliability, developer_experience]
+    enabled: true
+    notes: Prefer API design, database migration, reliability, correctness, and developer tooling posts.
+  - id: slack-engineering
+    name: Slack Engineering Blog
+    category: Backend
+    tier: 1
+    type: engineering_blog
+    url: https://slack.engineering/
+    fetch_mode: rss
+    fetch_url: https://slack.engineering/feed/
+    cadence: daily
+    max_items: 6
+    weight: 1.00
+    use_for: [long_video, short, research]
+    tags: [architecture, reliability, messaging, platform, developer_experience]
+    enabled: true
+    notes: Prefer architecture, incident, migration, reliability, and large-scale collaboration backend posts.
+  - id: shopify-engineering
+    name: Shopify Engineering Blog
+    category: Backend
+    tier: 1
+    type: engineering_blog
+    url: https://shopify.engineering/
+    fetch_mode: html
+    fetch_url: https://shopify.engineering/
+    url_prefixes: [https://shopify.engineering/]
+    cadence: weekly
+    max_items: 8
+    weight: 1.00
+    use_for: [long_video, short, research]
+    tags: [architecture, scaling, rails, database, platform]
+    enabled: true
+    notes: Prefer scale, monolith, database, platform, Ruby/Rails, and production engineering posts.
+  - id: dropbox-tech
+    name: Dropbox Tech Blog
+    category: Backend
+    tier: 1
+    type: engineering_blog
+    url: https://dropbox.tech/
+    fetch_mode: rss
+    fetch_url: https://dropbox.tech/feed
+    cadence: daily
+    max_items: 6
+    weight: 1.00
+    use_for: [long_video, short, research]
+    tags: [storage, sync, infrastructure, reliability, performance]
+    enabled: true
+    notes: Prefer storage, sync, filesystem, infrastructure, security, and performance engineering posts.
+  - id: spotify-engineering
+    name: Spotify Engineering Blog
+    category: Backend
+    tier: 1
+    type: engineering_blog
+    url: https://engineering.atspotify.com/
+    fetch_mode: rss
+    fetch_url: https://engineering.atspotify.com/feed
+    cadence: daily
+    max_items: 6
+    weight: 0.95
+    use_for: [short, research]
+    tags: [data_platform, developer_experience, reliability, experimentation, backend]
+    enabled: true
+    notes: Prefer data platform, experimentation, developer productivity, reliability, and platform engineering posts.
+  - id: airbnb-tech
+    name: Airbnb Tech Blog
+    category: Backend
+    tier: 1
+    type: engineering_blog
+    url: https://airbnb.tech/
+    fetch_mode: rss
+    fetch_url: https://airbnb.tech/feed/
+    cadence: daily
+    max_items: 6
+    weight: 0.95
+    use_for: [short, research]
+    tags: [data_platform, reliability, architecture, developer_experience, backend]
+    enabled: true
+    notes: Prefer production architecture, data platform, experimentation, reliability, and developer tooling posts.
+  - id: go-blog
+    name: Go Blog
+    category: Backend
+    tier: 1
+    type: runtime_blog
+    url: https://go.dev/blog/
+    fetch_mode: rss
+    fetch_url: https://go.dev/blog/feed.atom
+    cadence: daily
+    max_items: 6
+    weight: 0.95
+    use_for: [short, research]
+    tags: [go, runtime, language, performance, backend]
+    enabled: true
+    notes: Prefer runtime, standard library, security, performance, compatibility, and backend service development posts.
+  - id: rust-blog
+    name: Rust Blog
+    category: Backend
+    tier: 1
+    type: runtime_blog
+    url: https://blog.rust-lang.org/
+    fetch_mode: rss
+    fetch_url: https://blog.rust-lang.org/feed.xml
+    cadence: daily
+    max_items: 6
+    weight: 0.90
+    use_for: [short, research]
+    tags: [rust, runtime, language, performance, security, infrastructure]
+    enabled: true
+    notes: Prefer language/runtime changes that affect backend services, infra systems, security, or performance.
+  - id: inside-java
+    name: Inside Java
+    category: Backend
+    tier: 1
+    type: official_java_blog
+    url: https://inside.java/
+    fetch_mode: rss
+    fetch_url: https://inside.java/feed.xml
+    cadence: daily
+    weight: 1.15
+    use_for: [long_video, short, research]
+    tags: [java, jdk, jvm, release, performance]
+    enabled: true
+    notes: Official Java/JDK source for release, JVM, language, library, and performance topics.
+  - id: openjdk-jeps
+    name: OpenJDK JEPs
+    category: Backend
+    tier: 1
+    type: standards_doc
+    url: https://openjdk.org/jeps/0
+    fetch_mode: html
+    fetch_url: https://openjdk.org/jeps/0
+    url_prefixes: [https://openjdk.org/jeps/]
+    exclude_title_patterns: [^[0-9]+$, JEP Template, JDK Release Process, Incubator Modules, Preview Features]
+    cadence: weekly
+    max_items: 20
+    weight: 1.05
+    use_for: [long_video, short, research]
+    tags: [java, jdk, jep, language, jvm]
+    enabled: true
+    notes: Use accepted/recent JEPs as primary Java language/runtime sources when explainable.
+  - id: spring-blog
+    name: Spring Blog
+    category: Backend
+    tier: 1
+    type: project_blog
+    url: https://spring.io/blog
+    fetch_mode: rss
+    fetch_url: https://spring.io/blog.atom
+    cadence: daily
+    weight: 1.05
+    use_for: [long_video, short, research]
+    tags: [java, spring, backend, release, cloud_native]
+    enabled: true
+    notes: Prefer Spring Framework/Boot release, architecture, JVM, native image, and production backend topics.
+  - id: foojay
+    name: Foojay Today
+    category: Backend
+    tier: 2
+    type: community_technical_blog
+    url: https://foojay.io/today/
+    fetch_mode: rss
+    fetch_url: https://foojay.io/today/feed/
+    cadence: daily
+    weight: 0.90
+    use_for: [short, research]
+    tags: [java, jvm, tooling, performance, community]
+    enabled: true
+    notes: Java community discovery source; verify major claims against official docs, JEPs, repos, or release notes before publication.
+
+  - id: federal-reserve-press
+    name: Federal Reserve Press Releases
+    category: Economy
+    tier: 1
+    type: official_data_policy
+    url: https://www.federalreserve.gov/newsevents/pressreleases.htm
+    fetch_mode: rss
+    fetch_url: https://www.federalreserve.gov/feeds/press_all.xml
+    cadence: daily
+    weight: 1.25
+    use_for: [long_video, short, research]
+    tags: [rates, policy, liquidity, banking]
+    enabled: false
+    notes: Disabled 2026-05-10 because Isaac asked to stop automatic economy/macro/market videos. Use only for manual requested context.
+  - id: federal-reserve-speeches
+    name: Federal Reserve Speeches
+    category: Economy
+    tier: 1
+    type: official_data_policy
+    url: https://www.federalreserve.gov/newsevents/speeches.htm
+    fetch_mode: rss
+    fetch_url: https://www.federalreserve.gov/feeds/speeches.xml
+    cadence: daily
+    weight: 1.10
+    use_for: [research, short]
+    tags: [rates, policy, inflation, labor]
+    enabled: false
+    notes: Disabled 2026-05-10 because Isaac asked to stop automatic economy/macro/market videos. Use only for manual requested context.
+  - id: ecb-press
+    name: ECB Press Releases
+    category: Economy
+    tier: 1
+    type: official_data_policy
+    url: https://www.ecb.europa.eu/press/pr/html/index.en.html
+    fetch_mode: rss
+    fetch_url: https://www.ecb.europa.eu/rss/press.html
+    cadence: daily
+    weight: 1.00
+    use_for: [research, short]
+    tags: [rates, policy, eurozone, inflation]
+    enabled: false
+    notes: Disabled 2026-05-10 because Isaac asked to stop automatic economy/macro/market videos. Use only for manual requested context.
+  - id: twse-news
+    name: Taiwan Stock Exchange News
+    category: Economy
+    tier: 1
+    type: official_market_data
+    url: https://www.twse.com.tw/
+    fetch_mode: html
+    fetch_url: https://www.twse.com.tw/
+    cadence: daily
+    weight: 1.00
+    use_for: [research, short]
+    tags: [taiwan, market_structure, equities]
+    enabled: false
+    notes: Official Taiwan market context; disabled until a dedicated TWSE parser avoids homepage/navigation links.

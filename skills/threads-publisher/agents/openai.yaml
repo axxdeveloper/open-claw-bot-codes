@@ -1,0 +1,4 @@
+interface:
+  display_name: "Threads Publisher"
+  short_description: "Post through signed-in Threads."
+  default_prompt: "Draft or publish this update to Threads using the signed-in account."
