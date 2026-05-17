@@ -28,6 +28,12 @@ AI and engineering topics remain important, but source-intro posts should avoid
 feeling like repeated links from the same few websites. When multiple selected
 sources are available, prefer a high-quality source from a less-recently-used
 domain, source family, paper feed, interview channel, or company blog.
+AI source-intro posts must carry time awareness: use 30 days as the freshness
+baseline for current AI claims, and avoid older model/API/benchmark/pricing/tool
+claims unless they are refreshed with newer primary evidence. Older AI sources
+are acceptable only for durable concept, architecture, history, security,
+taxonomy, or retrospective lessons, and the post should not imply they are
+current news.
 
 Default channel split:
 

@@ -21,6 +21,7 @@ Machine-readable source registry: `SOURCE_REGISTRY.yml`.
 - AI-related topics can be weighted above other categories when they are high-quality, non-duplicate, verifiable, and have a clear viewer payoff. Do not rescue thin AI marketing posts only because they mention AI.
 - Do not trade off AI by imposing a broad AI quota. AI remains a core lane. Trade off repeated sources: if recent published videos are concentrated in the same domain, registry source, source family, paper feed, interview channel, or company blog, apply a soft repetition penalty and look for an equally strong source from a different original site or evidence type.
 - Within AI, rotate evidence types when quality allows: papers, official lab posts, model/system cards, repositories, engineering blogs, high-signal interviews, and operator/product AI sources. A repeated AI source can still win when it is urgent, unusually deep, or clearly better than alternatives.
+- AI topic selection must be time-aware. Treat 30 days as the freshness baseline for automatic AI candidates. Older AI sources are not automatically rejected when they are durable concept, architecture, history, taxonomy, security, or retrospective lessons, but the run must record why the claim is still valid now. Time-sensitive AI sources about model releases, API behavior, pricing, benchmarks, evals, coding-agent performance, inference cost/latency, tools, or product claims should be rejected or refreshed with newer primary evidence when older than about 30 days.
 - Treat a candidate as AI-related when the source category is AI, or when a source is concretely about AI systems, model releases, agents, evals, inference, RAG/search, AI safety, AI developer tooling, AI infrastructure, AI product adoption, or AI organizational impact.
 - Avoid thin announcements, pure marketing posts, listicles, rumor-only stories, and content that cannot be verified from a primary or authoritative source.
 - Avoid company posts that are mainly self-promotion, product marketing, customer acquisition, or "why our product" positioning. Official company posts can be selected only when they include enough architecture, benchmark data, implementation detail, operational lessons, limitations, or failure modes to teach something beyond the vendor's pitch.
@@ -97,8 +98,16 @@ Score each candidate out of 20.
 AI priority multiplier:
 
 - After the 20-point score, apply a ranking multiplier to AI-related candidates for sorting. Use `ai_priority=true` in local artifacts when this boost affected ordering.
-- A qualified AI candidate with `total >= 13` should beat a non-AI candidate unless the AI source is duplicated, unverifiable, too thin, source-repetitive without exceptional value, or blocked by a manual URL/topic.
+- A qualified AI candidate with `total >= 13` should beat a non-AI candidate unless the AI source is stale-risk without a durability/freshness justification, duplicated, unverifiable, too thin, source-repetitive without exceptional value, or blocked by a manual URL/topic.
 - Strong AI candidates with `total >= 16` should be selected before non-AI strong candidates by default, but first apply the source-diversity penalty so the channel does not feel dominated by the same few websites.
+
+AI temporal relevance gate:
+
+- Automatic AI candidates within 30 days are fresh by default, subject to normal quality checks.
+- AI candidates older than 30 days must be classified before selection: durable concept/architecture/history/retrospective, or time-sensitive current claim.
+- Reject or refresh older time-sensitive claims about model releases, API behavior, pricing, benchmark/eval results, coding-agent performance, inference cost/latency, tooling, and product capabilities.
+- Missing or unparsable dates are a freshness blocker for automatic AI topics unless a newer primary source is opened and recorded.
+- For older durable AI sources that pass, record `ai_temporal_review_required=true` plus the reason the source still teaches something valid now.
 
 Source-diversity soft gate:
 

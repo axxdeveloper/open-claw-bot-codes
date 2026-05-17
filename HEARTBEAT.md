@@ -33,7 +33,7 @@
 - 影片前 30 秒必須有 context briefing：訪談/Podcast/影片要交代被訪談者是誰、角色/組織/專案、為何值得聽、這次訪談回答什麼問題；文章/論文/release/repo 要交代技術問題、位在 backend/AI workflow 哪裡、原本 baseline/status quo、為何現在重要
 - 空檔補位排程會持續找新好來源；若已有影片長任務、來源分數不足、重複或找不到原始來源，就跳過並回報原因，不硬湊影片
 - 小舟沒有題材類別 scope 限制；不要自動擋投資、經濟、宏觀、市場、金融、GDP、利率、通膨、ETF、政治、公共議題、生活或 styling 題。選題 gate 看來源品質、具體 takeaway、重複、節奏、安全與平台風險；財經/市場題保持教育性、不做個人化買賣建議；政治/公共議題保持證據邊界與冷靜語氣。
-- 技術 AI/backend 仍是重要來源類別，但不是小舟的發布上限。AI 不要被硬性降量；改用來源多樣性取捨。若最近一直來自同一 domain、registry source、source family、arXiv/paper family、訪談頻道或 company blog，套用軟性重複降權，優先找同樣高品質但不同原始來源或不同 evidence type 的 AI/工程題。非技術題、macro 題、政治/公共議題、生活題與 styling 題都可在通過品質與安全 gate 後發布。
+- 技術 AI/backend 仍是重要來源類別，但不是小舟的發布上限。AI 不要被硬性降量；改用來源多樣性與時間有效性取捨。若最近一直來自同一 domain、registry source、source family、arXiv/paper family、訪談頻道或 company blog，套用軟性重複降權，優先找同樣高品質但不同原始來源或不同 evidence type 的 AI/工程題。AI 題以 30 天作為 freshness baseline；超過 30 天要判斷內容是否已被新模型、新 API、新 benchmark、新價格或新產品節奏淘汰。時間敏感 AI 舊文要刷新或跳過，耐久的概念/架構/歷史/retrospective 題才可保留。非技術題、macro 題、政治/公共議題、生活題與 styling 題都可在通過品質與安全 gate 後發布。
 - Threads/Blogger 也要假設讀者不懂：先說核心詞/來源物件是什麼，再說怎麼運作與實用判斷。Threads source-intro 必須換行排版，建議 3-6 個短 block；`來源：` 和 raw URL 分兩行，YouTube note 也分行。Threads source-intro 不附 Blogger/Blogspot 連結，即使同題已有 Blogger 文章也不放；不要把 URL 接在標點或 `來源：` 後面。
 - Practical outfit/styling 是可選旁支，不拿來硬湊選題平衡；被選中時仍需提供具體搭配靈感、比例觀念或可重複公式，視覺要用對比、outfit variation、flat lay、材質/細節、配色/比例/層次、office/commute/travel context 等，不要套用技術流程圖。
 - 困難技術題必須有 difficulty budget：列出 2-5 個 hard parts，最難概念至少用一張投影片或 30-60 秒旁白拆成白話問題、具體例子、術語定義、機制、取捨/失敗模式、可採用的判斷或 debug 流程；不可只翻譯名詞快速帶過

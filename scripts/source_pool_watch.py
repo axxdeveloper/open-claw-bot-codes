@@ -20,6 +20,7 @@ WORKSPACE = Path(__file__).resolve().parents[1]
 DEFAULT_REGISTRY = WORKSPACE / "skills/article-video-publisher/SOURCE_REGISTRY.yml"
 DEFAULT_REPORT_DIR = WORKSPACE / "reports/source-watch"
 DEFAULT_ARTIFACT_ROOT = WORKSPACE / "reports/article-video-publisher"
+AI_FRESHNESS_BASELINE_DAYS = 30
 TAIPEI = dt.timezone(dt.timedelta(hours=8))
 
 
@@ -623,6 +624,50 @@ TASTE_NOISE_KEYWORDS = [
     "shop now",
     "sponsored",
     "street style gallery",
+]
+
+AI_TIME_SENSITIVE_KEYWORDS = [
+    "api",
+    "benchmark",
+    "coding",
+    "cost",
+    "eval",
+    "evaluation",
+    "inference",
+    "latency",
+    "launch",
+    "leaderboard",
+    "model card",
+    "new model",
+    "open model",
+    "performance",
+    "pricing",
+    "release",
+    "released",
+    "sota",
+    "state of the art",
+    "tool use",
+]
+
+AI_DURABLE_KEYWORDS = [
+    "architecture",
+    "case study",
+    "concept",
+    "design",
+    "explainer",
+    "foundation",
+    "foundations",
+    "history",
+    "lesson",
+    "lessons",
+    "mechanism",
+    "postmortem",
+    "primer",
+    "retrospective",
+    "security",
+    "survey",
+    "taxonomy",
+    "tutorial",
 ]
 
 TASTE_TITLE_NOISE_PATTERNS = [
@@ -1542,6 +1587,7 @@ def score_candidate(
         audience_value = min(audience_value, 1)
 
     published_at = item.get("published_at")
+    age_days: int | None = None
     timeliness = 1
     if published_at:
         try:
@@ -1550,6 +1596,45 @@ def score_candidate(
             timeliness = 2 if age_days <= 14 else 1 if age_days <= 60 else 0
         except Exception:
             timeliness = 1
+    ai_time_sensitive_hits = count_keyword_hits(body, AI_TIME_SENSITIVE_KEYWORDS) if ai_related else 0
+    ai_durable_hits = count_keyword_hits(body, AI_DURABLE_KEYWORDS) if ai_related else 0
+    ai_temporal_ok = True
+    ai_temporal_review_required = False
+    ai_temporal_staleness_risk = "none"
+    ai_temporal_note = ""
+    ai_temporal_penalty = 0
+    if ai_related:
+        if age_days is None:
+            ai_temporal_ok = False
+            ai_temporal_review_required = True
+            ai_temporal_staleness_risk = "unknown"
+            ai_temporal_note = "missing published_at; automatic AI topic cannot prove freshness"
+            ai_temporal_penalty = 8
+        elif age_days <= AI_FRESHNESS_BASELINE_DAYS:
+            ai_temporal_note = f"AI source is {age_days} days old; within {AI_FRESHNESS_BASELINE_DAYS}-day freshness baseline"
+        else:
+            ai_temporal_review_required = True
+            ai_temporal_staleness_risk = "medium"
+            ai_temporal_penalty = 1 if age_days <= 60 else 2 if age_days <= 180 else 4
+            ai_temporal_note = (
+                f"AI source is {age_days} days old; requires staleness review against newer models/APIs/evals"
+            )
+            if (
+                (ai_time_sensitive_hits >= 2 and ai_durable_hits == 0)
+                or (age_days > 180 and ai_time_sensitive_hits >= 1 and ai_durable_hits == 0)
+                or (age_days > 365 and ai_durable_hits == 0)
+            ):
+                ai_temporal_ok = False
+                ai_temporal_staleness_risk = "high"
+                ai_temporal_penalty = 8
+                ai_temporal_note = (
+                    f"AI source is {age_days} days old and appears time-sensitive; defer unless refreshed"
+                )
+            elif ai_durable_hits:
+                ai_temporal_staleness_risk = "low" if age_days <= 180 else "medium"
+                ai_temporal_note = (
+                    f"AI source is {age_days} days old but appears durable; freshness review still required"
+                )
 
     explainability = min(
         3,
@@ -1648,6 +1733,7 @@ def score_candidate(
         + risk_clarity
         - paper_noise_penalty,
     )
+    raw_total = max(0, raw_total - ai_temporal_penalty)
     if taste_serious_without_styling:
         raw_total = max(0, raw_total - 2)
     weight = float(source.get("weight", 1.0) or 1.0)
@@ -1691,6 +1777,15 @@ def score_candidate(
         "promotional_risk": promotional_risk,
         "blocked_auto_category": blocked_auto_category,
         "ai_priority": ai_related,
+        "ai_source_age_days": age_days,
+        "ai_freshness_baseline_days": AI_FRESHNESS_BASELINE_DAYS if ai_related else None,
+        "ai_temporal_ok": ai_temporal_ok,
+        "ai_temporal_review_required": ai_temporal_review_required,
+        "ai_temporal_staleness_risk": ai_temporal_staleness_risk,
+        "ai_temporal_penalty": ai_temporal_penalty,
+        "ai_temporal_note": ai_temporal_note,
+        "ai_time_sensitive_hits": ai_time_sensitive_hits,
+        "ai_durable_hits": ai_durable_hits,
         "interview_priority": interview_priority,
         "ai_leader_hits": ai_leader_hits,
         "ai_interview_importance_hits": ai_interview_importance_hits,
@@ -1719,6 +1814,8 @@ def score_candidate(
 
 
 def format_decision(score: dict) -> str:
+    if score.get("ai_priority") and not score.get("ai_temporal_ok", True):
+        return "reject"
     if score.get("taste_priority"):
         if not score.get("taste_value_signal") or score.get("taste_noise_risk"):
             return "reject"
@@ -1748,6 +1845,8 @@ def decision_reason(source: dict, item: dict, score: dict) -> str:
         f"{'; backend-engineer value present' if score.get('backend_engineer_value_signal') else ''}"
         f"{'; backend operating-judgment value present' if score.get('backend_engineer_operating_value_signal') else ''}"
         f"{'; AI-priority weighted' if score.get('ai_priority') else ''}"
+        f"{'; AI temporal check: ' + score.get('ai_temporal_note', '') if score.get('ai_priority') and score.get('ai_temporal_ok') else ''}"
+        f"{'; rejected by AI temporal staleness: ' + score.get('ai_temporal_note', '') if score.get('ai_priority') and not score.get('ai_temporal_ok', True) else ''}"
         f"{'; AI leader/interview priority' if score.get('interview_priority') else ''}"
         f"{'; frontier AI interview importance signal' if score.get('ai_interview_importance_signal') else ''}"
         f"{'; AI product/operator interview signal' if score.get('ai_product_operator_signal') else ''}"
@@ -1932,6 +2031,14 @@ def main() -> int:
                         "taste_value_signal": c["candidate_score"].get("taste_value_signal", False),
                         "paper_priority": c["candidate_score"].get("paper_priority", False),
                         "paper_user_impact": c["candidate_score"].get("paper_user_impact", False),
+                        "ai_source_age_days": c["candidate_score"].get("ai_source_age_days"),
+                        "ai_temporal_review_required": c["candidate_score"].get(
+                            "ai_temporal_review_required", False
+                        ),
+                        "ai_temporal_staleness_risk": c["candidate_score"].get(
+                            "ai_temporal_staleness_risk", "none"
+                        ),
+                        "ai_temporal_note": c["candidate_score"].get("ai_temporal_note", ""),
                         "source_diversity_penalty": c["candidate_score"].get("source_diversity_penalty", 0.0),
                         "source_diversity_note": c["candidate_score"].get("source_diversity_note", ""),
                     }
