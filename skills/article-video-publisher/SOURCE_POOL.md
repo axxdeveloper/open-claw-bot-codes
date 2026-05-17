@@ -1,33 +1,35 @@
 # Source Pool and Topic Scoring
 
-Last reviewed: 2026-05-10
+Last reviewed: 2026-05-17
 
-Use this file before choosing article-video topics. Prefer primary sources and high-signal technical material. Secondary sources can help discover topics, but the video should cite and explain primary sources whenever possible.
+Use this file before choosing article-video topics. Prefer primary sources and high-signal material. Secondary sources can help discover topics, but the video should cite and explain primary sources whenever possible.
 
 Machine-readable source registry: `SOURCE_REGISTRY.yml`.
 
 - Treat `SOURCE_REGISTRY.yml` as the source-of-truth list for scheduled watchers.
 - Treat this file as the editorial rubric: how to score, accept, combine, or reject candidates.
 - When the registry and examples in this file disagree, update the registry first and then refresh this file.
-- Lifestyle / fashion / taste sources are intentionally separate. Use `LIFESTYLE_TASTE_SOURCE_REGISTRY.yml`, `LIFESTYLE_TASTE_SOURCE_POOL.md`, and `reports/lifestyle-taste-source-watch/` only when a scheduled run enters the 40% lifestyle/taste branch.
+- Lifestyle / fashion / taste sources are intentionally separate for maintenance and are an optional side lane. Use `LIFESTYLE_TASTE_SOURCE_REGISTRY.yml`, `LIFESTYLE_TASTE_SOURCE_POOL.md`, and `reports/lifestyle-taste-source-watch/` when those sources provide a concrete viewer takeaway; do not use them merely to force variety.
 
 ## Selection Principles
 
-- Prefer sources with mechanism, data, implementation detail, architecture, and tradeoffs.
-- This technical pool represents the 60% technical AI/backend branch. Default audience is backend engineers. Automatic technical topics must help backend engineers make better technical decisions about systems, architecture, databases, infra, APIs, reliability, observability, security, performance, deployment, developer tooling, or production AI engineering.
-- Backend-engineer value has two valid forms. Technical-system value helps engineers make better architecture, infra, data, reliability, security, performance, deployment, devtools, or production-AI decisions. Operating-judgment value helps engineers work better inside strong technology companies: product strategy, AI adoption, team size/design, management layers, hiring, decision-making, user experience, and engineering/product collaboration. The second form is still technical-lane value when it changes how backend engineers prioritize systems, collaborate, design platforms, or evaluate AI-era product work.
-- This technical pool should not absorb lifestyle/fashion/taste sources. Keep taste-topic scoring in `LIFESTYLE_TASTE_SOURCE_POOL.md` so technical AI/backend quality signals remain clean.
-- Automatic investment, economy, macro, market, finance, GDP, rates, inflation, ETF, and stock-market explainer videos are disabled. Reject these candidates in scheduled/source-watch/HN/fallback workflows unless Isaac explicitly supplies the source URL/topic and asks for that specific video.
-- AI-related topics are globally weighted above backend and general technical categories only when they help backend engineers. If there is a high-quality, non-duplicate, verifiable AI-related candidate with backend-engineer value, choose it before backend or general technical candidates. Non-AI technical topics fill only when AI candidates are too thin, duplicated, unverifiable, below the quality threshold, not backend-engineer useful, or Isaac explicitly supplied a manual URL/topic.
-- Treat a candidate as AI-related when the source category is AI, or when a backend/general technical source is concretely about AI systems, model releases, agents, evals, inference, RAG/search, AI safety, AI developer tooling, or AI infrastructure. Do not select AI market/product/news items unless they teach an engineering mechanism useful to backend engineers.
+- Prefer sources with mechanism, data, implementation detail, architecture, evidence, and tradeoffs.
+- This pool is a maintained source list, not a public scope boundary. 小舟 has no topic-category restriction; topic choice should be driven by source quality, viewer payoff, safety, duplication, cadence, and review results.
+- Viewer value has several valid forms: technical-system judgment, operational or product judgment, public-issue context, macro/data literacy, taste/styling judgment, or any other concrete mental model that helps the intended viewer understand or decide something better.
+- Keep source pools organized so scoring remains readable, but do not use pool separation as a public scope blocker.
+- Isaac clarified on 2026-05-15 that 小舟 has no topic-category scope limit. Do not reject candidates solely because they are investment, economy, macro, market, finance, GDP, rates, inflation, ETF, stock-market, politics/public issue, lifestyle, styling, or otherwise non-technical. Gate on source quality, concrete takeaway, dedupe, cadence, safety, and platform risk.
+- AI-related topics can be weighted above other categories when they are high-quality, non-duplicate, verifiable, and have a clear viewer payoff. Do not rescue thin AI marketing posts only because they mention AI.
+- Do not trade off AI by imposing a broad AI quota. AI remains a core lane. Trade off repeated sources: if recent published videos are concentrated in the same domain, registry source, source family, paper feed, interview channel, or company blog, apply a soft repetition penalty and look for an equally strong source from a different original site or evidence type.
+- Within AI, rotate evidence types when quality allows: papers, official lab posts, model/system cards, repositories, engineering blogs, high-signal interviews, and operator/product AI sources. A repeated AI source can still win when it is urgent, unusually deep, or clearly better than alternatives.
+- Treat a candidate as AI-related when the source category is AI, or when a source is concretely about AI systems, model releases, agents, evals, inference, RAG/search, AI safety, AI developer tooling, AI infrastructure, AI product adoption, or AI organizational impact.
 - Avoid thin announcements, pure marketing posts, listicles, rumor-only stories, and content that cannot be verified from a primary or authoritative source.
 - Avoid company posts that are mainly self-promotion, product marketing, customer acquisition, or "why our product" positioning. Official company posts can be selected only when they include enough architecture, benchmark data, implementation detail, operational lessons, limitations, or failure modes to teach something beyond the vendor's pitch.
 - Use Taiwan-local Traditional Chinese explanation in the final video.
-- If Isaac manually requests an investment/economy/market video, explain data, mechanisms, scenarios, risks, and uncertainty. Do not give personalized buy/sell advice.
+- For investment/economy/market topics, explain data, mechanisms, scenarios, risks, and uncertainty. Do not give personalized buy/sell advice.
 - Treat official research blogs and named researcher/team blogs from groups like Anthropic and Google DeepMind as high-priority sources when they contain mechanism, experiments, engineering detail, or clear research context.
 - For researcher/team blog posts, verify major claims against the linked paper, official release note, repo, docs, benchmark, or data source before publication.
-- Treat Hacker News as a technical trend discovery layer, not as the main public source. Recent HN top stories can reveal what backend/AI/security/devtools engineers are discussing, but the selected video must trace back to a primary original URL whenever possible. HN score/comment volume can boost urgency only after the source passes backend-engineer value, verifiability, non-duplicate, and non-marketing checks.
-- For HN-driven candidates, prefer AI/backend/infra/security/data/devtools stories with a concrete mechanism: incident analysis, architecture change, release with engineering detail, paper/repo with evidence, performance or reliability tradeoff, security advisory, or production lesson. Reject drama, hiring/culture-only threads, pure opinion fights, market chatter, generic Show HN demos without technical substance, and Ask HN threads unless the thread itself contains unusually strong expert technical detail.
+- Treat Hacker News as a technical trend discovery layer, not as the main public source. Recent HN top stories can reveal what technical communities are discussing, but the selected video must trace back to a primary original URL whenever possible. HN score/comment volume can boost urgency only after the source passes viewer-value, verifiability, non-duplicate, and non-marketing checks.
+- For HN-driven candidates, prefer stories with a concrete mechanism: incident analysis, architecture change, release with engineering detail, paper/repo with evidence, performance or reliability tradeoff, security advisory, or production lesson. Reject drama, rumor-only threads, pure opinion fights, generic Show HN demos without substance, and Ask HN threads unless the thread itself contains unusually strong expert detail.
 
 ## Continuous Topic Optimization Loop
 
@@ -37,11 +39,11 @@ Use this loop for scheduled workflows:
 
 1. Daily source watch scans `SOURCE_REGISTRY.yml` and writes `reports/source-watch/YYYY-MM-DD.jsonl` plus `reports/source-watch/source-health.json`.
 2. Daily HN watch scans recent Hacker News top stories and writes/updates the `hn-daily-top-1500` section in `reports/daily-audio-pack/YYYY-MM-DD.md`; use it as discovery context for the technical branch.
-2. Candidate ranking applies the 20-point scorecard, source weights, AI priority multiplier, interview priority bonus, duplicate checks, and marketing penalty before choosing a topic.
-3. Before starting a new video, compare the candidate against recent `reports/article-video-publisher/**/source.json`, YouTube metadata, and the last 30 days of source-watch dedupe keys.
-4. After every published video, keep `review/improvement-notes.md`, `review/ai-usage-improvement.md`, and `source.json.candidate_score` so future runs can see which sources produced understandable, deep videos and which sources improved our own AI workflows.
-5. Use `review/ai-usage-improvement.md` to capture whether the source suggests improvements to topic selection, prompts, agents, source verification, RAG/search, eval/review gates, TTS/video, reliability, cost/latency, safety, privacy, or publishing operations. Prefer reversible tests; write no-op when the source does not produce a concrete internal improvement.
-6. When a source repeatedly yields thin, promotional, duplicate, or unverifiable candidates, lower its registry weight or disable it. When a source repeatedly yields review-passing, high-depth AI topics or useful internal AI usage improvements, keep or raise its weight.
+3. Candidate ranking applies the 20-point scorecard, source weights, AI priority multiplier, interview priority bonus, duplicate checks, source-diversity penalty, and marketing penalty before choosing a topic.
+4. Before starting a new video, compare the candidate against recent `reports/article-video-publisher/**/source.json`, YouTube metadata, and the last 30 days of source-watch dedupe keys. Inspect both topic duplication and source concentration.
+5. After every published video, keep `review/improvement-notes.md`, `review/ai-usage-improvement.md`, and `source.json.candidate_score` so future runs can see which sources produced understandable, deep videos and which sources improved our own AI workflows.
+6. Use `review/ai-usage-improvement.md` to capture whether the source suggests improvements to topic selection, prompts, agents, source verification, RAG/search, eval/review gates, TTS/video, reliability, cost/latency, safety, privacy, or publishing operations. Prefer reversible tests; write no-op when the source does not produce a concrete internal improvement.
+7. When a source repeatedly yields thin, promotional, duplicate, or unverifiable candidates, lower its registry weight or disable it. When a source repeatedly yields review-passing, high-depth AI topics or useful internal AI usage improvements, keep or raise its weight.
 
 The practical goal: the pool should drift toward sources that repeatedly produce explainable mechanisms, not just sources that publish often.
 
@@ -59,9 +61,9 @@ Weekly:
 
 - Review `reports/source-watch/source-health.json` and the last 7 days of `reports/source-watch/*.jsonl`.
 - Check for enabled sources with repeated fetch errors, zero candidates, malformed titles, homepage/navigation noise, or mostly marketing output.
-- Check for coverage imbalance across AI, databases, streaming/messaging, observability/SRE, production engineering, Java/JVM, runtimes, and cloud architecture.
-- Adjust weights or disable sources that repeatedly fail the backend-engineer payoff gate.
-- Add or repair sources when a useful backend category has weak coverage, but prefer primary/project/engineering sources over aggregator feeds.
+- Check for coverage imbalance across AI, databases, streaming/messaging, observability/SRE, production engineering, Java/JVM, runtimes, and cloud architecture, plus domain/source-family concentration in recently published videos.
+- Adjust weights or disable sources that repeatedly fail the clear-viewer-payoff gate.
+- Add or repair sources when a useful category has weak coverage, but prefer primary, official, project, expert, or high-signal sources over aggregator feeds.
 - Run a clean temporary dry-run after changes and require: registry parses, IDs are unique, watcher can fetch/parse, and candidate quality is plausible.
 
 Monthly:
@@ -75,7 +77,7 @@ Promotion and demotion:
 
 - Promote a source when it repeatedly gives transferable mechanisms: architecture, implementation, benchmark, migration, incident, reliability, storage/query/runtime, or operational tradeoff.
 - Demote a source when the useful angle is mainly "this vendor/product is good", the feed is mostly events/webinars/customer stories, or the watcher cannot parse stable article URLs.
-- Keep exploratory vendor sources at lower weights unless their posts consistently teach general backend engineering decisions.
+- Keep exploratory vendor sources at lower weights unless their posts consistently teach general software engineering, AI-assisted development, or production engineering decisions.
 
 ## Candidate Scorecard
 
@@ -85,18 +87,25 @@ Score each candidate out of 20.
 |---|---:|---|
 | Source authority | 0-3 | Primary/official source, credible engineering/research/data source, or expert technical video. |
 | Substance depth | 0-4 | Enough mechanism, data, architecture, code, method, implementation detail, or engineering tradeoff. |
-| Audience value | 0-3 | Backend engineers gain a concrete better judgment, workflow, risk check, or technical mental model, not just headline awareness. |
+| Audience value | 0-3 | The intended viewer gains a concrete better judgment, workflow, risk check, or mental model, not just headline awareness. |
 | Timeliness | 0-2 | Recent, newly relevant, or still important because it explains a current shift. |
 | Explainability | 0-3 | Can be turned into clear diagrams, examples, timelines, comparisons, or decision maps. |
-| Novelty / non-repeat | 0-2 | Not a repeated topic unless the angle is materially new. |
+| Novelty / non-repeat | 0-2 | Not a repeated topic or overused recent source/domain/source family unless the angle is materially new. |
 | Sourceability | 0-2 | URLs, dates, claims, and data can be cited cleanly in video description/slides. |
 | Risk clarity | 0-1 | Risks, caveats, or uncertainty can be stated responsibly. |
 
 AI priority multiplier:
 
 - After the 20-point score, apply a ranking multiplier to AI-related candidates for sorting. Use `ai_priority=true` in local artifacts when this boost affected ordering.
-- A qualified AI candidate with `total >= 13` should beat a non-AI candidate unless the AI source is duplicated, unverifiable, too thin, or blocked by a manual URL/topic.
-- Strong AI candidates with `total >= 16` should be selected before non-AI strong candidates by default.
+- A qualified AI candidate with `total >= 13` should beat a non-AI candidate unless the AI source is duplicated, unverifiable, too thin, source-repetitive without exceptional value, or blocked by a manual URL/topic.
+- Strong AI candidates with `total >= 16` should be selected before non-AI strong candidates by default, but first apply the source-diversity penalty so the channel does not feel dominated by the same few websites.
+
+Source-diversity soft gate:
+
+- Before final selection, inspect at least the last 10 published video `source.json` files when available, and preferably the last 20 for trend context.
+- If the same domain, registry source, source family, arXiv/paper feed, interview channel, or company blog appears more than twice in the last 10 or more than four times in the last 20, do not hard-reject it; require a stronger reason such as major release, unusually deep mechanism, high urgency, or no comparable alternative.
+- Avoid back-to-back selections from the same domain/source family unless the new item is clearly stronger than the alternatives. Record the reason in `source.json.candidate_score.source_diversity_note` or the run notes.
+- When two candidates are close in score, choose the one that broadens the published source mix and still passes the viewer-payoff gate.
 
 Marketing penalty:
 
@@ -111,8 +120,8 @@ Decision:
 - `9-12`: Short candidate only, unless combined with another strong source.
 - `<9`: Reject or keep only as background.
 - Reject or reshape any candidate with `audience_value < 2`, even if the total score is high.
-- Reject automatic investment/economy/macro/market/finance candidates regardless of score, unless Isaac explicitly supplied that URL/topic for this run.
-- Reject automatic candidates that cannot state a backend-engineer payoff in the form: "看完後，後端工程師可以..." followed by a concrete technical decision, implementation workflow, debug path, or risk check.
+- Reject automatic candidates only when the topic is thin, unverifiable, duplicate, unsafe for the platform, too promotional, or lacks a clear viewer payoff.
+- Reject automatic candidates that cannot state a viewer payoff in the form: "看完後，觀眾可以..." followed by a concrete better judgment, workflow, risk check, or mental model.
 - Give `audience_value=3` only when you can write a one-sentence payoff: "看完後，觀眾可以..." followed by a concrete better judgment or workflow.
 - `audience_value=2` means useful background or mental model, but the title/intro must still make the viewer payoff visible.
 - `audience_value=1` means mostly headline awareness; do not make a long-form video.
@@ -199,9 +208,9 @@ Good AI video angles:
 
 Coverage rule:
 
-- Do not let the technical pool collapse into a few familiar company blogs. Keep the backend branch balanced across databases, streaming/messaging, observability/SRE, cloud architecture, runtimes/frameworks, and real production engineering blogs.
-- Keep backend-engineer learning broader than code and infrastructure. Add high-quality operator/company-building sources when they teach how excellent technology companies operate in the AI era: product strategy, team structure, management layers, hiring, decision-making, user experience, AI adoption, and engineering/product collaboration. Accept these only when the viewer payoff can start with "看完後，後端工程師可以..." and name a concrete work judgment, technical prioritization change, platform/product collaboration pattern, or AI adoption risk check.
-- When a scheduled run has several similar candidates, prefer the one that fills a recent coverage gap if it still passes the scorecard and can state "看完後，後端工程師可以..." with a concrete decision, workflow, debug path, or risk check.
+- Do not let the technical pool collapse into a few familiar company blogs, paper feeds, or AI interview channels. Keep the engineering branch balanced across AI engineering, databases, streaming/messaging, observability/SRE, cloud architecture, runtimes/frameworks, security, developer tooling, performance/cost, and real production engineering blogs.
+- Keep technology learning broader than code and infrastructure. Add high-quality operator/company-building sources when they teach how strong technology companies operate in the AI era: product strategy, team structure, management layers, hiring, decision-making, user experience, AI adoption, and engineering/product collaboration. Accept these when the viewer payoff can start with "看完後，觀眾可以..." and name a concrete work judgment, prioritization change, collaboration pattern, or adoption risk check.
+- When a scheduled run has several similar candidates, prefer the one that fills a recent coverage gap if it still passes the scorecard and can state "看完後，觀眾可以..." with a concrete better judgment, workflow, risk check, or mental model.
 - Treat broad company engineering blogs as discovery sources unless the specific post has mechanism, architecture, incident detail, benchmark data, migration steps, or operational tradeoffs. Reject posts that are mainly hiring, culture, launch, product positioning, or customer marketing.
 - For vendor database and observability sources, require the public video angle to be the transferable mechanism, not "this product is good".
 
@@ -337,13 +346,13 @@ Taiwan primary sources:
 - Financial Supervisory Commission: https://www.fsc.gov.tw/
 - Ministry of Finance: https://www.mof.gov.tw/
 
-Market/investment context sources are disabled for automatic video selection:
+Market/investment context sources are allowed when they pass the same source-quality and safety gates:
 
 - ETF issuer pages for fund composition, costs, and official factsheets.
 - Exchange and regulator data for market structure.
 - Credible bank/asset-manager research only when claims are tied back to data.
 
-Only use these sources when Isaac manually requests a specific economy/market video. Good economy/investment video angles:
+Good economy/investment video angles:
 
 - Data release explainer: what changed, why it matters, leading/lagging parts, caveats.
 - Policy transmission: rates, liquidity, credit, FX, inflation, labor, earnings, valuation.
