@@ -36,7 +36,7 @@ sources:
     use_for: [long_video, research]
     tags: [sustainability, fashion_industry, interviews, materials, ethics]
     enabled: true
-    notes: Use mainly when an episode offers direct styling, wardrobe, care, repair, or durability decisions; avoid serious supply-chain/history/ethics topics without a how-to-wear payoff.
+    notes: Use mainly when an episode offers clear styling, wardrobe, care, repair, or durability principles; avoid serious supply-chain/history/ethics topics without a how-to-wear explanation path.
   - id: dressed-fashion-history
     name: Dressed: The History of Fashion
     category: Taste

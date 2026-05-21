@@ -9,16 +9,16 @@ Machine-readable source registry: `SOURCE_REGISTRY.yml`.
 - Treat `SOURCE_REGISTRY.yml` as the source-of-truth list for scheduled watchers.
 - Treat this file as the editorial rubric: how to score, accept, combine, or reject candidates.
 - When the registry and examples in this file disagree, update the registry first and then refresh this file.
-- Lifestyle / fashion / taste sources are intentionally separate for maintenance and are an optional side lane. Use `LIFESTYLE_TASTE_SOURCE_REGISTRY.yml`, `LIFESTYLE_TASTE_SOURCE_POOL.md`, and `reports/lifestyle-taste-source-watch/` when those sources provide a concrete viewer takeaway; do not use them merely to force variety.
+- Lifestyle / fashion / taste sources are intentionally separate for maintenance and are an optional side lane. Use `LIFESTYLE_TASTE_SOURCE_REGISTRY.yml`, `LIFESTYLE_TASTE_SOURCE_POOL.md`, and `reports/lifestyle-taste-source-watch/` when those sources can be introduced clearly and provide concrete source-backed substance; do not use them merely to force variety.
 
 ## Selection Principles
 
 - Prefer sources with mechanism, data, implementation detail, architecture, evidence, and tradeoffs.
-- This pool is a maintained source list, not a public scope boundary. 小舟 has no topic-category restriction; topic choice should be driven by source quality, viewer payoff, safety, duplication, cadence, and review results.
-- Viewer value has several valid forms: technical-system judgment, operational or product judgment, public-issue context, macro/data literacy, taste/styling judgment, or any other concrete mental model that helps the intended viewer understand or decide something better.
+- This pool is a maintained source list, not a public scope boundary. 小舟 has no topic-category restriction; topic choice should be driven by source quality, source-understanding value, safety, duplication, cadence, and review results.
+- Viewer value means the source becomes easier to understand: technical/system context, operating model, public-issue context, macro/data literacy, taste/styling principle, concrete conclusion, limitation, or mental model. Do not require every candidate to become a role-specific judgment, workflow, risk check, or decision framework.
 - Keep source pools organized so scoring remains readable, but do not use pool separation as a public scope blocker.
 - Isaac clarified on 2026-05-15 that 小舟 has no topic-category scope limit. Do not reject candidates solely because they are investment, economy, macro, market, finance, GDP, rates, inflation, ETF, stock-market, politics/public issue, lifestyle, styling, or otherwise non-technical. Gate on source quality, concrete takeaway, dedupe, cadence, safety, and platform risk.
-- AI-related topics can be weighted above other categories when they are high-quality, non-duplicate, verifiable, and have a clear viewer payoff. Do not rescue thin AI marketing posts only because they mention AI.
+- AI-related topics can be weighted above other categories when they are high-quality, non-duplicate, verifiable, and have clear source-understanding value. Do not rescue thin AI marketing posts only because they mention AI.
 - Do not trade off AI by imposing a broad AI quota. AI remains a core lane. Trade off repeated sources: if recent published videos are concentrated in the same domain, registry source, source family, paper feed, interview channel, or company blog, apply a soft repetition penalty and look for an equally strong source from a different original site or evidence type.
 - Within AI, rotate evidence types when quality allows: papers, official lab posts, model/system cards, repositories, engineering blogs, high-signal interviews, and operator/product AI sources. A repeated AI source can still win when it is urgent, unusually deep, or clearly better than alternatives.
 - AI topic selection must be time-aware. Treat 30 days as the freshness baseline for automatic AI candidates. Older AI sources are not automatically rejected when they are durable concept, architecture, history, taxonomy, security, or retrospective lessons, but the run must record why the claim is still valid now. Time-sensitive AI sources about model releases, API behavior, pricing, benchmarks, evals, coding-agent performance, inference cost/latency, tools, or product claims should be rejected or refreshed with newer primary evidence when older than about 30 days.
@@ -63,7 +63,7 @@ Weekly:
 - Review `reports/source-watch/source-health.json` and the last 7 days of `reports/source-watch/*.jsonl`.
 - Check for enabled sources with repeated fetch errors, zero candidates, malformed titles, homepage/navigation noise, or mostly marketing output.
 - Check for coverage imbalance across AI, databases, streaming/messaging, observability/SRE, production engineering, Java/JVM, runtimes, and cloud architecture, plus domain/source-family concentration in recently published videos.
-- Adjust weights or disable sources that repeatedly fail the clear-viewer-payoff gate.
+- Adjust weights or disable sources that repeatedly fail the clear source-understanding gate.
 - Add or repair sources when a useful category has weak coverage, but prefer primary, official, project, expert, or high-signal sources over aggregator feeds.
 - Run a clean temporary dry-run after changes and require: registry parses, IDs are unique, watcher can fetch/parse, and candidate quality is plausible.
 
@@ -88,7 +88,7 @@ Score each candidate out of 20.
 |---|---:|---|
 | Source authority | 0-3 | Primary/official source, credible engineering/research/data source, or expert technical video. |
 | Substance depth | 0-4 | Enough mechanism, data, architecture, code, method, implementation detail, or engineering tradeoff. |
-| Audience value | 0-3 | The intended viewer gains a concrete better judgment, workflow, risk check, or mental model, not just headline awareness. |
+| Audience value | 0-3 | The source can be made easier to understand: source object, mechanism, evidence, conclusion, limitation, or mental model, not just headline awareness. |
 | Timeliness | 0-2 | Recent, newly relevant, or still important because it explains a current shift. |
 | Explainability | 0-3 | Can be turned into clear diagrams, examples, timelines, comparisons, or decision maps. |
 | Novelty / non-repeat | 0-2 | Not a repeated topic or overused recent source/domain/source family unless the angle is materially new. |
@@ -114,7 +114,7 @@ Source-diversity soft gate:
 - Before final selection, inspect at least the last 10 published video `source.json` files when available, and preferably the last 20 for trend context.
 - If the same domain, registry source, source family, arXiv/paper feed, interview channel, or company blog appears more than twice in the last 10 or more than four times in the last 20, do not hard-reject it; require a stronger reason such as major release, unusually deep mechanism, high urgency, or no comparable alternative.
 - Avoid back-to-back selections from the same domain/source family unless the new item is clearly stronger than the alternatives. Record the reason in `source.json.candidate_score.source_diversity_note` or the run notes.
-- When two candidates are close in score, choose the one that broadens the published source mix and still passes the viewer-payoff gate.
+- When two candidates are close in score, choose the one that broadens the published source mix and still passes the source-understanding gate.
 
 Marketing penalty:
 
@@ -129,12 +129,12 @@ Decision:
 - `9-12`: Short candidate only, unless combined with another strong source.
 - `<9`: Reject or keep only as background.
 - Reject or reshape any candidate with `audience_value < 2`, even if the total score is high.
-- Reject automatic candidates only when the topic is thin, unverifiable, duplicate, unsafe for the platform, too promotional, or lacks a clear viewer payoff.
-- Reject automatic candidates that cannot state a viewer payoff in the form: "看完後，觀眾可以..." followed by a concrete better judgment, workflow, risk check, or mental model.
-- Give `audience_value=3` only when you can write a one-sentence payoff: "看完後，觀眾可以..." followed by a concrete better judgment or workflow.
-- `audience_value=2` means useful background or mental model, but the title/intro must still make the viewer payoff visible.
+- Reject automatic candidates only when the topic is thin, unverifiable, duplicate, unsafe for the platform, too promotional, or lacks clear source-understanding value.
+- Reject automatic candidates that cannot state what viewers will understand better about the original source.
+- Give `audience_value=3` only when you can write one sentence such as "看完後，觀眾可以更容易理解..." followed by the source object, mechanism, conclusion, or limitation that becomes clearer.
+- `audience_value=2` means useful background or mental model, but the title/intro must still make the source-understanding value visible.
 - `audience_value=1` means mostly headline awareness; do not make a long-form video.
-- `audience_value=0` means no clear reader use; reject.
+- `audience_value=0` means no clear source-understanding value; reject.
 - Apply AI priority after reject/quality filtering, not before. Do not rescue thin AI marketing posts only because they mention AI.
 
 Format choice:
@@ -174,11 +174,11 @@ AI paper priority sources:
 - arXiv stat.ML: https://arxiv.org/list/stat.ML/recent
 - Hugging Face Papers: https://huggingface.co/papers
 
-Treat AI-related papers as priority candidates only when they have clear impact for AI users, developers, operators, or adopters. Prefer papers about agents, coding/codegen, RAG/search/source attribution, eval/safety/reliability, inference cost/latency/serving, tool/browser/GUI use, long context/memory, multimodal systems, open models, post-training, or deployment workflows. Method, benchmark, evaluation, dataset, code, and artifacts are evidence requirements; they do not make a paper important by themselves.
+Treat AI-related papers as priority candidates only when their research question, method, result, and limitation can be explained clearly for first-time viewers. Prefer papers about agents, coding/codegen, RAG/search/source attribution, eval/safety/reliability, inference cost/latency/serving, tool/browser/GUI use, long context/memory, multimodal systems, open models, post-training, or deployment workflows. Method, benchmark, evaluation, dataset, code, and artifacts are evidence requirements; they do not make a paper important by themselves.
 
 Use the arXiv abstract/PDF, conference/OpenReview page, official project page, or repository as the main source when possible. Hugging Face Papers and Papers With Code-style pages are discovery/context unless the paper page links cleanly to the original paper and artifacts.
 
-Reject or defer papers when the abstract is too narrow, math-only without an explainable AI-user payoff, domain-specific without broader AI workflow impact, lacks evidence, duplicates a recently covered idea, has no accessible source/PDF, or would require speculation beyond the paper's claims. Do not select a paper only because it is recent or because it appeared in an arXiv/Hugging Face feed.
+Reject or defer papers when the abstract is too narrow, math-only without a clear explanation path, domain-specific without a source-backed concept a broader viewer can follow, lacks evidence, duplicates a recently covered idea, has no accessible source/PDF, or would require speculation beyond the paper's claims. Do not select a paper only because it is recent or because it appeared in an arXiv/Hugging Face feed.
 
 AI leader interview priority sources:
 
@@ -211,15 +211,15 @@ Good AI video angles:
 - Inference systems: batching, KV cache, routing, quantization, GPU utilization, latency/cost tradeoffs.
 - Agent engineering: tracing, permissioning, memory, evals, browser/tool reliability, rollback.
 - RAG/search: indexing, chunking, ranking, grounding, vector/database tradeoffs.
-- Interview explainers: turn the guest's mental model into background, mechanism, tradeoff, risk, practical implication, and what to watch next. Do not make a personality profile.
+- Interview explainers: turn the guest's mental model into background, mechanism, tradeoff, risk, source-backed implication, and what to watch next in the original source. Do not make a personality profile.
 
 ## Backend / Infrastructure Sources
 
 Coverage rule:
 
 - Do not let the technical pool collapse into a few familiar company blogs, paper feeds, or AI interview channels. Keep the engineering branch balanced across AI engineering, databases, streaming/messaging, observability/SRE, cloud architecture, runtimes/frameworks, security, developer tooling, performance/cost, and real production engineering blogs.
-- Keep technology learning broader than code and infrastructure. Add high-quality operator/company-building sources when they teach how strong technology companies operate in the AI era: product strategy, team structure, management layers, hiring, decision-making, user experience, AI adoption, and engineering/product collaboration. Accept these when the viewer payoff can start with "看完後，觀眾可以..." and name a concrete work judgment, prioritization change, collaboration pattern, or adoption risk check.
-- When a scheduled run has several similar candidates, prefer the one that fills a recent coverage gap if it still passes the scorecard and can state "看完後，觀眾可以..." with a concrete better judgment, workflow, risk check, or mental model.
+- Keep technology learning broader than code and infrastructure. Add high-quality operator/company-building sources when they help viewers understand how strong technology companies operate in the AI era: product strategy, team structure, management layers, hiring, decision-making, user experience, AI adoption, and engineering/product collaboration. Accept these when the source has concrete claims, examples, or mechanisms that can be explained clearly without turning the topic into generic adoption advice.
+- When a scheduled run has several similar candidates, prefer the one that fills a recent coverage gap if it still passes the scorecard and can state what the viewer will understand better about the original source.
 - Treat broad company engineering blogs as discovery sources unless the specific post has mechanism, architecture, incident detail, benchmark data, migration steps, or operational tradeoffs. Reject posts that are mainly hiring, culture, launch, product positioning, or customer marketing.
 - For vendor database and observability sources, require the public video angle to be the transferable mechanism, not "this product is good".
 
@@ -403,7 +403,7 @@ For every selected topic, write the following into `source.json`:
     "target_viewer": "...",
     "why_now": "...",
     "viewer_question": "...",
-    "useful_after_watching": "看完後，觀眾可以...",
+    "useful_after_watching": "看完後，觀眾可以更容易理解...",
     "not_just_news": true
   },
   "candidate_score": {

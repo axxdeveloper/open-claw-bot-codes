@@ -2,13 +2,13 @@
 
 Last reviewed: 2026-05-11
 
-This file is separate from `SOURCE_POOL.md`. Use it only when a scheduled video run enters the lifestyle / fashion / taste branch.
+This file is separate from `SOURCE_POOL.md`. Use it only when Isaac explicitly asks for practical styling content, or when a source has direct outfit/styling value that fits 小舟's non-technical exception.
 
 Machine-readable registry: `LIFESTYLE_TASTE_SOURCE_REGISTRY.yml`.
 
 Report directory: `reports/lifestyle-taste-source-watch/`.
 
-Do not add these sources to `SOURCE_REGISTRY.yml`, and do not let technical AI/backend scoring consume lifestyle sources. The branch exists so around 40% of scheduled videos can explore taste topics without weakening the technical source pool.
+Keep these sources organized separately when that helps scoring and maintenance, but do not treat the separate file as a public scope blocker. Isaac clarified on 2026-05-15 that 小舟 has no topic-category scope limit; lifestyle, taste, and styling topics may be selected when the source is strong and can be introduced clearly.
 
 ## Selection Principles
 
@@ -16,22 +16,24 @@ Do not add these sources to `SOURCE_REGISTRY.yml`, and do not let technical AI/b
 - Write gender-neutrally unless Isaac or the original source explicitly narrows the audience.
 - Avoid pickup framing, heteronormative defaults, body-shaming, status flexing, "alpha" framing, or gender stereotypes.
 - For clothing/fashion videos, prioritize practical styling: how to combine clothes so the outfit looks better. Fit, proportion, silhouette, color, layering, shoes/accessories, occasion, office/commute/travel context, and repeatable outfit formulas should outrank fashion history, supply-chain ethics, sustainability, or cultural analysis.
-- Material, history, labor, and sustainability can appear as supporting context, but they should not be the main automatic video payoff unless the source also teaches a clear "how to wear / how to style / what to pair it with" decision.
+- Clothing/fashion videos must be visual-first. If the advice depends on terms such as collar, layering, silhouette, drape, texture, trouser break, quarter zip, overshirt, blazer, chore coat, knit, loafer, or sneaker weight, include labeled photos/illustrations or close-ups so the viewer can tell which garment and feature is being discussed.
+- Garment-specific topics need enough visual examples to make the difference obvious: glossary board, wrong/right comparison, office outfit, weekend outfit, detail close-up, flat lay, and final rule card. Do not make a styling video that is mostly terminology over text slides.
+- Material, history, labor, and sustainability can appear as supporting context, but they should not be the main automatic styling video value unless the source also helps viewers understand a clear "how to wear / how to style / what to pair it with" principle.
 - Prefer evergreen taste mechanisms over trend recaps: fit, proportion, fabric, construction, care, repair, wardrobe systems, context/occasion, climate, commute, home objects, everyday environment, communication norms, and decision frameworks.
 - Prefer interviews/articles that explain why something works, not just what to buy.
 - Keep one main original source per video. Discovery feeds can surface a topic, but the public source must be the episode/article URL.
-- If the branch finds no strong source, fall back to the normal technical AI/backend selection. Do not publish a weak lifestyle video just to satisfy the 40% branch.
+- If there is no strong styling/lifestyle/taste source, choose another strong source-backed topic. Do not publish a weak video just to satisfy a schedule.
 
-## 40% Branch Rule
+## Styling Exception Rule
 
 For automatic scheduled video runs:
 
-1. At the beginning of topic selection, roll a 40% lifestyle/taste branch and a 60% technical AI/backend branch.
-2. If selected, scan or read `LIFESTYLE_TASTE_SOURCE_REGISTRY.yml` and recent `reports/lifestyle-taste-source-watch/*.jsonl`.
-3. Accept only candidates with `Taste` category, a clear viewer payoff, and enough source detail for source-attributed explanation.
+1. Choose the strongest source-backed topic for the intended viewer; technical AI/backend is a valuable source class, not a scope ceiling.
+2. Use this pool only when Isaac requested styling, or when a recent source has direct practical outfit/styling value.
+3. Accept only candidates with `Taste` category, clear source-understanding value, and enough source detail for source-attributed explanation.
 4. If no candidate reaches the threshold, return to the technical source pool for that run.
 
-This is a probability target, not a quota. Do not delay or skip good technical videos just because the lifestyle branch did not find a usable topic.
+There is no lifestyle quota. Do not delay or skip good technical videos just because the styling pool did not find a usable topic.
 
 ## Candidate Scorecard
 
@@ -57,18 +59,18 @@ Decision:
 - Reject if `audience_value < 2`.
 - Reject if the value is only "looks nice", "buy this", "trend update", "celebrity style", or "sales/deals".
 - Reject product affiliate posts, shopping roundups, sale posts, haul content, status/luxury flex, or thin trend galleries unless the article teaches a reusable taste principle.
-- Reject automatic clothing candidates whose main value is serious fashion history, colonial/ethical/supply-chain analysis, or sustainability concern without a direct styling payoff. These can be saved for manually requested deep dives, but they are not the default Isaac wants from the lifestyle/taste lane.
+- Reject automatic clothing candidates whose main value is serious fashion history, colonial/ethical/supply-chain analysis, or sustainability concern without a direct styling principle. These can be saved for manually requested deep dives, but they are not the default Isaac wants from the lifestyle/taste lane.
 
-Useful payoff shape:
+Useful understanding shape:
 
-- "看完後，觀眾可以用白 T、外層、褲型、鞋子和配色做出三種乾淨的日常搭配。"
-- "看完後，觀眾可以判斷上衣長度、肩線、褲腰位置和鞋型怎麼影響整體比例。"
-- "看完後，觀眾可以判斷一件衣服的版型和布料是否適合自己的日常情境。"
-- "看完後，觀眾可以用一個簡單矩陣整理上班、約會、旅行、假日的衣櫃決策。"
-- "看完後，觀眾可以用修補、保養、替換成本來判斷鞋子或外套值不值得買。"
-- "看完後，觀眾可以把居家空間的顏色、光線和收納改成更穩定的生活系統。"
+- "看完後，觀眾可以更容易理解白 T、外層、褲型、鞋子和配色為什麼會形成乾淨的日常搭配。"
+- "看完後，觀眾可以更容易理解上衣長度、肩線、褲腰位置和鞋型怎麼影響整體比例。"
+- "看完後，觀眾可以更容易理解一件衣服的版型、布料和日常情境之間的關係。"
+- "看完後，觀眾可以更容易理解來源提出的上班、約會、旅行、假日衣櫃整理邏輯。"
+- "看完後，觀眾可以更容易理解修補、保養、替換成本如何影響鞋子或外套的長期使用。"
+- "看完後，觀眾可以更容易理解居家空間的顏色、光線和收納如何影響生活穩定感。"
 
-Weak payoff to reject:
+Weak understanding value to reject:
 
 - "看完後，觀眾可以知道今年流行什麼。"
 - "看完後，觀眾可以了解某品牌新品。"
@@ -117,7 +119,7 @@ Use lifestyle/home sources only when the item can teach a practical taste framew
 
 ## Public Video Requirements
 
-- Keep the same article-video rules for source attribution, cover slide, context briefing, reader value, difficulty budget, OpenAI TTS, audio validation, YouTube description, and public-page verification.
-- `source.json.reader_value.target_viewer` should say "工程師觀眾 / 技術工作者 / 一般觀眾" rather than assuming a gender.
+- Keep the same article-video rules for source attribution, cover slide, context briefing, source-understanding value, difficulty budget, OpenAI TTS, audio validation, YouTube description, and public-page verification.
+- `source.json.reader_value.target_viewer` should usually say "一般觀眾" rather than assuming a gender or role.
 - `context_briefing` should explain whether the source is a fashion history episode, craft article, interview, home design piece, or lifestyle essay, and why this source is credible.
 - If a topic uses a gendered source such as menswear or womenswear, the video may mention that source context, but the extracted lesson should be framed only as broadly as the evidence supports.

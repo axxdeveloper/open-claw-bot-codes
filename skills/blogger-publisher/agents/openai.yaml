@@ -1,0 +1,4 @@
+interface:
+  display_name: "Blogger Publisher"
+  short_description: "Publish posts through signed-in Blogger."
+  default_prompt: "Draft or publish this article to Blogger using the signed-in TodayShip Blogger account."

@@ -21,9 +21,11 @@ Do not skip or reject a selected source just because it is non-technical,
 macro/economy/market/finance, politics/public issue, lifestyle, styling, or
 generic culture.
 
-Public posts should help the intended reader pick up one useful source-backed
-idea, judgment, limitation, or practical next step. Keep the voice calm,
-Taiwan-local, and evidence-bounded rather than combative or generic hot-take.
+Public posts should make the original source easier to understand. Help the
+reader pick up one source-backed idea, conclusion, limitation, or implication
+without turning every post into advice for a specific role or a practical next
+step. Keep the voice calm, Taiwan-local, and evidence-bounded rather than
+combative or generic hot-take.
 AI and engineering topics remain important, but source-intro posts should avoid
 feeling like repeated links from the same few websites. When multiple selected
 sources are available, prefer a high-quality source from a less-recently-used
@@ -41,6 +43,12 @@ Default channel split:
   categories.
 - Blogger: articles from published videos or source research.
 - YouTube: source-backed knowledge videos across selected topic categories.
+
+Blog-first source explainers are a separate sharing lane: when a strong source
+needs a full Chinese explanation, or is video-worthy but cannot get a video slot
+yet because video volume is limited, Blogger may be the main public Chinese
+explainer first. Threads may then share that verified Blogger post. Do not treat
+this as permission to append Blogger links to every routine source-intro.
 
 ## Workflow
 
@@ -125,34 +133,36 @@ an optional small note.
     --video-url "https://www.youtube.com/watch?v=..."
   ```
 - Draft around the original source and explain conclusions, not just the
-  opening setup: at most one relaxed hook, then 1-2 source-backed conclusions,
-  limitations, practical judgments, or implications, one short reason it matters
-  to the intended reader, and the original source URL as the main link.
+  opening setup: at most one relaxed hook, then identify what the source is,
+  explain 1-2 source-backed conclusions, limitations, or implications, and put
+  the original source URL as the main link. Do not open with a role list such as
+  `PM/企業主/老師`, and do not force the source into導入、驗收、上線、工作流, or
+  other consulting-use framing.
 - Use the same "assume the reader does not know this yet" stance as the video
   workflow. Even in a short post, define the core term or source object in plain
   language before drawing the conclusion. The reader should not need to already
   know the paper, product, acronym, market term, or styling term to understand
   the post.
-- Isaac's 2026-05-16 direction: Blogger articles often explain technical
+- Isaac's 2026-05-16 direction, updated 2026-05-21: Blogger articles often explain technical
   concepts more clearly, and Threads should follow that direction in compressed
   form. A Threads source-intro is not allowed to be only a teaser. It should
-  teach one small concept using the same ladder: plain definition -> mechanism
-  or boundary -> practical judgment. If the matching Blogger article exists,
+  teach one small concept using the same ladder: source object/plain definition
+  -> mechanism or boundary -> source conclusion or limitation. If the matching Blogger article exists,
   you may read it as the comprehension reference before drafting, then compress
   the explanation rather than copying paragraphs. Do not add the Blogger link to
   the Threads post.
 - For complex sources, explain one mechanism in a compact way: what it is, how
-  it works, and why it changes the judgment. Do not only say "this is important"
-  or paste the result number.
+  it works, and what conclusion or limit the source supports. Do not only say
+  "this is important" or paste the result number.
 - Use direct declarative teaching for the takeaway. Do not frame the useful
   point as a question, checklist prompt, or "先問..." instruction. Rewrite
   question-shaped advice into clear information the reader can use immediately:
   name the signal, what it means, and what boundary or metric changes the
   interpretation.
-- The post should answer "so what did this source conclude, and how should I use
-  that judgment next time?" before or near the source link. Avoid drafts that
-  only say the topic is important, the source is worth reading, or the question
-  is interesting.
+- The post should answer "what is this source, and what did it actually
+  conclude or clarify?" before or near the source link. Avoid drafts that only
+  say the topic is important, the source is worth reading, or the question is
+  interesting.
 - For papers and technical sources, good conclusions include result boundaries,
   failure modes, production implications, benchmark caveats, metrics to watch,
   or what not to infer. For styling sources, good conclusions include a concrete
@@ -166,8 +176,8 @@ an optional small note.
   choose another strong source unless the repeated source has a clearly better
   conclusion or urgent relevance.
 - Pre-publish self-check: remove the hook sentence mentally. If the remaining
-  draft does not contain a clear conclusion, limitation, or practical judgment,
-  rewrite it or no-op.
+  draft does not contain the source identity plus a clear conclusion, limitation,
+  or implication, rewrite it or no-op.
 - Before opening the Threads composer for a source-intro post, save the draft to
   a local text file and run:
 
@@ -178,7 +188,7 @@ an optional small note.
   Treat FAIL as a publish blocker. Repair the draft until the check confirms:
   raw source URL on its own line, no `來源：https://...` style attached link, no
   question-framed takeaway, one plain definition, one mechanism/boundary, and
-  one practical judgment.
+  one source-backed conclusion or limitation.
 - If the source is complex, prefer a denser 320-500 character post over an
   overly short teaser. Keep the voice relaxed and Taiwan Traditional Chinese.
 - Format source-intro posts with readable line breaks. Use 3-6 short blocks:
@@ -217,6 +227,33 @@ an optional small note.
   `date`, `source_url`, `threads_url`, `artifact_dir`, `topic`, `angle`,
   `youtube_url` (nullable), `blogger_url` (nullable for internal matching only),
   and `status`.
+
+## Blog-First Blogger Shares
+
+Use this only when the public object being shared is a verified TodayShip
+Blogger explainer, not a routine source-intro.
+
+- The Blogger article must be written to help broad readers understand the
+  technical content in Chinese, not to promote TodayShip. It should explain the
+  original source or concept from zero and include visible original-source
+  credit.
+- Do not imply the source was not good enough for video. Blog-first often means
+  video capacity is limited, while the Chinese explanation is still useful now.
+- Treat readers who read English slowly as a core audience. The Threads share
+  should make clear that the Blogger post is a Chinese understanding aid for the
+  original source.
+- Before sharing, verify the Blogger public URL, article title, and original
+  source link. Prefer articles that passed `check_blogger_explainer_article.py`
+  or an equivalent local review for standalone blog-first posts.
+- Threads copy should make the value clear in one or two short blocks: what the
+  article explains, why it helps readers understand the technical topic, and the
+  Blogger URL on its own line. If useful, add a short note that the original
+  source is linked inside the article.
+- Do not present the Blogger post as a video substitute or imply a TodayShip
+  video exists when it does not.
+- Track these separately from source-intro posts, for example under
+  `reports/threads-blogger-shares/`, so the source-intro ledger remains a record
+  of original-source introductions.
 
 ## Replies To Video-Derived Posts
 
@@ -316,9 +353,9 @@ a clear, warm, Taiwan-local Mandarin voice:
 
 For technical Threads posts:
 
-- The post should let aspiring engineers, current engineers, PMs, business
-  owners, teachers, and cross-domain AI software participants casually take away
-  one useful term, idea, pitfall, metric, metaphor, or production hint.
+- The post should make the original source easier to understand and let readers
+  casually take away one useful term, idea, pitfall, metric, metaphor,
+  conclusion, or limitation.
 - Technical claims must be source-backed or clearly marked as judgment/opinion.
 - Prefer mechanism, tradeoff, failure mode, metric, and production implication
   over news summary.
