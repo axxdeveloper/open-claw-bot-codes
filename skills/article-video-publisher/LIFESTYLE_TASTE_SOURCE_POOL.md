@@ -8,7 +8,7 @@ Machine-readable registry: `LIFESTYLE_TASTE_SOURCE_REGISTRY.yml`.
 
 Report directory: `reports/lifestyle-taste-source-watch/`.
 
-Keep these sources organized separately when that helps scoring and maintenance, but do not treat the separate file as a public scope blocker. Isaac clarified on 2026-05-15 that 小舟 has no topic-category scope limit; lifestyle, taste, and styling topics may be selected when the source is strong and can be introduced clearly.
+Keep these sources organized separately because practical styling is the only routine non-technical 小舟 side lane. Do not use this file to broaden 小舟 into generic lifestyle, politics, macro, finance, or culture content.
 
 ## Selection Principles
 
@@ -28,7 +28,7 @@ Keep these sources organized separately when that helps scoring and maintenance,
 
 For automatic scheduled video runs:
 
-1. Choose the strongest source-backed topic for the intended viewer; technical AI/backend is a valuable source class, not a scope ceiling.
+1. Choose the strongest source-backed topic inside 小舟's routine scope; technical AI/backend/software is the core lane, and practical styling is a small exception.
 2. Use this pool only when Isaac requested styling, or when a recent source has direct practical outfit/styling value.
 3. Accept only candidates with `Taste` category, clear source-understanding value, and enough source detail for source-attributed explanation.
 4. If no candidate reaches the threshold, return to the technical source pool for that run.

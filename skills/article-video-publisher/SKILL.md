@@ -6,7 +6,7 @@ description: Turn high-signal AI, backend, technical, and practical outfit/styli
 # Article Video Publisher
 
 ## Goal
-Produce one public YouTube explainer from exactly one high-signal original source article, video, report, release, repo, paper, or technical data source:
+Produce one public YouTube explainer from exactly one high-signal original technical, AI, backend/software, engineering-operator, or practical styling source article, video, report, release, repo, paper, or technical data source:
 
 1. Pick a source with enough substance for either a long-form explainer or a clear Short.
 2. Use Codex 5.5 xhigh for content planning, slide/image copy, narration, and review.
@@ -20,15 +20,15 @@ Produce one public YouTube explainer from exactly one high-signal original sourc
 10. Upload to YouTube as Public with the complete article/source URL visible in the description.
 
 ## Editorial mission
-OpenClaw should continuously surface good source-backed topics across categories, then turn them into videos people can actually understand. Isaac clarified on 2026-05-21 that 小舟's public job is source understanding: introduce the selected article, paper, release, repo, interview, or video so viewers can follow what the original source says. The public mission is not to turn every source into a consulting use case, role-specific recommendation, launch-review memo, or adoption checklist.
+OpenClaw should continuously surface good source-backed technical, AI, backend/software, engineering-operator, and occasional practical styling topics, then turn them into videos people can actually understand. Isaac clarified on 2026-05-21 that 小舟's public job is source understanding: introduce the selected article, paper, release, repo, interview, or video so viewers can follow what the original source says. The public mission is not to turn every source into a consulting use case, role-specific recommendation, launch-review memo, or adoption checklist.
 
 For technical videos, the default audience is a broad public that may include engineering learners, working engineers, and people who use AI or software in their work, but public copy should not open by listing roles such as PMs, business owners, teachers, or "AI software participants." Backend engineers remain an important segment, but the first promise is still "this source becomes easier to understand." A good video helps the viewer read, hear, or revisit the original source with more context: the source object, background, terms, mechanism, examples, limits, and conclusions.
 
-Engineering and operator interviews are valid when they explain a concrete mechanism, tradeoff, operating model, or source-backed experience. Do not force them into "how to adopt", "how to verify", "how to manage AI", or "what every role should do next" framing. The source's own question comes first; any practical implication stays secondary and short. Reject only when the episode lacks a concrete mechanism, evidence, sourceability, or understandable takeaway; finance/market angles are allowed when framed educationally without personalized buy/sell advice.
+Engineering and operator interviews are valid when they explain a concrete mechanism, tradeoff, operating model, or source-backed experience relevant to software, AI, product-engineering collaboration, or engineering-company work. Do not force them into "how to adopt", "how to verify", "how to manage AI", or "what every role should do next" framing. The source's own question comes first; any practical implication stays secondary and short. Reject when the episode lacks a concrete mechanism, evidence, sourceability, or understandable takeaway, or when it is mainly finance/market commentary.
 
 Do not assume engineers are male. Keep the framing gender-neutral unless the source or user explicitly narrows it. Engineers and engineering learners can be any gender; avoid pickup framing, heteronormative defaults, and gendered stereotypes.
 
-Non-technical topics are allowed for 小舟 when the source is strong and can be made understandable. For outfit/styling videos, prefer sources with direct styling value: fit, proportion, silhouette, color, layering, shoes/accessories, occasion, office/commute/travel context, and repeatable outfit formulas. Avoid body-shaming, pickup framing, and gender stereotypes.
+Practical outfit/styling is the only routine non-technical side lane. For outfit/styling videos, prefer sources with direct styling value: fit, proportion, silhouette, color, layering, shoes/accessories, occasion, office/commute/travel context, and repeatable outfit formulas. Avoid body-shaming, pickup framing, and gender stereotypes.
 
 The job is not to summarize thin news. The job is to explain why the source matters, how it works, where the tradeoffs are, and what viewers should watch next.
 
@@ -57,7 +57,7 @@ AI remains a core lane, but automatic selection should avoid repeatedly feeling 
 
 AI selection must also carry time awareness. Treat 30 days as the freshness baseline for automatic AI topics, then judge whether older sources are stale or durable. Reject or refresh older time-sensitive AI claims about model releases, API behavior, pricing, benchmarks, evals, coding-agent performance, inference cost/latency, tooling, and product capabilities. Older concept, architecture, history, taxonomy, security, or retrospective AI sources may be used only when the artifact records why the lesson remains valid now.
 
-Do not reject or skip topics solely because they are investment, economy, macro, market, finance, GDP, rates, inflation, ETF, stock-market, politics, or public-issue content. These topics may be selected when source-backed and useful. Keep finance/market/economy content educational and avoid personalized buy/sell advice; keep politics/public-issue content evidence-bounded and source-transparent.
+Do not select investment, economy, macro, market, finance, GDP, rates, inflation, ETF, stock-market, politics, or public-issue content for routine 小舟 videos. Macro/market reports are separate explicit workflows; politics/public-issue content requires an explicit manual task and is not part of automatic article-video selection.
 
 ## Single-topic and source attribution hard rule
 Every scheduled video run produces exactly one public video topic and one main original source.
@@ -165,9 +165,9 @@ Quality-learning runs may create video candidates about the learning process its
 Night production is allowed. Scheduled workflows may select sources, render, review, upload, and Public-publish videos during 23:00-08:00 Asia/Taipei. Quiet hours only reduce low-value progress chatter; publication results and Chrome/YouTube/OAuth/profile/upload blockers must still be reported.
 
 ## Sensitive Topic Classes
-There are no disabled topic classes for 小舟. Scheduled runs, source-watch selection, HN-discovered topics, fallback/補位 workflows, and generic "find a good article" workflows must not skip a source solely because it is macro, market, finance, politics/public issue, lifestyle, styling, or otherwise non-technical.
+Routine 小舟 article-video workflows must skip macro, market, finance, investment, politics/public issue, and generic culture sources. Scheduled runs, source-watch selection, HN-discovered topics, fallback/補位 workflows, and generic "find a good article" workflows should stay in the technical/AI/backend/software/operator lane, with practical outfit/styling as the only routine side lane.
 
-For finance/market/economy topics, keep the content educational, separate data from inference, and avoid personalized buy/sell advice. For politics/public-issue topics, keep the content evidence-bounded, source-transparent, and calm.
+For explicitly requested non-routine finance/market/economy tasks, keep the content educational, separate data from inference, and avoid personalized buy/sell advice. For explicitly requested politics/public-issue tasks, keep the content evidence-bounded, source-transparent, and calm.
 
 ## Practical outfit/styling branch
 Automatic scheduled video runs should default to technical AI/backend topics. Practical outfit/styling is an allowed secondary lane, not a quota.
@@ -500,7 +500,7 @@ If long video/browser work makes the machine slow, unstable, or prone to timeout
 ## Input selection
 Use the provided URL/topic when one is given. For scheduled runs, use the triggering PR/report/Isaac Note/topic only as discovery context, then trace it back to the original source URL before selecting the video topic.
 
-At the start of automatic scheduled topic selection, choose the strongest source-backed candidate across topic categories. Technical AI/backend topics remain important, but they are not a category scope limit. Use source quality and source diversity together so the channel does not over-rely on one domain or source family.
+At the start of automatic scheduled topic selection, choose the strongest source-backed candidate inside 小舟's routine scope: technical, AI, backend/software, engineering-operator, or practical styling. Use source quality and source diversity together so the channel does not over-rely on one domain or source family.
 
 Before selecting or replacing a topic, read `SOURCE_POOL.md` in this skill directory and score candidates with its rubric. Store the chosen candidate score in `source.json`.
 
@@ -522,7 +522,7 @@ AI priority rule:
 - Do not rely only on podcast/RSS pages for AI interviews. Some important talks appear only on YouTube channel/video pages, especially conference/keynote clips. Keep channel-parser sources for channels that publish frontier AI interviews, and score title-only items higher when an influential AI builder/researcher makes a concrete claim about AGI timelines, world models, AI for science, safety/governance, reasoning/planning limits, or deployment impact.
 - Treat AI product/operator interviews as a separate high-signal lane when a credible builder explains how AI changes product design, user experience, team structure, management layers, hiring, consumer AI, or company operating models. Select them only when the episode has a concrete mechanism or source-backed experience that can be explained, not just founder biography, motivation, valuation, investing, market commentary, or company promotion.
 - Non-AI candidates fill when AI candidates are too thin, stale-risk without refresh/durability justification, duplicated, unverifiable, below the quality threshold, source-repetitive without exceptional value, or Isaac explicitly supplied a manual URL/topic.
-- Economy/macro/market topics are allowed when selected by an active workflow and pass quality/safety gates. Disabled cron schedules remain disabled as scheduler state unless Isaac explicitly re-enables them.
+- Economy/macro/market topics are excluded from routine 小舟 article-video selection. Disabled macro/market cron schedules remain disabled as scheduler state unless Isaac explicitly re-enables a separate workflow.
 
 When choosing a new topic:
 - Prefer primary sources: official engineering blog, model/release note, research blog, named researcher/team blog, standards doc, authoritative project post, repo/release, or a technical video with enough transcript/detail to cite.

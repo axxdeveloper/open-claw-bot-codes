@@ -14,10 +14,9 @@ Machine-readable source registry: `SOURCE_REGISTRY.yml`.
 ## Selection Principles
 
 - Prefer sources with mechanism, data, implementation detail, architecture, evidence, and tradeoffs.
-- This pool is a maintained source list, not a public scope boundary. 小舟 has no topic-category restriction; topic choice should be driven by source quality, source-understanding value, safety, duplication, cadence, and review results.
-- Viewer value means the source becomes easier to understand: technical/system context, operating model, public-issue context, macro/data literacy, taste/styling principle, concrete conclusion, limitation, or mental model. Do not require every candidate to become a role-specific judgment, workflow, risk check, or decision framework.
-- Keep source pools organized so scoring remains readable, but do not use pool separation as a public scope blocker.
-- Isaac clarified on 2026-05-15 that 小舟 has no topic-category scope limit. Do not reject candidates solely because they are investment, economy, macro, market, finance, GDP, rates, inflation, ETF, stock-market, politics/public issue, lifestyle, styling, or otherwise non-technical. Gate on source quality, concrete takeaway, dedupe, cadence, safety, and platform risk.
+- This pool is a maintained source list and an editorial scope boundary for routine 小舟 workflows. Topic choice should stay within technical, AI, backend/software, engineering-company/operator, and occasional practical styling sources, then be driven by source quality, source-understanding value, safety, duplication, cadence, and review results.
+- Viewer value means the source becomes easier to understand: technical/system context, operating model, engineering-company lesson, taste/styling principle, concrete conclusion, limitation, or mental model. Do not require every candidate to become a role-specific judgment, workflow, risk check, or decision framework.
+- Keep source pools organized so scoring remains readable. Macro/market reports are separate explicit workflows; politics/public issues require an explicit manual task and are not routine 小舟 source/video candidates.
 - AI-related topics can be weighted above other categories when they are high-quality, non-duplicate, verifiable, and have clear source-understanding value. Do not rescue thin AI marketing posts only because they mention AI.
 - Do not trade off AI by imposing a broad AI quota. AI remains a core lane. Trade off repeated sources: if recent published videos are concentrated in the same domain, registry source, source family, paper feed, interview channel, or company blog, apply a soft repetition penalty and look for an equally strong source from a different original site or evidence type.
 - Within AI, rotate evidence types when quality allows: papers, official lab posts, model/system cards, repositories, engineering blogs, high-signal interviews, and operator/product AI sources. A repeated AI source can still win when it is urgent, unusually deep, or clearly better than alternatives.
@@ -26,7 +25,7 @@ Machine-readable source registry: `SOURCE_REGISTRY.yml`.
 - Avoid thin announcements, pure marketing posts, listicles, rumor-only stories, and content that cannot be verified from a primary or authoritative source.
 - Avoid company posts that are mainly self-promotion, product marketing, customer acquisition, or "why our product" positioning. Official company posts can be selected only when they include enough architecture, benchmark data, implementation detail, operational lessons, limitations, or failure modes to teach something beyond the vendor's pitch.
 - Use Taiwan-local Traditional Chinese explanation in the final video.
-- For investment/economy/market topics, explain data, mechanisms, scenarios, risks, and uncertainty. Do not give personalized buy/sell advice.
+- For explicitly requested non-routine investment/economy/market tasks, explain data, mechanisms, scenarios, risks, and uncertainty. Do not give personalized buy/sell advice.
 - Treat official research blogs and named researcher/team blogs from groups like Anthropic and Google DeepMind as high-priority sources when they contain mechanism, experiments, engineering detail, or clear research context.
 - For researcher/team blog posts, verify major claims against the linked paper, official release note, repo, docs, benchmark, or data source before publication.
 - Treat Hacker News as a technical trend discovery layer, not as the main public source. Recent HN top stories can reveal what technical communities are discussing, but the selected video must trace back to a primary original URL whenever possible. HN score/comment volume can boost urgency only after the source passes viewer-value, verifiability, non-duplicate, and non-marketing checks.
@@ -355,13 +354,13 @@ Taiwan primary sources:
 - Financial Supervisory Commission: https://www.fsc.gov.tw/
 - Ministry of Finance: https://www.mof.gov.tw/
 
-Market/investment context sources are allowed when they pass the same source-quality and safety gates:
+Market/investment context sources are for explicit macro/market workflows, not routine 小舟 videos:
 
 - ETF issuer pages for fund composition, costs, and official factsheets.
 - Exchange and regulator data for market structure.
 - Credible bank/asset-manager research only when claims are tied back to data.
 
-Good economy/investment video angles:
+Good explicit economy/investment explainer angles:
 
 - Data release explainer: what changed, why it matters, leading/lagging parts, caveats.
 - Policy transmission: rates, liquidity, credit, FX, inflation, labor, earnings, valuation.

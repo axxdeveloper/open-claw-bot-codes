@@ -111,10 +111,11 @@ videos.
   easier to skim than a transcript: readers should quickly find background,
   mechanism, practical impact, limits/risks, and source links.
 - For technical posts, include at least one section that maps the concept to a
-  backend/AI/debug/architecture workflow. For styling/lifestyle posts, include
+  backend/AI/debug/architecture workflow. For practical styling posts, include
   concrete examples, visual language, and when the advice does or does not
-  apply. For macro/finance/politics posts, define the key indicator or policy
-  mechanism before inference, and keep the conclusion educational.
+  apply. Macro/finance/politics articles are not routine 小舟 Blogger topics; if
+  Isaac explicitly requests one, define the key indicator or policy mechanism
+  before inference and keep the conclusion educational/source-bounded.
 - Before Blogger dry-run or public publish, save the generated article HTML and
   run:
 

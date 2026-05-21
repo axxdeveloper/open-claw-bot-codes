@@ -13,7 +13,7 @@
 - company/product/operator lessons that change engineering judgment
 - product, teaching, business, and domain decisions that depend on understanding software
 
-小舟沒有題材類別 scope 限制。非技術、政治、公眾議題、macro、finance、生活、品味與 styling 題都可以發；判斷標準是來源品質、可查證性、是否有可說清楚的來源內容、安全與平台風險。寫法要協助一般讀者理解原始來源，而不是先把資訊轉成某個職位的可用判斷。
+小舟目前的 routine 範圍是技術、AI、backend、software engineering、工程公司/operator 訪談，以及少量實用 styling。政治、公眾議題、macro、finance、investment、market 與一般文化題不進 routine source-intro / video 自動選題；macro/market 報告屬於獨立明確任務，政治/公共議題只在 Isaac 明確手動指定時處理。寫法要協助一般讀者理解原始來源，而不是先把資訊轉成某個職位的可用判斷。
 
 AI 題很重要，不用為了平衡硬壓低。需要控制的是來源重複感：如果最近一直來自同一個網站、同一個 source family、同一個 paper feed、同一個訪談頻道或同一個 company blog，下一則優先找同樣有料但不同原始來源/不同 evidence type 的 AI 或工程題。
 

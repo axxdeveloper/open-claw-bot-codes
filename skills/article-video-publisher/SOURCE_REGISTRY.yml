@@ -1165,7 +1165,7 @@ sources:
     use_for: [long_video, short, research]
     tags: [rates, policy, liquidity, banking]
     enabled: false
-    notes: Disabled 2026-05-10 because Isaac asked to stop automatic economy/macro/market videos. Use only for manual requested context.
+    notes: Disabled for routine 小舟 automatic videos/source-intros; macro/market reporting is a separate explicit workflow only.
   - id: federal-reserve-speeches
     name: Federal Reserve Speeches
     category: Economy
@@ -1179,7 +1179,7 @@ sources:
     use_for: [research, short]
     tags: [rates, policy, inflation, labor]
     enabled: false
-    notes: Disabled 2026-05-10 because Isaac asked to stop automatic economy/macro/market videos. Use only for manual requested context.
+    notes: Disabled for routine 小舟 automatic videos/source-intros; macro/market reporting is a separate explicit workflow only.
   - id: ecb-press
     name: ECB Press Releases
     category: Economy
@@ -1193,7 +1193,7 @@ sources:
     use_for: [research, short]
     tags: [rates, policy, eurozone, inflation]
     enabled: false
-    notes: Disabled 2026-05-10 because Isaac asked to stop automatic economy/macro/market videos. Use only for manual requested context.
+    notes: Disabled for routine 小舟 automatic videos/source-intros; macro/market reporting is a separate explicit workflow only.
   - id: twse-news
     name: Taiwan Stock Exchange News
     category: Economy
