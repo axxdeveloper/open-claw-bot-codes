@@ -1,6 +1,6 @@
 # Source Pool and Topic Scoring
 
-Last reviewed: 2026-05-17
+Last reviewed: 2026-05-21
 
 Use this file before choosing article-video topics. Prefer primary sources and high-signal material. Secondary sources can help discover topics, but the video should cite and explain primary sources whenever possible.
 
@@ -30,6 +30,8 @@ Machine-readable source registry: `SOURCE_REGISTRY.yml`.
 - For researcher/team blog posts, verify major claims against the linked paper, official release note, repo, docs, benchmark, or data source before publication.
 - Treat Hacker News as a technical trend discovery layer, not as the main public source. Recent HN top stories can reveal what technical communities are discussing, but the selected video must trace back to a primary original URL whenever possible. HN score/comment volume can boost urgency only after the source passes viewer-value, verifiability, non-duplicate, and non-marketing checks.
 - For HN-driven candidates, prefer stories with a concrete mechanism: incident analysis, architecture change, release with engineering detail, paper/repo with evidence, performance or reliability tradeoff, security advisory, or production lesson. Reject drama, rumor-only threads, pure opinion fights, generic Show HN demos without substance, and Ask HN threads unless the thread itself contains unusually strong expert detail.
+- Treat Threads follows of technology workers, KOLs, maintainers, researchers, founders/operators, and engineering practitioners as another technical trend discovery layer. Their posts can reveal what AI/backend/database/infra/security/devtools communities are currently discussing, including Kafka, Cassandra, streaming/messaging, database internals, and distributed systems. They are not public sources by themselves.
+- For Threads-driven candidates, trace the signal back to an original article, official project/company post, repo/release, paper, benchmark, conference talk, or documentation before selection. A KOL hot take can only boost urgency or source-discovery priority after the original source passes the scorecard, sourceability, safety, non-duplicate, and non-marketing gates.
 
 ## Continuous Topic Optimization Loop
 
@@ -39,11 +41,12 @@ Use this loop for scheduled workflows:
 
 1. Daily source watch scans `SOURCE_REGISTRY.yml` and writes `reports/source-watch/YYYY-MM-DD.jsonl` plus `reports/source-watch/source-health.json`.
 2. Daily HN watch scans recent Hacker News top stories and writes/updates the `hn-daily-top-1500` section in `reports/daily-audio-pack/YYYY-MM-DD.md`; use it as discovery context for the technical branch.
-3. Candidate ranking applies the 20-point scorecard, source weights, AI priority multiplier, interview priority bonus, duplicate checks, source-diversity penalty, and marketing penalty before choosing a topic.
-4. Before starting a new video, compare the candidate against recent `reports/article-video-publisher/**/source.json`, YouTube metadata, and the last 30 days of source-watch dedupe keys. Inspect both topic duplication and source concentration.
-5. After every published video, keep `review/improvement-notes.md`, `review/ai-usage-improvement.md`, and `source.json.candidate_score` so future runs can see which sources produced understandable, deep videos and which sources improved our own AI workflows.
-6. Use `review/ai-usage-improvement.md` to capture whether the source suggests improvements to topic selection, prompts, agents, source verification, RAG/search, eval/review gates, TTS/video, reliability, cost/latency, safety, privacy, or publishing operations. Prefer reversible tests; write no-op when the source does not produce a concrete internal improvement.
-7. When a source repeatedly yields thin, promotional, duplicate, or unverifiable candidates, lower its registry weight or disable it. When a source repeatedly yields review-passing, high-depth AI topics or useful internal AI usage improvements, keep or raise its weight.
+3. Threads technical following scans or manual follow notes write `reports/threads-following/YYYY-MM-DD.jsonl`; use them as discovery context and source-diversity hints, not as public sources.
+4. Candidate ranking applies the 20-point scorecard, source weights, AI priority multiplier, interview priority bonus, duplicate checks, source-diversity penalty, trend-signal urgency, and marketing penalty before choosing a topic.
+5. Before starting a new video, compare the candidate against recent `reports/article-video-publisher/**/source.json`, YouTube metadata, the last 30 days of source-watch dedupe keys, and recent Threads source-intro ledgers. Inspect both topic duplication and source concentration.
+6. After every published video, keep `review/improvement-notes.md`, `review/ai-usage-improvement.md`, and `source.json.candidate_score` so future runs can see which sources produced understandable, deep videos and which sources improved our own AI workflows.
+7. Use `review/ai-usage-improvement.md` to capture whether the source suggests improvements to topic selection, prompts, agents, source verification, RAG/search, eval/review gates, TTS/video, reliability, cost/latency, safety, privacy, or publishing operations. Prefer reversible tests; write no-op when the source does not produce a concrete internal improvement.
+8. When a source repeatedly yields thin, promotional, duplicate, or unverifiable candidates, lower its registry weight or disable it. When a source repeatedly yields review-passing, high-depth AI topics or useful internal AI usage improvements, keep or raise its weight.
 
 The practical goal: the pool should drift toward sources that repeatedly produce explainable mechanisms, not just sources that publish often.
 
@@ -135,6 +138,7 @@ Decision:
 - `audience_value=1` means mostly headline awareness; do not make a long-form video.
 - `audience_value=0` means no clear source-understanding value; reject.
 - Apply AI priority after reject/quality filtering, not before. Do not rescue thin AI marketing posts only because they mention AI.
+- Apply HN/Threads trend signals after reject/quality filtering, not before. Do not rescue a weak source only because a community is talking about it.
 
 Format choice:
 

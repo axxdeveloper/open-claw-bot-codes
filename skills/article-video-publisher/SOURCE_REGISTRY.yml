@@ -514,9 +514,9 @@ sources:
     cadence: daily
     weight: 1.05
     use_for: [long_video, short, research]
-    tags: [streaming, data, distributed_systems]
+    tags: [kafka, streaming, messaging, data, distributed_systems]
     enabled: true
-    notes: Primary project source.
+    notes: Primary Kafka project source; prefer release, protocol, broker, stream-processing, storage, and operational posts.
   - id: redis-blog
     name: Redis Blog
     category: Backend

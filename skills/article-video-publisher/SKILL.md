@@ -510,6 +510,8 @@ Also read recent `reports/source-discovery/*.jsonl` files when selecting technic
 
 Also read the most recent `hn-daily-top-1500` sections in `reports/daily-audio-pack/*.md` when selecting technical AI/backend topics. Hacker News is discovery context, not the public source. If an HN item is selected, trace it to the original article/repo/paper/release/security advisory and cite that original URL as the main source; keep the HN discussion link internal or supplemental only.
 
+Also read recent `reports/threads-following/*.jsonl` files when selecting technical AI/backend topics. Threads follows of technology workers, KOLs, maintainers, researchers, and operators are discovery context for what technical communities are noticing, especially AI engineering, backend/software, databases, Kafka/Cassandra, streaming/messaging, distributed systems, infra/SRE, security, devtools, coding agents, and runtimes. A Threads post is not the public source; if selected, trace the signal to the original article, official release/blog, repo, paper, benchmark, talk, or docs before making a video.
+
 AI priority rule:
 - Across every scheduled video workflow, AI-related candidates are weighted above non-AI candidates.
 - If the candidate pool contains a high-quality, non-duplicate, verifiable, temporally relevant AI-related source that can be explained clearly from the original source, it should usually become the main video topic even when a non-AI candidate is also available.
@@ -529,6 +531,7 @@ When choosing a new topic:
 - Prefer primary, source-rich topics with mechanisms, tradeoffs, evidence, and clear source-understanding value.
 - Reject automatic topics that are thin, unverifiable, duplicate, unsafe, purely promotional, or cannot support a coherent source-backed viewer takeaway.
 - Include Databricks, database official blogs/release notes, and Java/JVM technical sources as first-class backend candidates, especially when they explain releases, storage/query internals, runtime behavior, production architecture, or migration tradeoffs.
+- Include Kafka, Cassandra, streaming/messaging, database internals, and distributed-systems sources as first-class backend candidates when they explain releases, storage/query/replication/compaction internals, consistency, consumer/producer behavior, failure modes, operations, or migration tradeoffs.
 - Avoid thin posts, listicles, press-release-only pages, or topics that cannot support a coherent video.
 - Avoid obvious self-promotional company marketing posts. Official company posts are acceptable only when they contain enough mechanism, architecture, benchmark, operational lessons, limitations, or verifiable engineering detail to teach something beyond "use our product".
 - Treat Anthropic and Google DeepMind official research/team blog posts as high-priority candidates when they contain mechanism, experiment detail, engineering lessons, safety/eval detail, or deployment tradeoffs.

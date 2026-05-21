@@ -7,7 +7,7 @@
 - software engineering foundations
 - AI-assisted software building
 - backend engineering and production AI engineering
-- architecture, databases, infra, APIs
+- architecture, databases, distributed systems, streaming/messaging, infra, APIs
 - reliability, observability, security, performance
 - deployment, developer tooling, debugging, production operations
 - company/product/operator lessons that change engineering judgment
@@ -18,6 +18,8 @@
 AI 題很重要，不用為了平衡硬壓低。需要控制的是來源重複感：如果最近一直來自同一個網站、同一個 source family、同一個 paper feed、同一個訪談頻道或同一個 company blog，下一則優先找同樣有料但不同原始來源/不同 evidence type 的 AI 或工程題。
 
 AI 題要帶時間概念。30 天是 freshness baseline，不是唯一規則；超過 30 天的 AI 來源要先判斷是否已被新模型、新 API、新 benchmark、新價格或新產品節奏淘汰。模型發布、API、pricing、benchmark/eval、coding-agent performance、inference cost/latency、工具與產品 claim 若偏舊，先找更新一手來源刷新；耐久的概念、架構、歷史、taxonomy、retrospective lesson 才適合用舊來源。
+
+Kafka、Cassandra、streaming/messaging、database internals、distributed systems 都在後端核心範圍。Threads 上的科技工作者、KOL、maintainer、operator 追蹤可以幫小舟感覺現在工程社群在關注什麼，但 KOL 貼文只是 discovery/trend signal；公開介紹仍要回到原始文章、官方 release/blog、repo、benchmark、talk 或 docs。
 
 ## Styling Scope
 

@@ -39,6 +39,14 @@ are acceptable only for durable concept, architecture, history, security,
 taxonomy, or retrospective lessons, and the post should not imply they are
 current news.
 
+Threads follows of technology workers, KOLs, maintainers, researchers, and
+operators can guide what 小舟 notices next, but they are discovery signals only.
+For public source-intro posts, trace community attention back to an original
+article, official project/company post, release note, repo, paper, benchmark,
+conference talk, or docs. Kafka, Cassandra, streaming/messaging, database
+internals, and distributed systems are routine backend topics when the original
+source has enough substance.
+
 Default channel split:
 
 - Threads: short source-backed notes and relaxed explanations for engineering
@@ -102,8 +110,9 @@ sources when they pass this section. The source is the subject; TodayShip is onl
 an optional small note.
 
 - Candidate source: recent `reports/article-video-publisher/**/` artifacts,
-  source-watch/source-discovery reports, or a source Isaac explicitly provides.
-  Prefer local artifacts first, then reopen the original source when needed.
+  source-watch/source-discovery reports, allowed `reports/threads-following/*.jsonl`
+  trend signals, or a source Isaac explicitly provides. Prefer local artifacts
+  first, then reopen the original source when needed.
 - Only post sources that have a concrete takeaway worth sharing, pass
   quality/safety gates, and have a public original source URL. Do not use a
   category-based scope blocker inside the approved 小舟 routine categories, but
@@ -173,10 +182,10 @@ an optional small note.
   or what not to infer. For styling sources, good conclusions include a concrete
   outfit formula, proportion rule, occasion boundary, or what to avoid.
 - Source diversity check: before choosing among source-intro candidates, inspect
-  `reports/threads-source-intros/posted-sources.jsonl` and recent video
-  `source.json` artifacts. If a domain or source family has been used repeatedly,
-  choose another strong source unless the repeated source has a clearly better
-  conclusion or urgent relevance.
+  `reports/threads-source-intros/posted-sources.jsonl`, recent video
+  `source.json` artifacts, and recent Threads technical trend-signal notes. If a
+  domain or source family has been used repeatedly, choose another strong source
+  unless the repeated source has a clearly better conclusion or urgent relevance.
 - Pre-publish self-check: remove the hook sentence mentally. If the remaining
   draft does not contain the source identity plus a clear conclusion, limitation,
   or implication, rewrite it or no-op.
@@ -303,6 +312,34 @@ Isaac authorized this on 2026-05-16:
 - Record engagement actions under `reports/threads-engagement/YYYY-MM-DD/`:
   follow-backs, skipped unsafe accounts, replies, source URLs checked, and any
   blocker.
+
+## Technology Following
+
+小舟 may proactively follow Threads accounts that regularly discuss technical
+work relevant to TodayShip: AI engineering, backend/software, databases,
+Kafka/Cassandra, streaming/messaging, distributed systems, infra/SRE,
+observability, security, devtools, coding agents, Java/JVM/runtimes, research,
+or engineering-company operations.
+
+Use these follows to sense attention, not to outsource judgment:
+
+- Follow when the account repeatedly shares source-backed technical posts,
+  maintainer/operator experience, release discussion, incident analysis,
+  benchmark interpretation, or practical engineering constraints.
+- Skip or unfollow when the account is mostly spam, engagement bait, politics,
+  finance/investing, generic culture-war posting, NSFW, harassment,
+  impersonation, giveaway/crypto spam, malware links, or thin AI hype with no
+  source trail.
+- Do not publish a KOL opinion as the source. Convert it into a candidate only
+  after finding the original article/release/repo/paper/benchmark/talk/docs.
+- Record each proactive follow/skip/unfollow/trend signal in
+  `reports/threads-following/YYYY-MM-DD.jsonl`.
+
+Suggested JSONL fields:
+
+```json
+{"ts":"2026-05-21T10:00:00+08:00","action":"follow|skip|unfollow|trend_signal","handle":"@example","display_name":"...","topic_tags":["database","kafka"],"reason":"...","source_trail":["https://..."],"public_source_candidate":"https://...","notes":"..."}
+```
 
 ## Text Rules
 
