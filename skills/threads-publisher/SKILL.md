@@ -119,6 +119,17 @@ an optional small note.
   do not use this routine lane for macro/finance/market/investment,
   politics/public issues, or generic culture.
   A TodayShip video is optional, not required.
+- Scope is a hard pre-composer gate, even for already-published TodayShip video
+  artifacts. Do not drain old macro/economy/market/finance/investment/GDP/rates/
+  inflation/ETF/stock-market/politics/public-issue artifacts into routine
+  Threads source-intro posts.
+- Practical styling is a small exception, not a fill quota. Styling source-intro
+  candidates must teach direct outfit/styling value such as fit, proportion,
+  silhouette, color, layering, shoes/accessories, occasion, or outfit formulas.
+  Reject fashion history, colonial/ethical/labor/supply-chain, or sustainability
+  sources unless the public draft itself has clear direct outfit/styling guidance.
+  Do not publish a styling source-intro if a styling-like source appears in the
+  latest 10 source-intro ledger entries.
 - Track posted sources in
   `reports/threads-source-intros/posted-sources.jsonl`. Before drafting, check
   this ledger and recent Threads posts. Do not introduce the same `source_url`
@@ -190,13 +201,22 @@ an optional small note.
   draft does not contain the source identity plus a clear conclusion, limitation,
   or implication, rewrite it or no-op.
 - Before opening the Threads composer for a source-intro post, save the draft to
-  a local text file and run:
+  a local text file and run both gates:
+
+  ```bash
+  python3 /Users/openclaw-user/.openclaw/workspace/scripts/check_threads_source_intro_scope.py \
+    <draft.txt> \
+    --source-json <artifact-dir>/source.json \
+    --posted-ledger /Users/openclaw-user/.openclaw/workspace/reports/threads-source-intros/posted-sources.jsonl \
+    --json-out <run-dir>/threads-scope-check.json
+  ```
 
   ```bash
   python3 /Users/openclaw-user/.openclaw/workspace/scripts/check_threads_source_intro_explainer.py <draft.txt> --json-out <run-dir>/threads-explainer-check.json
   ```
 
-  Treat FAIL as a publish blocker. Repair the draft until the check confirms:
+  Treat either FAIL as a publish blocker. Repair the draft until the checks confirm
+  the source is in routine scope and the text has:
   raw source URL on its own line, no `來源：https://...` style attached link, no
   question-framed takeaway, one plain definition, one mechanism/boundary, and
   one source-backed conclusion or limitation.

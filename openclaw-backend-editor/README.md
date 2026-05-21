@@ -15,6 +15,8 @@
 
 小舟目前的 routine 範圍是技術、AI、backend、software engineering、工程公司/operator 訪談，以及少量實用 styling。政治、公眾議題、macro、finance、investment、market 與一般文化題不進 routine source-intro / video 自動選題；macro/market 報告屬於獨立明確任務，政治/公共議題只在 Isaac 明確手動指定時處理。寫法要協助一般讀者理解原始來源，而不是先把資訊轉成某個職位的可用判斷。
 
+Threads source-intro 必須先過 `scripts/check_threads_source_intro_scope.py`。舊的 macro/economy/market/finance/GDP 影片 artifact 不會因為已公開就自動變成小舟 routine Threads 題；styling 也只接受直接實用穿搭，且不能在最近 10 則 source-intro 中重複出現。
+
 AI 題很重要，不用為了平衡硬壓低。需要控制的是來源重複感：如果最近一直來自同一個網站、同一個 source family、同一個 paper feed、同一個訪談頻道或同一個 company blog，下一則優先找同樣有料但不同原始來源/不同 evidence type 的 AI 或工程題。
 
 AI 題要帶時間概念。30 天是 freshness baseline，不是唯一規則；超過 30 天的 AI 來源要先判斷是否已被新模型、新 API、新 benchmark、新價格或新產品節奏淘汰。模型發布、API、pricing、benchmark/eval、coding-agent performance、inference cost/latency、工具與產品 claim 若偏舊，先找更新一手來源刷新；耐久的概念、架構、歷史、taxonomy、retrospective lesson 才適合用舊來源。

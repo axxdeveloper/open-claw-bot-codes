@@ -46,7 +46,7 @@
 - 新片 review 要產出 `review/pre-analytics-quality-scorecard.md`：檢查 Isaac viewing fit、audio comfort、mobile readability、one-second promise、first-30-second clarity、comprehension load、source traceability、pacing/usefulness。audio/source/first-30/public correctness FAIL 要擋 upload；WARN 要變成下一支片的具體改善。
 - 品質學習過程可以形成影片候選，但學習 job 只寫候選、不上傳、不 Public。若本輪學習有來源理解價值，寫入 `reports/youtube-quality-learning/video-candidates/YYYY-MM-DD-<slug>/`，包含 outline、script draft、thumbnail notes、publish decision；只有正式影片時段或 Isaac 手動指定後，通過 source-understanding value/review/來源/dedupe/active-task/public-page verification gate 才能公開
 - 影片製作前必須有 reader understanding value：目標觀眾、為何現在重要、來源問題、以及「看完後，觀眾可以更容易理解...」的具體來源理解價值。若只有「了解新聞/數字」或只剩特定角色用途，就拒絕或重塑題目；公開開頭不要列 PM/企業主/老師等角色清單。
-- Threads source-intro 發布前要跑 `scripts/check_threads_source_intro_explainer.py`；Blogger 影片改寫文章發布前要跑 `scripts/check_blogger_explainer_article.py --require-youtube-url`。這兩個文字面也要有白話定義、機制/邊界、來源結論或限制與來源 URL，不准只發 teaser。
+- Threads source-intro 發布前要跑 `scripts/check_threads_source_intro_scope.py` 和 `scripts/check_threads_source_intro_explainer.py`，兩者都 PASS 才能開 composer；scope gate 會擋 routine GDP/economy/macro/market/finance/investment/politics/public-issue，也會限制 styling 必須是直接實用穿搭且不能在最近 10 則中重複出現。Blogger 影片改寫文章發布前要跑 `scripts/check_blogger_explainer_article.py --require-youtube-url`。這些文字面也要有白話定義、機制/邊界、來源結論或限制與來源 URL，不准只發 teaser。
 - 23:00-08:00 也可以產影片、render、review、upload、Public 發布；安靜時段只少發低價值進度碎訊，不代表跳過影片製作
 - `codex exec` 若出現 `401 Unauthorized` / missing bearer/basic auth，是 runtime auth blocker；先檢查 `HOME=/Users/openclaw-user`、`CODEX_HOME=/Users/openclaw-user/.codex`、以及 `agent/codex-home/auth.json` 連到 `/Users/openclaw-user/.codex/auth.json`
 - 23:00-08:00 若影片發布完成、no-op、或 Chrome/YouTube/OAuth/profile/upload 卡住，仍要回報；其他低價值狀態可等白天
