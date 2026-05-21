@@ -112,16 +112,37 @@ def read_post_text(args: argparse.Namespace) -> str:
 
 
 def normalize_post_text_for_threads(text: str) -> str:
-    """Keep single-post Threads text stable in the web composer.
+    """Normalize whitespace while preserving readable paragraph breaks."""
 
-    Threads' Lexical editor may collapse pasted/newline-inserted paragraphs when
-    driven through CDP. Normalizing to one line avoids source URLs being joined
-    without visible separation and makes post verification deterministic.
-    """
+    text = text.replace("\r\n", "\n").replace("\r", "\n").strip()
+    normalized_lines = [re.sub(r"[ \t]{2,}", " ", line).strip() for line in text.split("\n")]
+    output: list[str] = []
+    previous_blank = False
+    for line in normalized_lines:
+        if not line:
+            if output and not previous_blank:
+                output.append("")
+            previous_blank = True
+            continue
+        output.append(line)
+        previous_blank = False
+    while output and output[-1] == "":
+        output.pop()
+    return "\n".join(output).strip()
 
-    normalized = re.sub(r"[ \t]*\r?\n[ \t]*", " ", text.strip())
-    normalized = re.sub(r"[ \t]{2,}", " ", normalized)
-    return normalized.strip()
+
+def threads_format_warnings(text: str) -> list[str]:
+    warnings: list[str] = []
+    nonempty_lines = [line.strip() for line in text.splitlines() if line.strip()]
+    if len(text) >= 180 and len(nonempty_lines) < 3:
+        warnings.append("long_post_without_line_breaks")
+    if any(len(line) > 140 for line in nonempty_lines):
+        warnings.append("long_line_over_140_chars")
+    if re.search(r"[：:][^\n]*https?://", text):
+        warnings.append("source_label_or_punctuation_same_line_as_url")
+    if re.search(r"[^\s\n]https?://", text):
+        warnings.append("url_attached_to_previous_text")
+    return warnings
 
 
 def open_home(profile: str) -> None:
@@ -307,10 +328,10 @@ def open_composer(profile: str) -> Dict[str, Any]:
           const text = label(el);
           const type = (el.getAttribute("type") || "").toLowerCase();
           if (type === "search" || /Add a topic|Search|搜尋|主題/i.test(text)) return false;
-          return el.isContentEditable || tag === "TEXTAREA" || el.getAttribute("role") === "textbox";
+          return el.isContentEditable || tag === "TEXTAREA" || tag === "INPUT";
         }
-        const existing = Array.from(document.querySelectorAll('textarea, [contenteditable="true"], [role="textbox"]'))
-          .find(el => visible(el) && isPostEditor(el));
+        const existing = Array.from(document.querySelectorAll('textarea, [contenteditable], [role="textbox"]'))
+          .find(el => visible(el) && isPostEditor(el) && !!el.closest('[role="dialog"]'));
         if (existing) {
           return { ok: true, alreadyOpen: true, editorLabel: label(existing) };
         }
@@ -319,7 +340,7 @@ def open_composer(profile: str) -> Dict[str, Any]:
         const candidates = [
           /^(New thread|新增串文|建立串文)$/i,
           /^(Create|建立|新增)$/i,
-          /^(What's new\\?|有什麼新鮮事\\?)$/i
+          /^(What's new\\?|有什麼新鮮事\\?|Empty text field\\. Type to compose a new post\\.)$/i
         ];
         for (const pattern of candidates) {
           const button = controls.find(el => pattern.test(label(el)));
@@ -355,9 +376,11 @@ def open_composer(profile: str) -> Dict[str, Any]:
           const text = label(el);
           const type = (el.getAttribute("type") || "").toLowerCase();
           if (type === "search" || /Add a topic|Search|搜尋|主題/i.test(text)) return false;
-          return el.isContentEditable || tag === "TEXTAREA" || el.getAttribute("role") === "textbox";
+          return el.isContentEditable || tag === "TEXTAREA" || tag === "INPUT";
         }
-        const editors = Array.from(document.querySelectorAll('textarea, [contenteditable="true"], [role="textbox"]'))
+        const dialogs = Array.from(document.querySelectorAll('[role="dialog"]')).filter(visible);
+        const editors = dialogs
+          .flatMap(root => Array.from(root.querySelectorAll('textarea, [contenteditable], [role="textbox"]')))
           .filter(el => visible(el) && isPostEditor(el));
         const buttons = Array.from(document.querySelectorAll("button, [role=button]"))
           .filter(visible)
@@ -365,8 +388,9 @@ def open_composer(profile: str) -> Dict[str, Any]:
           .filter(Boolean)
           .slice(0, 30);
         return {
-          ok: editors.length > 0,
+          ok: dialogs.length > 0 && editors.length > 0,
           url: location.href,
+          dialogCount: dialogs.length,
           editorCount: editors.length,
           editorLabels: editors.map(label).slice(0, 10),
           visibleButtons: buttons
@@ -381,6 +405,7 @@ def fill_composer(profile: str, text: str) -> Dict[str, Any]:
         profile,
         f"""
         const postText = {js_string(text)};
+        const canonicalPostText = canonicalText(postText);
 
         function label(el) {{
           return (el.getAttribute("aria-label") || el.getAttribute("aria-placeholder") || el.getAttribute("placeholder") || el.innerText || el.textContent || "").trim();
@@ -395,10 +420,20 @@ def fill_composer(profile: str, text: str) -> Dict[str, Any]:
           const text = label(el);
           const type = (el.getAttribute("type") || "").toLowerCase();
           if (type === "search" || /Add a topic|Search|搜尋|主題/i.test(text)) return false;
-          return el.isContentEditable || tag === "TEXTAREA" || el.getAttribute("role") === "textbox";
+          return el.isContentEditable || tag === "TEXTAREA" || tag === "INPUT";
         }}
         function editorText(el) {{
           return (el.value || el.innerText || el.textContent || "").trim();
+        }}
+        function canonicalText(value) {{
+          return (value || "")
+            .replace(/\\u00a0/g, " ")
+            .replace(/\\r\\n?/g, "\\n")
+            .split("\\n")
+            .map(line => line.trim().replace(/[ \\t]{{2,}}/g, " "))
+            .join("\\n")
+            .replace(/\\n{{3,}}/g, "\\n\\n")
+            .trim();
         }}
         function hasPostButton(root) {{
           return Array.from(root.querySelectorAll("button, [role=button]"))
@@ -410,9 +445,9 @@ def fill_composer(profile: str, text: str) -> Dict[str, Any]:
           el.dispatchEvent(new Event("change", {{ bubbles: true }}));
         }}
 
-        const editors = Array.from(document.querySelectorAll('textarea, [contenteditable="true"], [role="textbox"]'))
+        const editors = Array.from(document.querySelectorAll('textarea, [contenteditable], [role="textbox"]'))
           .filter(el => visible(el) && isPostEditor(el));
-        const alreadyFilled = editors.find(el => editorText(el) === postText);
+        const alreadyFilled = editors.find(el => canonicalText(editorText(el)) === canonicalPostText);
         if (alreadyFilled) {{
           return {{
             ok: true,
@@ -429,35 +464,61 @@ def fill_composer(profile: str, text: str) -> Dict[str, Any]:
           const dialog = el.closest('[role="dialog"]');
           return dialog && hasPostButton(dialog);
         }});
-        const editor = [...dialogEditors].reverse().find(el => !editorText(el))
-          || dialogEditors[dialogEditors.length - 1]
-          || editors.find(el => el.isContentEditable)
-          || editors[0];
+        const inlineEditors = editors.filter(el => {{
+          const roots = [
+            el.closest("form"),
+            el.closest("article"),
+            el.parentElement,
+            document
+          ].filter(Boolean);
+          return roots.some(root => hasPostButton(root));
+        }});
+        const preferredEditors = dialogEditors.length > 0
+          ? dialogEditors
+          : (inlineEditors.length > 0 ? inlineEditors : editors);
+        const editor = [...preferredEditors].reverse().find(el => !editorText(el))
+          || preferredEditors[preferredEditors.length - 1];
         if (!editor) {{
-          return {{ ok: false, error: "composer editor not found" }};
+          return {{
+            ok: false,
+            error: "composer editor not found",
+            editorCount: editors.length,
+            dialogEditorCount: dialogEditors.length,
+            inlineEditorCount: inlineEditors.length
+          }};
         }}
 
         editor.focus();
+        if (typeof editor.click === "function") {{
+          editor.click();
+        }}
         if (editor.tagName === "TEXTAREA" || editor.tagName === "INPUT") {{
           editor.value = postText;
           dispatchChanged(editor);
         }} else {{
-          const selection = window.getSelection();
-          const range = document.createRange();
-          range.selectNodeContents(editor);
-          selection.removeAllRanges();
-          selection.addRange(range);
-          const inserted = document.execCommand("insertText", false, postText);
-          if (!inserted && !((editor.innerText || editor.textContent || "").trim())) {{
+          // Some Threads composer builds ignore execCommand char-by-char writes.
+          editor.innerText = postText;
+          let afterInsert = canonicalText(editorText(editor));
+          if (afterInsert !== canonicalPostText) {{
             editor.textContent = postText;
+            afterInsert = canonicalText(editorText(editor));
+          }}
+          if (afterInsert !== canonicalPostText) {{
+            const selection = window.getSelection();
+            const range = document.createRange();
+            range.selectNodeContents(editor);
+            selection.removeAllRanges();
+            selection.addRange(range);
+            document.execCommand("insertText", false, postText);
+            afterInsert = canonicalText(editorText(editor));
           }}
           dispatchChanged(editor);
         }}
 
-        const currentEditors = Array.from(document.querySelectorAll('textarea, [contenteditable="true"], [role="textbox"]'))
+        const currentEditors = Array.from(document.querySelectorAll('textarea, [contenteditable], [role="textbox"]'))
           .filter(el => visible(el) && isPostEditor(el));
         const editorTexts = currentEditors.map(editorText);
-        const matchedEditor = currentEditors.find(el => editorText(el) === postText);
+        const matchedEditor = currentEditors.find(el => canonicalText(editorText(el)) === canonicalPostText);
         const editorTextValue = matchedEditor ? editorText(matchedEditor) : editorText(editor);
         const postButtons = Array.from(document.querySelectorAll("button, [role=button]"))
           .filter(visible)
@@ -474,7 +535,7 @@ def fill_composer(profile: str, text: str) -> Dict[str, Any]:
           editorLength: editorTextValue.length,
           editorTextSample: editorTextValue.slice(0, 120),
           editorCount: currentEditors.length,
-          matchingEditorCount: currentEditors.filter(el => editorText(el) === postText).length,
+          matchingEditorCount: currentEditors.filter(el => canonicalText(editorText(el)) === canonicalPostText).length,
           postButtons
         }};
         """,
@@ -488,6 +549,7 @@ def fill_composer(profile: str, text: str) -> Dict[str, Any]:
             profile,
             f"""
             const postText = {js_string(text)};
+            const canonicalPostText = canonicalText(postText);
             function label(el) {{
               return (el.getAttribute("aria-label") || el.getAttribute("aria-placeholder") || el.getAttribute("placeholder") || el.innerText || el.textContent || "").trim();
             }}
@@ -501,14 +563,24 @@ def fill_composer(profile: str, text: str) -> Dict[str, Any]:
               const text = label(el);
               const type = (el.getAttribute("type") || "").toLowerCase();
               if (type === "search" || /Add a topic|Search|搜尋|主題/i.test(text)) return false;
-              return el.isContentEditable || tag === "TEXTAREA" || el.getAttribute("role") === "textbox";
+              return el.isContentEditable || tag === "TEXTAREA" || tag === "INPUT";
             }}
             function editorText(el) {{
               return (el.value || el.innerText || el.textContent || "").trim();
             }}
-            const editors = Array.from(document.querySelectorAll('textarea, [contenteditable="true"], [role="textbox"]'))
+            function canonicalText(value) {{
+              return (value || "")
+                .replace(/\\u00a0/g, " ")
+                .replace(/\\r\\n?/g, "\\n")
+                .split("\\n")
+                .map(line => line.trim().replace(/[ \\t]{{2,}}/g, " "))
+                .join("\\n")
+                .replace(/\\n{{3,}}/g, "\\n\\n")
+                .trim();
+            }}
+            const editors = Array.from(document.querySelectorAll('textarea, [contenteditable], [role="textbox"]'))
               .filter(el => visible(el) && isPostEditor(el));
-            const matchedEditor = editors.find(el => editorText(el) === postText);
+            const matchedEditor = editors.find(el => canonicalText(editorText(el)) === canonicalPostText);
             const editor = matchedEditor || editors.find(el => el.isContentEditable) || editors[0];
             const editorTextValue = editor ? editorText(editor) : "";
             const postButtons = Array.from(document.querySelectorAll("button, [role=button]"))
@@ -525,7 +597,7 @@ def fill_composer(profile: str, text: str) -> Dict[str, Any]:
               editorLength: editorTextValue.length,
               editorTextSample: editorTextValue.slice(0, 120),
               editorCount: editors.length,
-              matchingEditorCount: editors.filter(el => editorText(el) === postText).length,
+              matchingEditorCount: editors.filter(el => canonicalText(editorText(el)) === canonicalPostText).length,
               postButtons,
               initialResult: {js_string(json.dumps(result, ensure_ascii=False))}
             }};
@@ -543,7 +615,8 @@ def fill_composer(profile: str, text: str) -> Dict[str, Any]:
 def click_post(profile: str, post_text: str = "") -> Dict[str, Any]:
     script = """
         const postText = __POST_TEXT__;
-        const prefix = postText.slice(0, Math.min(40, postText.length)).trim();
+        const firstLine = postText.split(/\n/).map(line => line.trim()).find(Boolean) || "";
+        const prefix = firstLine.slice(0, Math.min(40, firstLine.length)).trim();
 
         function label(el) {
           return (el.getAttribute("aria-label") || el.innerText || el.textContent || "").trim();
@@ -557,7 +630,7 @@ def click_post(profile: str, post_text: str = "") -> Dict[str, Any]:
           return (root.innerText || root.textContent || "").trim();
         }
         function hasNonEmptyEditor(root) {
-          return Array.from(root.querySelectorAll('textarea, [contenteditable="true"], [role="textbox"]'))
+          return Array.from(root.querySelectorAll('textarea, [contenteditable], [role="textbox"]'))
             .filter(visible)
             .some(el => ((el.value || el.innerText || el.textContent || "").trim()).length > 0);
         }
@@ -638,7 +711,8 @@ def discover_latest_post_url(profile: str, username: str, post_text: str) -> Dic
         f"""
         const username = {js_string(normalized_username)};
         const postText = {js_string(post_text)};
-        const prefix = postText.slice(0, Math.min(40, postText.length)).trim();
+        const firstLine = postText.split(/\\n/).map(line => line.trim()).find(Boolean) || "";
+        const prefix = firstLine.slice(0, Math.min(40, firstLine.length)).trim();
 
         function absolute(href) {{
           try {{
@@ -726,6 +800,7 @@ def main() -> int:
             "status": "composer-filled",
             "text_length": len(post_text),
             "text_normalized_for_threads": post_text != raw_post_text,
+            "format_warnings": threads_format_warnings(post_text),
             "state": state,
             "composer": composer,
             "filled": filled,

@@ -6,6 +6,10 @@ REPO="/Users/openclaw-user/.openclaw/workspace"
 STATE_FILE="/Users/openclaw-user/.openclaw/workspace/memory/backend-hourly-knowledge-state.tsv"
 mkdir -p "$(dirname "$STATE_FILE")"
 
+CODEX_RUNTIME_HOME="${OPENCLAW_CODEX_RUNTIME_HOME:-/Users/openclaw-user}"
+export HOME="$CODEX_RUNTIME_HOME"
+export CODEX_HOME="${OPENCLAW_CODEX_HOME:-$CODEX_RUNTIME_HOME/.codex}"
+
 RECENT_TOPICS=""
 RECENT_SHORT=""
 RECENT_24H_TOPICS=""
@@ -73,7 +77,7 @@ ${RECENT_24H_TOPICS:-- 無}
 - 硬性規則：不要再選與最近 24 小時相同核心主題（例如 Kafka Share Groups / PostgreSQL 18.3 回歸）。
 - 若主題相近，必須改成不同角度，且至少 2 條新連結。
 - 額外去重限制：${BAN_HINTS:-\n- 無}
-- 最後一行固定輸出：執行設定：model=openai-codex/gpt-5.4｜reasoning=xhigh｜think=xhigh
+- 最後一行固定輸出：執行設定：model=openai-codex/gpt-5.5｜reasoning=xhigh｜think=xhigh
 
 只輸出最終內容，不要輸出流程說明。
 EOF
@@ -82,7 +86,7 @@ OUT_FILE="$(mktemp)"
 LOG_FILE="$(mktemp)"
 
 cd "$REPO"
-if ! codex exec -m gpt-5.4 -c model_reasoning_effort='"xhigh"' -s read-only -o "$OUT_FILE" "$PROMPT" >"$LOG_FILE" 2>&1; then
+if ! codex exec -m gpt-5.5 -c model_reasoning_effort='"xhigh"' -s read-only -o "$OUT_FILE" "$PROMPT" >"$LOG_FILE" 2>&1; then
   echo "backend knowledge 生成失敗"
   tail -n 80 "$LOG_FILE"
   exit 1

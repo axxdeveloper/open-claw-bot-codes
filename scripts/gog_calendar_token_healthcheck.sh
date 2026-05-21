@@ -2,7 +2,7 @@
 set -euo pipefail
 
 TZ_NAME="Asia/Taipei"
-ACC="${GOG_ACCOUNT:-shooeugenesea.tw@gmail.com}"
+ACC="${GOG_ACCOUNT:-zwl9999999@gmail.com}"
 FROM_TS="$(TZ=$TZ_NAME date '+%Y-%m-%dT%H:%M:%S')"
 TO_TS="$(TZ=$TZ_NAME date -v+1d '+%Y-%m-%dT%H:%M:%S')"
 

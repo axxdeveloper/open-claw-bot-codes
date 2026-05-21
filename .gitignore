@@ -8,3 +8,34 @@
 # runtime state for release watch cron
 memory/cli-release-watch.json
 memory/backend-hourly-knowledge-state.tsv
+
+# local runtime state, browser profiles, generated reports, and scratch files
+.tmp/
+.tmp_*
+.worktrees/
+tmp/
+tmp_*
+tmp_notebooklm/
+plan_payload.json
+NOW.md
+WORKFLOW_AUTO.md
+review/
+state/
+reports/
+memory/.dreams/
+memory/20*.md
+memory/*.json
+memory/*.tsv
+
+# local side workspaces and cloned repos
+/assets/
+/calorie-web/
+/codex/
+/leetcode-practice-platform/
+/openclaw-discourse/
+/orb.db/
+/repos/
+/reverse-proxy-8080/
+/storyflow-platform/
+/voice-clone-work*/
+/skills/instagram-politics-visual/

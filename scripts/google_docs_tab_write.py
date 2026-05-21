@@ -35,13 +35,14 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import sys
 import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+from google_oauth_policy import load_google_oauth_config
 
 DOCS_API_BASE = "https://docs.googleapis.com/v1"
 OAUTH_TOKEN_URL = "https://oauth2.googleapis.com/token"
@@ -82,47 +83,11 @@ def http_json(
         raise TabWriteError(f"HTTP {e.code} {method} {url}: {detail}") from e
 
 
-def _load_oauth_file(path: Path) -> Dict[str, str]:
-    if not path.exists():
-        return {}
-    data = json.loads(path.read_text(encoding="utf-8"))
-    return {
-        "client_id": data.get("client_id", ""),
-        "client_secret": data.get("client_secret", ""),
-        "refresh_token": data.get("refresh_token", ""),
-    }
-
-
-def _load_google_oauth_config(oauth_file: Optional[str]) -> Dict[str, str]:
-    cfg = {
-        "client_id": os.getenv("GOOGLE_OAUTH_CLIENT_ID", ""),
-        "client_secret": os.getenv("GOOGLE_OAUTH_CLIENT_SECRET", ""),
-        "refresh_token": os.getenv("GOOGLE_OAUTH_REFRESH_TOKEN", ""),
-    }
-    path = Path(
-        oauth_file
-        or os.getenv("OPENCLAW_GOOGLE_OAUTH_FILE", "")
-        or Path.home() / ".config" / "openclaw" / "google-oauth.json"
-    )
-
-    file_cfg = _load_oauth_file(path)
-    for k in ("client_id", "client_secret", "refresh_token"):
-        if not cfg[k]:
-            cfg[k] = file_cfg.get(k, "")
-
-    missing = [k for k, v in cfg.items() if not v]
-    if missing:
-        raise TabWriteError(
-            "Missing Google OAuth config: "
-            + ", ".join(missing)
-            + ". Set env vars or create "
-            + str(path)
-        )
-    return cfg
-
-
 def get_access_token(oauth_file: Optional[str]) -> str:
-    cfg = _load_google_oauth_config(oauth_file)
+    try:
+        cfg = load_google_oauth_config(oauth_file)
+    except RuntimeError as e:
+        raise TabWriteError(str(e)) from e
     token_resp = http_json(
         "POST",
         OAUTH_TOKEN_URL,

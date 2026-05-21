@@ -12,8 +12,8 @@ description: Correctly use xhigh reasoning with Codex and OpenClaw. Use when use
 
 ### 升級 OpenClaw 前的臨時策略（Base Rule）
 
-- 在 OpenClaw cron/session runtime 對 `gpt-5.4` 仍可能 fallback 的期間：
-  - **凡是要求 `gpt-5.4 + xhigh` 的任務，一律優先走 `codex exec`（CLI）執行**。
+- 在 OpenClaw cron/session runtime 對 `gpt-5.5` 仍可能 fallback 的期間：
+  - **凡是要求 `gpt-5.5 + xhigh` 的任務，一律優先走 `codex exec`（CLI）執行**。
   - 不依賴 agentTurn runtime 直接產文，避免默默退回 `gpt-5.3-codex`。
 - 只有在 OpenClaw 升級並驗證 through 後，才恢復讓 cron 直接走 agent runtime。
 
@@ -32,7 +32,7 @@ description: Correctly use xhigh reasoning with Codex and OpenClaw. Use when use
 ```json
 {
   "mode": "run",
-  "model": "openai-codex/gpt-5.4",
+  "model": "openai-codex/gpt-5.5",
   "thinking": "xhigh",
   "task": "..."
 }
@@ -51,12 +51,20 @@ description: Correctly use xhigh reasoning with Codex and OpenClaw. Use when use
 ### 正確
 
 ```bash
-codex exec -m gpt-5.4 -c model_reasoning_effort='"xhigh"' "your task"
+codex exec -m gpt-5.5 -c model_reasoning_effort='"xhigh"' "your task"
+```
+
+OpenClaw/cron/agent shell 建議固定 auth runtime，避免繼承到隔離的 `codex-home`：
+
+```bash
+HOME=/Users/openclaw-user \
+CODEX_HOME=/Users/openclaw-user/.codex \
+codex exec -m gpt-5.5 -c model_reasoning_effort='"xhigh"' "your task"
 ```
 
 若要顯示目前模式，執行後確認輸出裡有：
 
-- `model: gpt-5.4`
+- `model: gpt-5.5`
 - 推理等級為 `xhigh`（例如 `reasoning effort: xhigh`）
 
 ### 錯誤
@@ -70,7 +78,7 @@ codex exec -m xhigh "your task"
 1. 先跑最小任務：
 
 ```bash
-codex exec -m gpt-5.4 -c model_reasoning_effort='"xhigh"' "Reply with exactly: ok"
+codex exec -m gpt-5.5 -c model_reasoning_effort='"xhigh"' "Reply with exactly: ok"
 ```
 
 2. 若成功，再跑正式任務。
@@ -80,10 +88,11 @@ codex exec -m gpt-5.4 -c model_reasoning_effort='"xhigh"' "Reply with exactly: o
 - 把 `xhigh` 當成模型 id。
 - 子代理路由不穩（可先做 smoke test）。
 - 帳號/提供者不支援特定模型（與 xhigh 本身分開看）。
+- OpenClaw agent shell 繼承到 `/Users/openclaw-user/.openclaw/agents/main/agent/codex-home`，但該目錄沒有可用 `auth.json`，會造成 `401 Unauthorized` / missing bearer 或 basic auth。修法是強制 `HOME=/Users/openclaw-user CODEX_HOME=/Users/openclaw-user/.codex`，或確認 `codex-home/auth.json` 連到 `/Users/openclaw-user/.codex/auth.json`。
 
 ## 回報格式（建議）
 
-- model：`gpt-5.4`（OpenClaw 若用 provider 前綴則 `openai-codex/gpt-5.4`）
+- model：`gpt-5.5`（OpenClaw 若用 provider 前綴則 `openai-codex/gpt-5.5`）
 - reasoning：`xhigh`
 - smoke test：pass/fail
 - 正式任務：run id / commit / 輸出檔案

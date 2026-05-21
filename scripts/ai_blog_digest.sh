@@ -64,14 +64,14 @@ filter_ai() {
 blogwatcher scan --silent >/dev/null 2>&1 || true
 
 parsed_new="$(parse_articles new)"
-filtered_new="$(filter_ai <<< "$parsed_new" | head -n "$MAX_ITEMS")"
+filtered_new="$(filter_ai <<< "$parsed_new" | sed -n "1,${MAX_ITEMS}p")"
 
 if [[ -n "${filtered_new// /}" ]]; then
   echo "【AI 工程晨報】今日新文章（$(TZ=Asia/Taipei date '+%Y-%m-%d %H:%M (Asia/Taipei)')）"
   payload="$filtered_new"
 else
   parsed_all="$(parse_articles all)"
-  filtered_all="$(filter_ai <<< "$parsed_all" | sort -t$'\t' -k5,5r | head -n "$MAX_ITEMS")"
+  filtered_all="$(filter_ai <<< "$parsed_all" | sort -t$'\t' -k5,5r | sed -n "1,${MAX_ITEMS}p")"
 
   if [[ -z "${filtered_all// /}" ]]; then
     echo "【AI 工程晨報】今天沒有符合條件的工程向 AI 文章。"

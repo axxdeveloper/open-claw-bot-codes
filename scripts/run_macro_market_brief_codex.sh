@@ -5,13 +5,17 @@ MARKET="${1:-}"
 REPO="/Users/openclaw-user/.openclaw/workspace/shooeugenesea.github.io"
 DATA_SCRIPT="/Users/openclaw-user/.openclaw/workspace/scripts/market_brief_data.sh"
 
+CODEX_RUNTIME_HOME="${OPENCLAW_CODEX_RUNTIME_HOME:-/Users/openclaw-user}"
+export HOME="$CODEX_RUNTIME_HOME"
+export CODEX_HOME="${OPENCLAW_CODEX_HOME:-$CODEX_RUNTIME_HOME/.codex}"
+
 if [[ "$MARKET" != "tw" && "$MARKET" != "us" ]]; then
   echo "用法：run_macro_market_brief_codex.sh <tw|us>"
   exit 1
 fi
 
 if [[ "$MARKET" == "tw" ]]; then
-  HOLDINGS="0050、中鋼"
+  HOLDINGS="0050"
 else
   HOLDINGS="QQQ、VT、VTI、VGSH、VGIT"
 fi
@@ -78,12 +82,12 @@ $(cat "$DATA_FILE")
 - 若資料不足，明確標示「資料暫缺」，不得臆測。
 - 資料口徑/資料暫缺聲明放在文末來源上方，使用引用格式（> 資料口徑：...）。
 - 最後附來源連結至少 3 條。
-- 最後一行固定輸出：執行設定：model=openai-codex/gpt-5.4｜reasoning=xhigh｜think=xhigh
+- 最後一行固定輸出：執行設定：model=openai-codex/gpt-5.5｜reasoning=xhigh｜think=xhigh
 
 只輸出最終摘要內容，不要輸出流程說明。
 EOF
 
-CODEX_CMD="cd '$REPO' && codex exec -m gpt-5.4 -c model_reasoning_effort='\"xhigh\"' -s read-only -o '$OUT_FILE' \"\$(cat '$PROMPT_FILE')\""
+CODEX_CMD="cd '$REPO' && codex exec -m gpt-5.5 -c model_reasoning_effort='\"xhigh\"' -s read-only -o '$OUT_FILE' \"\$(cat '$PROMPT_FILE')\""
 if ! run_with_keepalive "$CODEX_CMD" /dev/null "$LOG_FILE" "market-brief codex"; then
   echo "market brief 生成失敗"
   tail -n 120 "$LOG_FILE"
