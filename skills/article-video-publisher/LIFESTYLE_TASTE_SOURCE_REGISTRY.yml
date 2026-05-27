@@ -38,7 +38,7 @@ sources:
     enabled: true
     notes: Use mainly when an episode offers clear styling, wardrobe, care, repair, or durability principles; avoid serious supply-chain/history/ethics topics without a how-to-wear explanation path.
   - id: dressed-fashion-history
-    name: Dressed: The History of Fashion
+    name: "Dressed: The History of Fashion"
     category: Taste
     tier: 1
     type: fashion_history_podcast
@@ -171,8 +171,8 @@ sources:
     weight: 1.05
     use_for: [long_video, short, research]
     tags: [home, design, everyday_objects, color, lifestyle]
-    enabled: true
-    notes: Broader lifestyle taste source for home, objects, color, and everyday environment; require concrete decision value.
+    enabled: false
+    notes: Manual/reference only. Home/object/lifestyle content is outside routine 小舟 direct practical styling scope.
   - id: apartment-therapy
     name: Apartment Therapy
     category: Taste
@@ -186,8 +186,8 @@ sources:
     weight: 0.85
     use_for: [short, research]
     tags: [home, small_space, daily_life, organization, design]
-    enabled: true
-    notes: Discovery-only unless the item teaches a concrete home/life design decision, not product shopping.
+    enabled: false
+    notes: Manual/reference only. Home-lifestyle content is outside routine 小舟 direct practical styling scope.
   - id: cup-of-jo
     name: Cup of Jo
     category: Taste
@@ -201,8 +201,8 @@ sources:
     weight: 0.80
     use_for: [short, research]
     tags: [lifestyle, relationships, home, everyday_life]
-    enabled: true
-    notes: Use sparingly for everyday life or relationship taste only when there is a clear, non-gendered practical takeaway.
+    enabled: false
+    notes: Manual/reference only. Generic lifestyle/relationship content is outside routine 小舟 direct practical styling scope.
   - id: business-of-fashion
     name: The Business of Fashion
     category: Taste

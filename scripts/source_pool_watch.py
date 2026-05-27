@@ -62,10 +62,13 @@ KEYWORDS = {
         "debezium",
         "distributed",
         "duckdb",
+        "exploit",
         "flink",
+        "fuzzing",
         "gc",
         "go",
         "grafana",
+        "hardening",
         "iceberg",
         "index",
         "indexes",
@@ -82,6 +85,7 @@ KEYWORDS = {
         "lsm",
         "message broker",
         "messaging",
+        "memory corruption",
         "memtable",
         "memtables",
         "mysql",
@@ -101,6 +105,7 @@ KEYWORDS = {
         "reliability",
         "replication",
         "rust",
+        "sandbox",
         "scaling",
         "security",
         "service mesh",
@@ -114,6 +119,7 @@ KEYWORDS = {
         "streaming",
         "transaction",
         "tracing",
+        "vulnerability",
         "vector",
         "vertica",
         "virtual thread",
@@ -201,6 +207,7 @@ BACKEND_ENGINEER_VALUE_KEYWORDS = [
     "devtools",
     "distributed",
     "duckdb",
+    "exploit",
     "eval",
     "evaluation",
     "function",
@@ -209,6 +216,7 @@ BACKEND_ENGINEER_VALUE_KEYWORDS = [
     "gateway",
     "go",
     "grafana",
+    "hardening",
     "iceberg",
     "index",
     "indexes",
@@ -227,6 +235,7 @@ BACKEND_ENGINEER_VALUE_KEYWORDS = [
     "lsm",
     "message broker",
     "messaging",
+    "memory corruption",
     "migration",
     "monitor",
     "mysql",
@@ -249,6 +258,7 @@ BACKEND_ENGINEER_VALUE_KEYWORDS = [
     "rollout",
     "runtime",
     "rust",
+    "sandbox",
     "scaling",
     "security",
     "serving",
@@ -263,6 +273,7 @@ BACKEND_ENGINEER_VALUE_KEYWORDS = [
     "transaction",
     "trie",
     "upgrade",
+    "vulnerability",
     "vector",
     "vertica",
     "workflow",
@@ -746,6 +757,7 @@ DEPTH_KEYWORDS = [
     "feature",
     "function",
     "functions",
+    "fuzzing",
     "implementation",
     "indexing",
     "jdk",
@@ -756,6 +768,7 @@ DEPTH_KEYWORDS = [
     "method",
     "migration",
     "observability",
+    "patch",
     "podcast",
     "post-training",
     "performance",
@@ -765,6 +778,7 @@ DEPTH_KEYWORDS = [
     "replication",
     "research",
     "researcher",
+    "security",
     "risk",
     "rollout",
     "routing",
@@ -1057,6 +1071,10 @@ def parse_html_links(text: str, source: dict) -> list[dict]:
         seen.add(url)
         title = clean_text(label) or title_from_url(url)
         if len(title) < 8 or title.lower() in {"read more", "continue reading", "continue reading »"}:
+            title = title_from_url(url)
+        # Some project feeds (for example Kafka) use ultra-short anchor labels like
+        # "AK 4.3.0". Promote those to URL-slug titles so scoring sees topic context.
+        if re.fullmatch(r"[A-Z]{1,4}\s+\d+(?:\.\d+){1,3}", title):
             title = title_from_url(url)
         if any(pattern and re.search(pattern, title, re.I) for pattern in exclude_title_patterns):
             continue
@@ -1490,6 +1508,7 @@ def score_candidate(
     blocked_auto_category = category in DISALLOWED_AUTO_VIDEO_CATEGORIES
     tier = int(source.get("tier", 3) or 3)
     source_type = str(source.get("type", ""))
+    security_source = source_type.lower() == "security_blog"
     title = str(item.get("title", ""))
     body = f"{title} {item.get('summary', '')}".lower()
     ai_related = is_ai_related(source, body)
@@ -1555,6 +1574,10 @@ def score_candidate(
         taste_serious_context_hits >= 2 or (serious_taste_source and taste_serious_context_hits >= 1)
     )
     marketing_hits = count_keyword_hits(body, MARKETING_CONTEXT_KEYWORDS)
+    security_mechanism_hits = count_keyword_hits(
+        body,
+        ["0-click", "cve", "exploit", "fuzz", "hardening", "memory corruption", "patch", "sandbox", "vulnerability", "zero-day"],
+    )
     substance_depth = min(4, max(1, depth_hits + (1 if topic_hits >= 2 else 0)))
     if source_type in {"research_feed", "project_news"} and depth_hits == 0:
         substance_depth = min(substance_depth, 2)
@@ -1567,6 +1590,9 @@ def score_candidate(
     audience_value = min(3, 1 + (1 if topic_hits and depth_hits else 0) + (1 if reader_value_signal else 0))
     if source_type in {"official_research_blog", "researcher_team_blog", "engineering_blog"}:
         audience_value = max(audience_value, 2)
+    if security_source and (topic_hits or depth_hits or security_mechanism_hits):
+        audience_value = max(audience_value, 2)
+        substance_depth = max(substance_depth, 2)
     if backend_engineer_value_signal and (depth_hits or reader_value_signal):
         audience_value = max(audience_value, 2)
     if taste_category:
@@ -1665,6 +1691,8 @@ def score_candidate(
     if interview_priority:
         substance_depth = max(substance_depth, 3)
         audience_value = max(audience_value, 3 if tier <= 2 and (reader_value_hits or depth_hits >= 3) else 2)
+        explainability = max(explainability, 2)
+    if security_source and security_mechanism_hits:
         explainability = max(explainability, 2)
     if ai_interview_importance_signal:
         substance_depth = max(substance_depth, 3)

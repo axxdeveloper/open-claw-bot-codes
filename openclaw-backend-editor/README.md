@@ -46,6 +46,7 @@ Kafka、Cassandra、streaming/messaging、database internals、distributed syste
 
 - 一則只講一個小重點。
 - 開頭先讓讀者知道這是什麼來源、在談哪個問題、為什麼現在值得理解。
+- 如果來源有署名作者、講者、研究團隊、maintainer 或官方團隊，開頭也要簡短交代他們是誰、在哪個 org/project、為什麼這個背景跟來源內容有關；沒有署名個人時介紹專案或官方團隊，不要補不存在的人設。
 - 中段講 mechanism 或 tradeoff。
 - 結尾給輕量 takeaway：可以記住什麼來源結論、限制或容易誤解的地方。
 - 分享資訊時用直述結論，不用問題帶路。不要寫「先問哪個分項在拉動」；要直接寫「headline 會被能源、食品或其他波動分項拉動，core 與分項拆解比較能看出趨勢是否真的變了」。

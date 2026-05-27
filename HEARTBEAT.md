@@ -11,6 +11,7 @@
 - Recovered/resumed 影片一旦 published 或修好已公開影片 bookkeeping，必須立即發可見 final report，列出 YouTube URL、原始來源 URL、發布時間、長度、review/public-page verification、TTS/audio 檢查與 cleanup 狀態；不要等下一個 heartbeat/cron。
 - 若後續 cron/heartbeat skip/no-op 的原因是 active/recovered/just-completed 影片工作流，回報前先查 `status.md`、`youtube/upload-result.json` 與公開 URL；若已 Public，skip 訊息必須帶上既有影片 URL 與狀態，不可只說「已有任務進行中」讓 Isaac 看起來像沒有產出。
 - 若後續 cron/heartbeat 想因 pending artifact blocker 而 skip，先把它當 incident 做 recovery triage，不可只報 skip：列出 pending artifact、查 active sessions/processes、檢查 `status.md` / `source.json` / `review/review.md` / `video/build-result.txt` / `youtube/metadata.json` / `youtube/upload-result.json` / 公開 URL；已 Public 就補 bookkeeping/final report，`review_passed_pending_upload` 且無 upload result 就續 upload，`rendered_pending_review_upload` 就先跑/驗證 review，不能安全續才把 `status.md` 標成 `blocked` 並寫明下一步。這類事件要在 `reports/incidents/YYYY-MM-DD-<slug>.md` 留 incident review，避免 pending 長期擋住新片。
+- 若 pending artifact 只是已上傳影片的 YouTube processing/public playback verification（例如 Pixel `published_public_processing_pending_verification` / `youtube_processing_not_ready`，且 metadata/oEmbed 已可見），它只屬於同影片 retry/bookkeeping lane，不得讓一般產片 slot 停止選新題。只有 active render/upload/TTS/Studio、quota、duplicate upload risk，或真正 review/upload-stage recovery 才能擋新片。
 - 「影片已 Public 但 Isaac 沒收到 final report」視為 report-miss，要立即補報；這種補報不是新上傳，也要明確避免誤導成第二次發布。
 - 明確可執行的工作不要等待 Isaac 回 ok / confirm / 關鍵字；能安全推進就主動推進
 - Chrome/CDP/browser profile/OAuth/YouTube Studio/upload 卡住是高優先 blocker，要回報具體錯誤與下一個 retry path

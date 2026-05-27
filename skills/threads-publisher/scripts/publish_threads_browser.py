@@ -615,7 +615,7 @@ def fill_composer(profile: str, text: str) -> Dict[str, Any]:
 def click_post(profile: str, post_text: str = "") -> Dict[str, Any]:
     script = """
         const postText = __POST_TEXT__;
-        const firstLine = postText.split(/\n/).map(line => line.trim()).find(Boolean) || "";
+        const firstLine = postText.split(/\\n/).map(line => line.trim()).find(Boolean) || "";
         const prefix = firstLine.slice(0, Math.min(40, firstLine.length)).trim();
 
         function label(el) {

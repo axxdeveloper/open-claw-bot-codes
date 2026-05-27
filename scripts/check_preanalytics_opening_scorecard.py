@@ -27,11 +27,11 @@ LEGACY_PATTERNS = {
 }
 
 IMPROVEMENT_PATTERNS = {
-    "first_60s_density": r"(?im)^\s*-\s*first_60s_density:\s*(low|medium|high)\b",
-    "opening_new_labels_before_30s": r"(?im)^\s*-\s*opening_new_labels_before_30s:\s*(\d+)\b",
-    "opening_slide2_points_count": r"(?im)^\s*-\s*opening_slide2_points_count:\s*(\d+)\b",
+    "first_60s_density": r"(?im)^\s*(?:-\s*)?first_60s_density:\s*(low|medium|high)\b",
+    "opening_new_labels_before_30s": r"(?im)^\s*(?:-\s*)?opening_new_labels_before_30s:\s*(\d+)\b",
+    "opening_slide2_points_count": r"(?im)^\s*(?:-\s*)?opening_slide2_points_count:\s*(\d+)\b",
     "opening_failure_signal_before_seconds": (
-        r"(?im)^\s*-\s*opening_failure_signal_before_seconds:\s*([0-9]+(?:\.[0-9]+)?)\b"
+        r"(?im)^\s*(?:-\s*)?opening_failure_signal_before_seconds:\s*([0-9]+(?:\.[0-9]+)?)\b"
     ),
 }
 

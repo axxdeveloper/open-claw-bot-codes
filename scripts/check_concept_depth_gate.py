@@ -22,6 +22,22 @@ BROAD_AUDIENCE_RE = re.compile(
     r"AI[-_ ]?assisted|AI\s*軟體|AI\s*開發|AI\s*參與軟體",
     re.IGNORECASE,
 )
+ADVANCED_PROOF_RE = re.compile(
+    r"Golod[- ]?Shafarevich|class\s+field\s+tower|class\s+group|class\s+number|"
+    r"Minkowski|norm[- ]?one|pigeonhole|Q\(i\)|K=L\(i\)|"
+    r"代數數論|數域塔|數域|分裂質數|質理想|理想類|類數|鴿籠原理|"
+    r"複嵌入|Minkowski\s*嵌入|高維格子|高維複空間|全實數域|高斯整數|"
+    r"norm[- ]?one\s*元素|證明稿|定理|推翻猜想|反例族|存在性構造|"
+    r"n\^\(1\+o\(1\)\)|n\^\(1\+δ\)|n\^\(1\+delta\)|ν\(n\)|"
+    r"漸近|下界|上界|固定\s*δ|固定\s*delta|無限多個\s*n|次方增益",
+    re.IGNORECASE,
+)
+PLAIN_BRIDGE_RE = re.compile(
+    r"白話|換句話說|也就是說|可以想成|先想成|可以理解為|"
+    r"具體來說|最簡單的版本|先抓住|先不用懂|先不管|"
+    r"像是|好比|比喻|日常|直覺上|一步一步|這句話的意思",
+    re.IGNORECASE,
+)
 
 MIN_SECONDS_PER_KEY_CONCEPT = 120.0
 HEALTHY_CONCEPT_HEAVY_SECONDS = 900.0
@@ -42,6 +58,35 @@ def read_text(path: Path) -> str:
     if not path.exists():
         return ""
     return path.read_text(encoding="utf-8", errors="replace")
+
+
+def read_narration_text(artifact_dir: Path) -> str:
+    narration = read_text(artifact_dir / "video" / "narration.md")
+    if narration.strip():
+        return narration
+
+    payload = load_json(artifact_dir / "plan_payload.json")
+    slides = payload.get("slides")
+    if not isinstance(slides, list):
+        return ""
+
+    collected: list[str] = []
+    for slide in slides:
+        if not isinstance(slide, dict):
+            continue
+        for key in ("narration", "voiceover", "spoken_script", "script"):
+            value = slide.get(key)
+            if isinstance(value, str) and value.strip():
+                collected.append(value.strip())
+    return "\n\n".join(collected)
+
+
+def narration_segments(text: str) -> list[str]:
+    chunks = re.split(r"(?im)^\s*##\s+Slide\s+\d+\b.*$", text)
+    segments = [chunk.strip() for chunk in chunks if chunk.strip()]
+    if segments:
+        return segments
+    return [chunk.strip() for chunk in re.split(r"\n\s*\n", text) if chunk.strip()]
 
 
 def canonical_lines(text: str) -> dict[str, str]:
@@ -187,6 +232,11 @@ def main() -> int:
     first30_clarity = str(preanalytics_parsed.get("first_30_second_clarity") or "").upper()
     opening_labels = preanalytics_parsed.get("opening_new_labels_before_30s")
     opening_points = preanalytics_parsed.get("opening_slide2_points_count")
+    narration_text = read_narration_text(artifact_dir)
+    segments = narration_segments(narration_text)
+    advanced_proof_term_count = len(ADVANCED_PROOF_RE.findall(narration_text))
+    advanced_proof_segment_count = sum(1 for segment in segments if ADVANCED_PROOF_RE.search(segment))
+    plain_bridge_count = len(PLAIN_BRIDGE_RE.findall(narration_text))
 
     duration_seconds, duration_source = find_duration(artifact_dir, visual_check)
     seconds_per_key_concept = (
@@ -228,6 +278,10 @@ def main() -> int:
         "is_long_form": is_long_form,
         "is_concept_heavy": is_concept_heavy,
         "compression_signals": compression_signals,
+        "narration_segment_count": len(segments),
+        "advanced_proof_term_count": advanced_proof_term_count,
+        "advanced_proof_segment_count": advanced_proof_segment_count,
+        "plain_bridge_count": plain_bridge_count,
     }
 
     if explainer_check.get("status") != "PASS":
@@ -361,6 +415,55 @@ def main() -> int:
                 "message": (
                     "Opening compression was detected. This is not a hard blocker for "
                     "narrow topics, but it must be recorded as a concrete next-run fix."
+                ),
+            }
+        )
+
+    if (
+        is_technical
+        and is_long_form
+        and is_concept_heavy
+        and hard_part_count >= 5
+        and duration_seconds is not None
+        and duration_seconds < HEALTHY_CONCEPT_HEAVY_SECONDS
+        and advanced_proof_term_count >= 18
+        and advanced_proof_segment_count >= 6
+    ):
+        errors.append(
+            {
+                "code": "advanced_proof_topic_too_compressed_for_first_time_viewer",
+                "duration_seconds": round(duration_seconds, 3),
+                "healthy_target_seconds": HEALTHY_CONCEPT_HEAVY_SECONDS,
+                "hard_part_count": hard_part_count,
+                "advanced_proof_term_count": advanced_proof_term_count,
+                "advanced_proof_segment_count": advanced_proof_segment_count,
+                "message": (
+                    "This technical long-form script relies on many advanced proof or "
+                    "abstract-math terms while staying under the 15-minute healthy target. "
+                    "Narrow the promise, split the source into a concept series, or rewrite "
+                    "the script so the first-time viewer can follow one proof chain from zero."
+                ),
+            }
+        )
+
+    if (
+        is_technical
+        and is_long_form
+        and is_concept_heavy
+        and advanced_proof_term_count >= 18
+        and advanced_proof_segment_count >= 8
+        and plain_bridge_count < max(5, hard_part_count)
+    ):
+        errors.append(
+            {
+                "code": "not_enough_plain_language_bridges_for_advanced_proof",
+                "plain_bridge_count": plain_bridge_count,
+                "required_plain_bridge_count": max(5, hard_part_count),
+                "advanced_proof_segment_count": advanced_proof_segment_count,
+                "message": (
+                    "Advanced proof-heavy narration needs repeated plain-language bridges, "
+                    "not only labels or term translations. Add concrete intuition, step-by-step "
+                    "bridges, and worked examples before upload."
                 ),
             }
         )

@@ -93,6 +93,13 @@ videos.
   not the article's goal. The article should first make the source or technical
   concept understandable in Chinese: source object, plain definition, context,
   mechanism, concrete example, tradeoff/risk, source conclusion, and limitation.
+- Before the main explanation, introduce the author, speaker, research group,
+  maintainer, or source-owning team when the public source identifies one. Say
+  who they are, their role/org/project, and why that background matters to this
+  source. For many-author papers, introduce the lead author/research
+  group/institution when useful; for release notes, repos, or unsigned company
+  posts, introduce the project, maintainer group, or official team. Keep it
+  factual and short, and do not invent biographies.
 - Isaac's 2026-05-16 direction: Blogger's fuller explanation style is the
   model for TodayShip's technical concept teaching across YouTube, Threads, and
   Blogger. Keep Blogger as the deepest written version: define terms, explain

@@ -114,9 +114,9 @@ sources:
     type: research_feed
     url: https://arxiv.org/list/cs.AI/recent
     fetch_mode: rss
-    fetch_url: https://export.arxiv.org/api/query?search_query=cat:cs.AI&sortBy=submittedDate&sortOrder=descending&max_results=20
+    fetch_url: https://rss.arxiv.org/rss/cs.AI
     cadence: daily
-    max_items: 6
+    max_items: 5
     weight: 1.35
     use_for: [research, long_video]
     tags: [papers, research, ai]
@@ -129,9 +129,9 @@ sources:
     type: research_feed
     url: https://arxiv.org/list/cs.LG/recent
     fetch_mode: rss
-    fetch_url: https://export.arxiv.org/api/query?search_query=cat:cs.LG&sortBy=submittedDate&sortOrder=descending&max_results=20
+    fetch_url: https://rss.arxiv.org/rss/cs.LG
     cadence: daily
-    max_items: 6
+    max_items: 5
     weight: 1.35
     use_for: [research, long_video]
     tags: [papers, machine_learning, ai]
@@ -144,9 +144,9 @@ sources:
     type: research_feed
     url: https://arxiv.org/list/cs.CL/recent
     fetch_mode: rss
-    fetch_url: https://export.arxiv.org/api/query?search_query=cat:cs.CL&sortBy=submittedDate&sortOrder=descending&max_results=20
+    fetch_url: https://rss.arxiv.org/rss/cs.CL
     cadence: daily
-    max_items: 6
+    max_items: 4
     weight: 1.35
     use_for: [research, long_video]
     tags: [papers, llm, nlp, language_models, agents, evals]
@@ -159,7 +159,7 @@ sources:
     type: research_feed
     url: https://arxiv.org/list/cs.CV/recent
     fetch_mode: rss
-    fetch_url: https://export.arxiv.org/api/query?search_query=cat:cs.CV&sortBy=submittedDate&sortOrder=descending&max_results=20
+    fetch_url: https://rss.arxiv.org/rss/cs.CV
     cadence: daily
     max_items: 3
     weight: 1.25
@@ -174,7 +174,7 @@ sources:
     type: research_feed
     url: https://arxiv.org/list/stat.ML/recent
     fetch_mode: rss
-    fetch_url: https://export.arxiv.org/api/query?search_query=cat:stat.ML&sortBy=submittedDate&sortOrder=descending&max_results=20
+    fetch_url: https://rss.arxiv.org/rss/stat.ML
     cadence: daily
     max_items: 3
     weight: 1.20
@@ -192,12 +192,12 @@ sources:
     fetch_url: https://huggingface.co/papers
     url_prefixes: [https://huggingface.co/papers/]
     cadence: daily
-    max_items: 8
-    weight: 1.40
+    max_items: 5
+    weight: 1.20
     use_for: [research, long_video, short]
     tags: [papers, community_discussion, open_source, models, evals]
     enabled: true
-    notes: Paper discovery with community signals; verify selected papers against arXiv/PDF, official repo, code, evals, or lab post, and require clear AI user/developer impact before publication.
+    notes: Paper discovery with community signals; verify selected papers against arXiv/PDF, official repo, code, evals, or lab post, and require clear AI user/developer impact before publication. Keep lower weight and tighter daily cap to reduce repeated paper-feed concentration.
 
   - id: dwarkesh-podcast
     name: Dwarkesh Podcast
@@ -235,15 +235,15 @@ sources:
     tier: 1
     type: ai_leader_interview
     url: https://www.youtube.com/@nopriorspodcast
-    fetch_mode: rss
-    fetch_url: https://www.youtube.com/feeds/videos.xml?channel_id=UCSI7h9hydQ40K5MJHnCrQvw
+    fetch_mode: youtube_channel
+    fetch_url: https://www.youtube.com/@nopriorspodcast/videos
     cadence: daily
     max_items: 6
     weight: 1.45
     use_for: [long_video, short, research]
     tags: [ai_interviews, founders, researchers, startups, inference]
     exclude_url_substrings: [/shorts/]
-    exclude_title_patterns: [shorts?]
+    exclude_title_patterns: ["shorts?"]
     enabled: true
     notes: AI founder/researcher/operator interviews; prefer full episodes with concrete technical or market mechanism.
   - id: cognitive-revolution-podcast
@@ -259,7 +259,7 @@ sources:
     weight: 1.45
     use_for: [long_video, short, research]
     tags: [ai_interviews, builders, researchers, agents, evals, safety]
-    exclude_title_patterns: [AI in the AM, newsletter]
+    exclude_title_patterns: [AI in the AM, newsletter, career]
     enabled: true
     notes: AI builders and researchers; prefer episodes with mechanisms, failure modes, evals, or deployment tradeoffs.
   - id: twiml-ai-podcast
@@ -298,15 +298,15 @@ sources:
     tier: 2
     type: ai_video_interview
     url: https://www.youtube.com/@lexfridman
-    fetch_mode: rss
-    fetch_url: https://www.youtube.com/feeds/videos.xml?channel_id=UCSHZKyawb77ixDdsGog4iWA
+    fetch_mode: youtube_channel
+    fetch_url: https://www.youtube.com/@lexfridman/videos
     cadence: daily
     max_items: 4
     weight: 1.30
     use_for: [long_video, research]
     tags: [ai_interviews, researchers, founders, systems]
     exclude_url_substrings: [/shorts/]
-    exclude_title_patterns: [shorts?]
+    exclude_title_patterns: ["shorts?"]
     enabled: true
     notes: Broad interview feed; select only AI-relevant episodes with enough technical or strategic substance.
   - id: a16z-ai-podcast
@@ -355,7 +355,7 @@ sources:
     use_for: [long_video, research]
     tags: [ai_interviews, ai_ascent, frontier_labs, researchers, builders]
     exclude_url_substrings: [/shorts/]
-    exclude_title_patterns: [shorts?]
+    exclude_title_patterns: ["shorts?"]
     enabled: true
     notes: Catch Sequoia AI Ascent and video-only frontier AI interviews/keynotes that do not appear on the Training Data podcast page; select only episodes with concrete claims, chapters, transcript/captions, or enough description to explain mechanisms, tradeoffs, risk, and impact.
   - id: invest-like-the-best-youtube
@@ -372,7 +372,7 @@ sources:
     use_for: [long_video, research]
     tags: [ai_product, ai_operators, interviews, product_strategy, company_building]
     exclude_url_substrings: [/shorts/]
-    exclude_title_patterns: [shorts?, buffett, stocks?, trader, markets?, public software companies, private equity, PE firm]
+    exclude_title_patterns: ["shorts?", buffett, "stocks?", trader, "markets?", public software companies, private equity, PE firm]
     enabled: true
     notes: Broad operator/investing channel; use only AI/product/operator episodes with concrete lessons about AI-era product design, company operating models, consumer AI, engineering/product teams, or AI adoption. Reject market, stock, fund, valuation, and pure investing episodes.
   - id: practical-ai-podcast
@@ -509,14 +509,34 @@ sources:
     tier: 1
     type: project_blog
     url: https://kafka.apache.org/blog
-    fetch_mode: rss
-    fetch_url: https://kafka.apache.org/blog/index.xml
+    fetch_mode: html
+    fetch_url: https://kafka.apache.org/blog/
+    url_prefixes: [https://kafka.apache.org/blog/20]
+    exclude_url_substrings: [/blog/releases/]
+    exclude_title_patterns: ["^Release Announcements$"]
     cadence: daily
     weight: 1.05
     use_for: [long_video, short, research]
     tags: [kafka, streaming, messaging, data, distributed_systems]
     enabled: true
-    notes: Primary Kafka project source; prefer release, protocol, broker, stream-processing, storage, and operational posts.
+    notes: Primary Kafka project source; use HTML mode because the RSS channel intermittently returns zero items. Prefer release, protocol, broker, stream-processing, storage, and operational posts.
+  - id: confluent-kafka-blog
+    name: Confluent Blog (Kafka Technical)
+    category: Backend
+    tier: 2
+    type: engineering_blog
+    url: https://www.confluent.io/blog/
+    fetch_mode: rss
+    fetch_url: https://www.confluent.io/rss.xml
+    url_prefixes: [https://www.confluent.io/blog/]
+    exclude_title_patterns: [forrester, gartner, webinar, summit, keynote, customer story, case study, partner, "^proven:", "^introducing confluent private cloud", earnings]
+    cadence: daily
+    max_items: 4
+    weight: 0.80
+    use_for: [short, research]
+    tags: [kafka, streaming, messaging, schema, flink, operations]
+    enabled: true
+    notes: Kafka ecosystem source for KIP-linked features, schema/runtime changes, and migration mechanics; keep lower weight and rely on marketing penalty for non-technical posts.
   - id: redis-blog
     name: Redis Blog
     category: Backend
@@ -568,11 +588,11 @@ sources:
     fetch_mode: rss
     fetch_url: https://www.databricks.com/feed
     cadence: daily
-    weight: 1.20
+    weight: 0.90
     use_for: [long_video, short, research]
     tags: [databricks, data_platform, lakehouse, spark, ai_systems, database]
     enabled: true
-    notes: Prefer engineering, release, lakehouse, Spark, DBSQL, ML infra, and architecture posts over customer marketing.
+    notes: Prefer engineering, release, lakehouse, Spark, DBSQL, ML infra, and architecture posts over customer marketing; keep lower weight because recent output is often thin/packaging-heavy and customer-story framing appears frequently.
   - id: mongodb-blog
     name: MongoDB Blog
     category: Backend
@@ -814,6 +834,37 @@ sources:
     tags: [database, cassandra, nosql, lsm, performance, storage]
     enabled: true
     notes: Cassandra-compatible database internals source; verify claims and avoid product-positioning posts.
+  - id: scylladb-cassandra-tag
+    name: ScyllaDB Cassandra Tag
+    category: Backend
+    tier: 2
+    type: database_blog
+    url: https://www.scylladb.com/tag/apache-cassandra/
+    fetch_mode: rss
+    fetch_url: https://www.scylladb.com/tag/apache-cassandra/feed/
+    cadence: daily
+    max_items: 4
+    weight: 0.85
+    use_for: [short, research]
+    tags: [database, cassandra, nosql, performance, storage]
+    enabled: true
+    notes: Targeted Cassandra-focused feed to close weekly Cassandra candidate gaps; verify claims and prefer benchmark/mechanism posts over positioning content.
+  - id: instaclustr-engineering-blog
+    name: Instaclustr Engineering Blog
+    category: Backend
+    tier: 2
+    type: engineering_blog
+    url: https://www.instaclustr.com/blog/
+    fetch_mode: rss
+    fetch_url: https://www.instaclustr.com/blog/feed/
+    cadence: daily
+    max_items: 4
+    weight: 0.85
+    use_for: [short, research]
+    tags: [database, cassandra, kafka, streaming, operations, devtools]
+    exclude_title_patterns: [webinar, summit, event, customer story, partner, "^tag management", "^introducing", "^announcing"]
+    enabled: true
+    notes: Add as secondary Cassandra/Kafka operations source to improve coverage gaps; keep low weight and filter marketing-style announcements.
   - id: duckdb-blog
     name: DuckDB Blog
     category: Backend
@@ -839,7 +890,7 @@ sources:
     fetch_url: https://www.tigerdata.com/blog
     url_prefixes: [https://www.tigerdata.com/blog/]
     exclude_url_substrings: [/tag/, /author/]
-    exclude_title_patterns: [^PostgreSQL$, ^Timescale$, ^By ]
+    exclude_title_patterns: ["^PostgreSQL$", "^Timescale$", "^By "]
     cadence: daily
     max_items: 6
     weight: 0.90
@@ -970,6 +1021,54 @@ sources:
     tags: [devtools, platform, reliability, security, developer_experience]
     enabled: true
     notes: Prefer developer platform, CI, code search, security, incident, and large-scale product engineering posts.
+  - id: google-security-blog
+    name: Google Security Blog
+    category: Backend
+    tier: 1
+    type: security_blog
+    url: https://security.googleblog.com/
+    fetch_mode: rss
+    fetch_url: https://security.googleblog.com/feeds/posts/default?alt=rss
+    cadence: daily
+    max_items: 6
+    weight: 1.05
+    use_for: [long_video, short, research]
+    tags: [security, vulnerability, incident, supply_chain, ai_security]
+    enabled: true
+    notes: High-signal security source for prompt injection, vulnerability classes, hardening, and mitigation mechanics with primary evidence.
+  - id: google-project-zero
+    name: Google Project Zero
+    category: Backend
+    tier: 1
+    type: security_blog
+    url: https://projectzero.google/
+    fetch_mode: html
+    fetch_url: https://projectzero.google/
+    url_prefixes: [https://projectzero.google/20]
+    exclude_url_substrings: [/archive.html, /0day.html, /working-at-project-zero.html, /vulnerability-disclosure-policy.html, /reporting-transparency.html]
+    exclude_title_patterns: ["^exploit chain$", "^first part of this series$", "^jit engine bugs$"]
+    cadence: daily
+    max_items: 6
+    weight: 1.05
+    use_for: [long_video, short, research]
+    tags: [security, vulnerability, exploit, hardening, incident_response]
+    enabled: true
+    notes: Security-research primary source; prefer root-cause analysis, exploit-chain mechanics, and mitigation guidance over announcement-only items.
+  - id: trail-of-bits-blog
+    name: Trail of Bits Blog
+    category: Backend
+    tier: 1
+    type: security_blog
+    url: https://blog.trailofbits.com/
+    fetch_mode: rss
+    fetch_url: https://blog.trailofbits.com/feed/
+    cadence: daily
+    max_items: 4
+    weight: 1.05
+    use_for: [long_video, short, research]
+    tags: [security, supply_chain, fuzzing, static_analysis, hardening, devtools]
+    enabled: true
+    notes: High-signal offensive/defensive software security engineering source with reproducible analysis and mitigation mechanics.
   - id: stripe-engineering
     name: Stripe Engineering Blog
     category: Backend
@@ -1106,6 +1205,22 @@ sources:
     tags: [java, jdk, jvm, release, performance]
     enabled: true
     notes: Official Java/JDK source for release, JVM, language, library, and performance topics.
+  - id: adoptium-news
+    name: Eclipse Adoptium News
+    category: Backend
+    tier: 1
+    type: runtime_blog
+    url: https://adoptium.net/news/
+    fetch_mode: html
+    fetch_url: https://adoptium.net/news/
+    url_prefixes: [https://adoptium.net/news/]
+    cadence: daily
+    max_items: 8
+    weight: 1.00
+    use_for: [short, research]
+    tags: [java, jvm, jdk, runtime, temurin, release]
+    enabled: true
+    notes: Official Temurin/JDK distribution updates and platform/runtime changes; useful for JVM release cadence and compatibility implications.
   - id: openjdk-jeps
     name: OpenJDK JEPs
     category: Backend
@@ -1115,7 +1230,7 @@ sources:
     fetch_mode: html
     fetch_url: https://openjdk.org/jeps/0
     url_prefixes: [https://openjdk.org/jeps/]
-    exclude_title_patterns: [^[0-9]+$, JEP Template, JDK Release Process, Incubator Modules, Preview Features]
+    exclude_title_patterns: ["^[0-9]+$", JEP Template, JDK Release Process, Incubator Modules, Preview Features]
     cadence: weekly
     max_items: 20
     weight: 1.05
@@ -1131,12 +1246,31 @@ sources:
     url: https://spring.io/blog
     fetch_mode: rss
     fetch_url: https://spring.io/blog.atom
+    exclude_title_patterns: [This Week in Spring]
     cadence: daily
     weight: 1.05
     use_for: [long_video, short, research]
     tags: [java, spring, backend, release, cloud_native]
     enabled: true
     notes: Prefer Spring Framework/Boot release, architecture, JVM, native image, and production backend topics.
+  - id: gradle-blog
+    name: Gradle Blog
+    category: Backend
+    tier: 1
+    type: devtools_blog
+    url: https://blog.gradle.org/
+    fetch_mode: html
+    fetch_url: https://blog.gradle.org/
+    url_prefixes: [https://blog.gradle.org/]
+    exclude_url_substrings: [/category/]
+    exclude_title_patterns: ["^subscribe$"]
+    cadence: daily
+    max_items: 8
+    weight: 1.00
+    use_for: [long_video, short, research]
+    tags: [devtools, build, ci, supply_chain, java, jvm]
+    enabled: true
+    notes: JVM/devtools coverage source; prefer build performance, dependency/supply-chain safety, CI reliability, and migration mechanics over company-brand announcements.
   - id: foojay
     name: Foojay Today
     category: Backend

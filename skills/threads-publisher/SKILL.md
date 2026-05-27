@@ -134,6 +134,11 @@ an optional small note.
   `reports/threads-source-intros/posted-sources.jsonl`. Before drafting, check
   this ledger and recent Threads posts. Do not introduce the same `source_url`
   twice.
+- Re-check the ledger for the exact `source_url` immediately before any publish
+  click, including manual browser fallback after helper/composer failure. If the
+  source is already posted, no-op before clicking. If an accidental duplicate is
+  created, delete it immediately, verify the profile no longer shows the post,
+  and record `no_op_deleted_duplicate` with the existing Threads URL.
 - Treat cadence as a hard pre-publish gate, not only a schedule hint. Before
   opening the composer, parse the latest successful ledger `date`; if it is less
   than 20 minutes before the current Asia/Taipei time, no-op with a cadence
@@ -163,6 +168,12 @@ an optional small note.
   the original source URL as the main link. Do not open with a role list such as
   `PM/企業主/老師`, and do not force the source into導入、驗收、上線、工作流, or
   other consulting-use framing.
+- In the first or second block, add a compact author/source-owner intro when the
+  public source identifies one: author, speaker, research group, maintainer,
+  official project/team, and why that background matters to the source. For
+  many-author papers, name the lead author/research group/institution when
+  useful; for release notes, repos, or unsigned company posts, name the project
+  or official team. Keep it short enough for Threads and do not invent bios.
 - Use the same "assume the reader does not know this yet" stance as the video
   workflow. Even in a short post, define the core term or source object in plain
   language before drawing the conclusion. The reader should not need to already

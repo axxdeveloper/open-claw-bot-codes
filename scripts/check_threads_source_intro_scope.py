@@ -16,8 +16,8 @@ BLOCKED_TOPIC_RE = re.compile(
     r"\b(?:investment|economy|economic|macro|macroeconomic|finance|financial|"
     r"market|gdp|inflation|rates?|etf|stock(?:-market)?|treasury|fed|federal reserve|"
     r"bea|bureau of economic analysis|fred|cpi|pce)\b|"
-    r"投資|經濟|總體|宏觀|財經|金融|市場|GDP|國內生產毛額|利率|通膨|通脹|"
-    r"ETF|股票|股市|美債|央行|聯準會|BEA|"
+    r"投資|經濟|總體|宏觀|財經|金融|市場|國內生產毛額|利率|通膨|通脹|"
+    r"股票|股市|美債|央行|聯準會|"
     r"politics|political|public[- ]issue|election|campaign|party politics|"
     r"政治|公共議題|公眾議題|選舉|政黨|立法院"
     r")",
@@ -25,7 +25,7 @@ BLOCKED_TOPIC_RE = re.compile(
 )
 
 BLOCKED_SOURCE_TYPE_RE = re.compile(
-    r"(official_stat_release|macro|market|finance|investment|economy|politic|public_issue)",
+    r"(?<![a-z])(?:official_stat_release|macro|market|finance|investment|economy|politic|public_issue)(?![a-z])",
     re.IGNORECASE,
 )
 
@@ -49,6 +49,13 @@ SERIOUS_STYLE_CONTEXT_RE = re.compile(
     re.IGNORECASE,
 )
 
+INTERNAL_OR_DERIVATIVE_SOURCE_RE = re.compile(
+    r"(isaac\s*note|shooeugenesea\.github\.io/(?:pull|issues?)/|"
+    r"github\.com/axxdeveloper/shooeugenesea\.github\.io/(?:pull|issues?)/|"
+    r"\breports/article-video-publisher\b|\bMEMORY\.md\b|\bAGENTS\.md\b)",
+    re.IGNORECASE,
+)
+
 
 def load_json(path: Path | None) -> dict[str, Any]:
     if not path:
@@ -59,7 +66,7 @@ def load_json(path: Path | None) -> dict[str, Any]:
         return {"_load_error": str(exc), "_path": str(path)}
 
 
-def flatten_strings(value: Any) -> list[str]:
+def flatten_strings(value: Any, *, include_keys: bool = True) -> list[str]:
     if value is None:
         return []
     if isinstance(value, str):
@@ -69,13 +76,14 @@ def flatten_strings(value: Any) -> list[str]:
     if isinstance(value, list):
         out: list[str] = []
         for item in value:
-            out.extend(flatten_strings(item))
+            out.extend(flatten_strings(item, include_keys=include_keys))
         return out
     if isinstance(value, dict):
         out = []
         for key, item in value.items():
-            out.append(str(key))
-            out.extend(flatten_strings(item))
+            if include_keys:
+                out.append(str(key))
+            out.extend(flatten_strings(item, include_keys=include_keys))
         return out
     return [str(value)]
 
@@ -101,7 +109,7 @@ def ledger_recent_style_count(path: Path | None, source_url: str) -> int:
         row_source_url = str(row.get("source_url") or "")
         if source_url and row_source_url == source_url:
             continue
-        combined = " ".join(flatten_strings(row))
+        combined = " ".join(flatten_strings(row, include_keys=False))
         if style_signal(combined):
             count += 1
     return count
@@ -121,22 +129,34 @@ def main() -> int:
     source = load_json(args.source_json)
     source_url = args.source_url or str(source.get("url") or source.get("source_url") or "")
     title = args.title or str(source.get("title") or "")
+    source_name = str(source.get("source_name") or source.get("name") or "")
     source_type = str(source.get("source_type") or source.get("type") or "")
     topic_domain = str(source.get("topic_domain") or "")
     source_id = str(source.get("source_id") or source.get("id") or "")
 
-    source_text = " ".join(flatten_strings(source))
-    combined = " ".join([draft_text, source_text, source_url, title, source_type, topic_domain, source_id])
+    source_text = " ".join(flatten_strings(source, include_keys=False))
+    combined = " ".join([draft_text, source_text, source_url, title, source_name, source_type, topic_domain, source_id])
 
     errors: list[dict[str, Any]] = []
     warnings: list[dict[str, Any]] = []
 
     blocked_source_type = bool(BLOCKED_SOURCE_TYPE_RE.search(" ".join([source_type, topic_domain, source_id, source_text])))
     blocked_topic = bool(BLOCKED_TOPIC_RE.search(combined))
+    internal_or_derivative_source = bool(INTERNAL_OR_DERIVATIVE_SOURCE_RE.search(" ".join([source_url, source_name, source_type, topic_domain, source_id, source_text])))
     is_style = topic_domain == "lifestyle_style" or style_signal(" ".join([source_type, topic_domain, source_id, source_url, title, source_text]))
     practical_style_hits = PRACTICAL_STYLE_RE.findall(draft_text)
     serious_style_context = bool(SERIOUS_STYLE_CONTEXT_RE.search(combined))
     recent_style_count = ledger_recent_style_count(args.posted_ledger, source_url)
+
+    if internal_or_derivative_source:
+        errors.append(
+            {
+                "code": "routine_source_intro_internal_or_derivative_source",
+                "message": "Routine Threads source-intro must use the original public source as the main link, not Isaac Note, local reports, memory/instruction files, or internal derivative PRs.",
+                "source_url": source_url,
+                "source_name": source_name,
+            }
+        )
 
     if blocked_source_type or blocked_topic:
         errors.append(
@@ -197,9 +217,11 @@ def main() -> int:
         "parsed": {
             "source_url": source_url,
             "title": title,
+            "source_name": source_name,
             "source_type": source_type,
             "topic_domain": topic_domain,
             "source_id": source_id,
+            "internal_or_derivative_source": internal_or_derivative_source,
             "is_style": is_style,
             "blocked_source_type": blocked_source_type,
             "blocked_topic_signal": blocked_topic,
