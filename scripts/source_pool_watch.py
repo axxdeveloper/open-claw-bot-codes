@@ -125,56 +125,6 @@ KEYWORDS = {
         "virtual thread",
         "wal",
     ],
-    "Economy": [
-        "balance sheet",
-        "bank",
-        "credit",
-        "employment",
-        "federal reserve",
-        "inflation",
-        "labor",
-        "liquidity",
-        "market",
-        "policy",
-        "rate",
-        "risk",
-        "tariff",
-        "treasury",
-    ],
-    "Taste": [
-        "alteration",
-        "capsule wardrobe",
-        "care",
-        "clothing",
-        "construction",
-        "denim",
-        "design",
-        "dress",
-        "dressed",
-        "fabric",
-        "fashion",
-        "fit",
-        "footwear",
-        "garment",
-        "home",
-        "interview",
-        "jacket",
-        "leather",
-        "lifestyle",
-        "material",
-        "outfit",
-        "personal style",
-        "proportion",
-        "repair",
-        "sewing",
-        "shoe",
-        "style",
-        "tailoring",
-        "taste",
-        "wardrobe",
-        "wear",
-        "wool",
-    ],
 }
 
 AI_PRIORITY_MULTIPLIER = 1.35
@@ -301,7 +251,6 @@ AI_RELATED_KEYWORDS = [
     "machine learning",
     "ml",
     "neural",
-    "planning",
     "rag",
     "transformer",
     "world model",
@@ -313,13 +262,6 @@ INTERVIEW_SOURCE_TYPES = {
     "ai_research_interview",
     "ai_podcast_interview",
     "ai_video_interview",
-}
-
-TASTE_INTERVIEW_SOURCE_TYPES = {
-    "fashion_culture_podcast",
-    "fashion_culture_interview",
-    "fashion_history_podcast",
-    "fashion_sustainability_interview",
 }
 
 PAPER_SOURCE_TYPES = {
@@ -396,7 +338,8 @@ AI_PRODUCT_OPERATOR_KEYWORDS = [
     "operating model",
     "organization",
     "product",
-    "product market fit",
+    "pmf",
+    "product fit",
     "pure people managers",
     "recruiting",
     "small teams",
@@ -484,159 +427,6 @@ PAPER_BROAD_AI_MODEL_KEYWORDS = [
     "vision-language",
 ]
 
-TASTE_DEPTH_KEYWORDS = [
-    "alteration",
-    "body proportion",
-    "breathability",
-    "capsule wardrobe",
-    "care",
-    "climate",
-    "construction",
-    "cost per wear",
-    "cotton",
-    "denim",
-    "drape",
-    "durability",
-    "fabric",
-    "fit",
-    "footwear",
-    "garment",
-    "history",
-    "laundry",
-    "layering",
-    "leather",
-    "linen",
-    "maintenance",
-    "material",
-    "mending",
-    "occasion",
-    "outfit formula",
-    "proportion",
-    "repair",
-    "silhouette",
-    "sizing",
-    "stitch",
-    "sustainability",
-    "tailoring",
-    "texture",
-    "uniform",
-    "wardrobe",
-    "wool",
-]
-
-TASTE_VALUE_KEYWORDS = [
-    "alteration",
-    "capsule",
-    "care",
-    "commute",
-    "context",
-    "durable",
-    "everyday",
-    "fit",
-    "home",
-    "how to",
-    "interview",
-    "maintenance",
-    "occasion",
-    "office",
-    "outfit",
-    "practical",
-    "proportion",
-    "quality",
-    "repair",
-    "routine",
-    "sizing",
-    "system",
-    "tailoring",
-    "travel",
-    "wardrobe",
-    "work",
-]
-
-TASTE_STYLING_KEYWORDS = [
-    "accessories",
-    "capsule wardrobe",
-    "color",
-    "colour",
-    "choose the right",
-    "dress like",
-    "dress code",
-    "fit",
-    "how to wear",
-    "jacket",
-    "jeans",
-    "layering",
-    "office",
-    "outfit",
-    "outfit formula",
-    "palette",
-    "pants",
-    "personal style",
-    "proportion",
-    "shirt",
-    "shoes",
-    "silhouette",
-    "styling",
-    "t-shirt",
-    "tee",
-    "trousers",
-    "wardrobe",
-    "what to wear",
-]
-
-TASTE_SERIOUS_CONTEXT_KEYWORDS = [
-    "capitalism",
-    "climate breakdown",
-    "colonial",
-    "colonisation",
-    "colonization",
-    "commodification",
-    "consumer monoculture",
-    "cultural appropriation",
-    "ecological",
-    "economy",
-    "erasure",
-    "ethics",
-    "exile",
-    "externalities",
-    "globalisation",
-    "globalization",
-    "identity",
-    "labor",
-    "labour",
-    "planetary",
-    "prison",
-    "roots",
-    "slavery",
-    "structural shift",
-    "supply chain",
-    "sustainability",
-]
-
-TASTE_NOISE_KEYWORDS = [
-    "affiliate",
-    "alpha male",
-    "buy now",
-    "celebrity",
-    "coupon",
-    "deal",
-    "discount",
-    "get girls",
-    "gift guide",
-    "haul",
-    "luxury flex",
-    "manosphere",
-    "newsletter",
-    "patina thunderdome",
-    "pickup",
-    "red carpet",
-    "sale",
-    "seduction",
-    "shop now",
-    "sponsored",
-    "street style gallery",
-]
-
 AI_TIME_SENSITIVE_KEYWORDS = [
     "api",
     "benchmark",
@@ -679,29 +469,6 @@ AI_DURABLE_KEYWORDS = [
     "survey",
     "taxonomy",
     "tutorial",
-]
-
-TASTE_TITLE_NOISE_PATTERNS = [
-    r"\b\d+\s+best\b",
-    r"\bbest\s+\w+\s+to\s+buy\b",
-    r"\bbreak the bank\b",
-    r"\bbuilt for\b",
-    r"\bcollab(orations?)?\b",
-    r"\bcollection\b",
-    r"\bdrops?\b",
-    r"\bfabric ideas for\b",
-    r"\bgift guide\b",
-    r"\bhighlights\b",
-    r"\bintroduces?\b",
-    r"\bmeet the\b",
-    r"\bnew\s+\w+\s+fit\b",
-    r"\bnewsletter\b",
-    r"\bpatreon preview\b",
-    r"\bpatina thunderdome\b",
-    r"\breview\s*:",
-    r"\bshop\b",
-    r"\bspring/summer highlights\b",
-    r"\bwinners?\b",
 ]
 
 PAPER_EVIDENCE_KEYWORDS = [
@@ -1332,11 +1099,7 @@ def count_keyword_hits(text: str, words: list[str]) -> int:
 
 
 def is_interview_source(source_type: str) -> bool:
-    return source_type.lower() in INTERVIEW_SOURCE_TYPES or source_type.lower() in TASTE_INTERVIEW_SOURCE_TYPES
-
-
-def is_taste_interview_source(source_type: str) -> bool:
-    return source_type.lower() in TASTE_INTERVIEW_SOURCE_TYPES
+    return source_type.lower() in INTERVIEW_SOURCE_TYPES
 
 
 def is_paper_source(source_type: str) -> bool:
@@ -1504,7 +1267,6 @@ def score_candidate(
     recent_source_context: dict | None = None,
 ) -> dict:
     category = str(source.get("category", ""))
-    taste_category = category == "Taste"
     blocked_auto_category = category in DISALLOWED_AUTO_VIDEO_CATEGORIES
     tier = int(source.get("tier", 3) or 3)
     source_type = str(source.get("type", ""))
@@ -1520,7 +1282,6 @@ def score_candidate(
     )
     ai_product_operator_hits = count_keyword_hits(body, AI_PRODUCT_OPERATOR_KEYWORDS)
     ai_product_operator_signal = interview_priority and ai_related and ai_product_operator_hits >= 2
-    taste_interview_priority = taste_category and is_taste_interview_source(source_type)
     paper_source = is_paper_source(source_type)
     paper_hits = count_keyword_hits(body, PAPER_SIGNAL_KEYWORDS)
     paper_user_impact_hits = count_keyword_hits(body, PAPER_USER_IMPACT_KEYWORDS)
@@ -1539,22 +1300,12 @@ def score_candidate(
     if (
         source_type in {"official_research_blog", "researcher_team_blog", "official_data_policy"}
         or interview_priority
-        or taste_interview_priority
     ):
         source_authority = max(source_authority, 3)
 
     topic_hits = count_keyword_hits(body, KEYWORDS.get(category, []))
     depth_hits = count_keyword_hits(body, DEPTH_KEYWORDS)
     reader_value_hits = count_keyword_hits(body, READER_VALUE_KEYWORDS)
-    taste_depth_hits = count_keyword_hits(body, TASTE_DEPTH_KEYWORDS)
-    taste_value_hits = count_keyword_hits(body, TASTE_VALUE_KEYWORDS)
-    taste_styling_hits = count_keyword_hits(body, TASTE_STYLING_KEYWORDS)
-    taste_serious_context_hits = count_keyword_hits(body, TASTE_SERIOUS_CONTEXT_KEYWORDS)
-    taste_noise_hits = count_keyword_hits(body, TASTE_NOISE_KEYWORDS)
-    taste_title_noise = taste_category and any(re.search(pattern, title, re.I) for pattern in TASTE_TITLE_NOISE_PATTERNS)
-    if taste_category:
-        depth_hits = max(depth_hits, taste_depth_hits)
-        reader_value_hits = max(reader_value_hits, taste_value_hits)
     backend_engineer_value_hits = count_keyword_hits(body, BACKEND_ENGINEER_VALUE_KEYWORDS)
     backend_engineer_operating_value_signal = ai_product_operator_signal
     backend_engineer_value_signal = (
@@ -1562,16 +1313,6 @@ def score_candidate(
         or backend_engineer_value_hits > 0
         or ai_interview_importance_signal
         or ai_product_operator_signal
-    )
-    taste_value_signal = taste_category and (taste_value_hits > 0 or (topic_hits >= 1 and depth_hits >= 1))
-    taste_styling_signal = taste_category and taste_styling_hits > 0
-    serious_taste_source = source_type.lower() in {
-        "fashion_culture_podcast",
-        "fashion_history_podcast",
-        "fashion_sustainability_interview",
-    }
-    taste_serious_without_styling = taste_category and taste_styling_hits < 2 and (
-        taste_serious_context_hits >= 2 or (serious_taste_source and taste_serious_context_hits >= 1)
     )
     marketing_hits = count_keyword_hits(body, MARKETING_CONTEXT_KEYWORDS)
     security_mechanism_hits = count_keyword_hits(
@@ -1595,22 +1336,10 @@ def score_candidate(
         substance_depth = max(substance_depth, 2)
     if backend_engineer_value_signal and (depth_hits or reader_value_signal):
         audience_value = max(audience_value, 2)
-    if taste_category:
-        audience_value = min(3, 1 + (1 if taste_value_signal else 0) + (1 if depth_hits >= 2 or reader_value_hits else 0))
-        if taste_interview_priority and (depth_hits or reader_value_hits):
-            audience_value = max(audience_value, 2)
-        if taste_value_hits >= 2 and depth_hits >= 2:
-            audience_value = max(audience_value, 3)
-        if taste_styling_signal:
-            audience_value = max(audience_value, 3 if taste_styling_hits >= 2 else 2)
-        if taste_serious_without_styling:
-            audience_value = max(0, audience_value - 1)
     if paper_priority:
         audience_value = max(audience_value, 3 if paper_hits >= 2 and reader_value_hits else 2)
     elif paper_source:
         audience_value = min(audience_value, 1 if paper_user_impact_hits else 0)
-    if taste_category and not taste_value_signal:
-        audience_value = min(audience_value, 1)
 
     published_at = item.get("published_at")
     age_days: int | None = None
@@ -1706,26 +1435,15 @@ def score_candidate(
         explainability = max(explainability, 2 + (1 if paper_hits >= 2 else 0))
     elif paper_source:
         explainability = min(explainability, 1 if paper_user_impact_hits else 0)
-    taste_noise_risk = taste_category and (
-        taste_title_noise or taste_noise_hits >= 2 or (taste_noise_hits >= 1 and depth_hits < 2)
-    )
-    if taste_category and taste_value_signal:
-        explainability = max(explainability, 2)
-    if taste_category and taste_styling_signal:
-        explainability = max(explainability, 3 if taste_styling_hits >= 3 else 2)
-    elif taste_serious_without_styling:
-        explainability = max(0, explainability - 1)
-    promotional_risk = marketing_hits >= 2 or (marketing_hits >= 1 and depth_hits < 2) or taste_noise_risk
+    promotional_risk = marketing_hits >= 2 or (marketing_hits >= 1 and depth_hits < 2)
     if promotional_risk:
         penalty = 3 if depth_hits < 2 else 1
-        if taste_noise_risk:
-            penalty = max(penalty, 3)
         substance_depth = max(0, substance_depth - penalty)
-        audience_value = max(0, audience_value - (2 if depth_hits < 2 or taste_noise_risk else 1))
-        explainability = max(0, explainability - (2 if depth_hits < 2 or taste_noise_risk else 1))
+        audience_value = max(0, audience_value - (2 if depth_hits < 2 else 1))
+        explainability = max(0, explainability - (2 if depth_hits < 2 else 1))
     novelty_non_repeat = 0 if seen_before else 2
     sourceability = 2 if item.get("url") and tier <= 2 else 1 if item.get("url") else 0
-    risk_clarity = 1 if category == "Economy" or any(w in body for w in ["risk", "limit", "caveat", "uncertain", "safety"]) else 0
+    risk_clarity = 1 if any(w in body for w in ["risk", "limit", "caveat", "uncertain", "safety"]) else 0
     if ai_interview_importance_signal and any(
         w in body for w in ["agi", "alignment", "critical", "governance", "limit", "safety", "risk"]
     ):
@@ -1734,12 +1452,7 @@ def score_candidate(
         w in body for w in ["risk", "survive", "change", "manager", "disrupt", "hiring"]
     ):
         risk_clarity = max(risk_clarity, 1)
-    if taste_category and any(w in body for w in ["care", "repair", "sizing", "fit", "sustainability", "climate", "budget"]):
-        risk_clarity = max(risk_clarity, 1)
-    if not backend_engineer_value_signal and not taste_category and not (reader_value_signal or topic_hits or depth_hits):
-        substance_depth = min(substance_depth, 1)
-        explainability = min(explainability, 1)
-    elif taste_category and not taste_value_signal:
+    if not backend_engineer_value_signal and not (reader_value_signal or topic_hits or depth_hits):
         substance_depth = min(substance_depth, 1)
         explainability = min(explainability, 1)
 
@@ -1762,15 +1475,9 @@ def score_candidate(
         - paper_noise_penalty,
     )
     raw_total = max(0, raw_total - ai_temporal_penalty)
-    if taste_serious_without_styling:
-        raw_total = max(0, raw_total - 2)
     weight = float(source.get("weight", 1.0) or 1.0)
     if is_interview_source(source_type) and not ai_related:
         weight = min(weight, 0.85)
-    if taste_category and taste_styling_signal:
-        weight *= 1.10
-    if taste_serious_without_styling:
-        weight = min(weight, 0.75)
     if paper_source and not paper_priority:
         weight = min(weight, 0.70)
     ranking_multiplier = weight * (AI_PRIORITY_MULTIPLIER if ai_related and not (paper_source and not paper_priority) else 1.0)
@@ -1787,16 +1494,6 @@ def score_candidate(
         "backend_engineer_value_hits": backend_engineer_value_hits,
         "backend_engineer_value_signal": backend_engineer_value_signal,
         "backend_engineer_operating_value_signal": backend_engineer_operating_value_signal,
-        "taste_value_hits": taste_value_hits,
-        "taste_value_signal": taste_value_signal,
-        "taste_styling_hits": taste_styling_hits,
-        "taste_styling_signal": taste_styling_signal,
-        "taste_serious_context_hits": taste_serious_context_hits,
-        "taste_serious_without_styling": taste_serious_without_styling,
-        "taste_depth_hits": taste_depth_hits,
-        "taste_noise_hits": taste_noise_hits,
-        "taste_title_noise": taste_title_noise,
-        "taste_noise_risk": taste_noise_risk,
         "timeliness": timeliness,
         "explainability": explainability,
         "novelty_non_repeat": novelty_non_repeat,
@@ -1820,8 +1517,6 @@ def score_candidate(
         "ai_interview_importance_signal": ai_interview_importance_signal,
         "ai_product_operator_hits": ai_product_operator_hits,
         "ai_product_operator_signal": ai_product_operator_signal,
-        "taste_priority": taste_category,
-        "taste_interview_priority": taste_interview_priority,
         "paper_source": paper_source,
         "paper_user_impact": paper_user_impact,
         "paper_user_impact_hits": paper_user_impact_hits,
@@ -1844,11 +1539,6 @@ def score_candidate(
 def format_decision(score: dict) -> str:
     if score.get("ai_priority") and not score.get("ai_temporal_ok", True):
         return "reject"
-    if score.get("taste_priority"):
-        if not score.get("taste_value_signal") or score.get("taste_noise_risk"):
-            return "reject"
-        if score.get("taste_serious_without_styling"):
-            return "reject"
     total = int(score["total"])
     if int(score.get("audience_value", 0)) < 2:
         return "reject"
@@ -1868,8 +1558,6 @@ def decision_reason(source: dict, item: dict, score: dict) -> str:
         f"{score['audience_value']}/3 audience value and "
         f"{score['explainability']}/3 explainability for {source.get('category')} viewers"
         f"{'; reader-value signal present' if score.get('reader_value_signal') else '; reader-value signal weak'}"
-        f"{'; taste value present' if score.get('taste_value_signal') else ''}"
-        f"{'; styling/how-to-wear signal present' if score.get('taste_styling_signal') else ''}"
         f"{'; backend-engineer value present' if score.get('backend_engineer_value_signal') else ''}"
         f"{'; backend operating-judgment value present' if score.get('backend_engineer_operating_value_signal') else ''}"
         f"{'; AI-priority weighted' if score.get('ai_priority') else ''}"
@@ -1878,14 +1566,10 @@ def decision_reason(source: dict, item: dict, score: dict) -> str:
         f"{'; AI leader/interview priority' if score.get('interview_priority') else ''}"
         f"{'; frontier AI interview importance signal' if score.get('ai_interview_importance_signal') else ''}"
         f"{'; AI product/operator interview signal' if score.get('ai_product_operator_signal') else ''}"
-        f"{'; lifestyle/fashion taste branch' if score.get('taste_priority') else ''}"
-        f"{'; taste interview/source priority' if score.get('taste_interview_priority') else ''}"
         f"{'; AI paper priority' if score.get('paper_priority') else ''}"
         f"{'; paper deprioritized as low user-impact/noisy' if score.get('paper_source') and not score.get('paper_priority') else ''}"
         f"{'; source-diversity penalty: ' + score.get('source_diversity_note', '') if score.get('source_diversity_penalty') else ''}"
-        f"{'; penalized as self-promotional/marketing-like' if score.get('promotional_risk') else ''}"
-        f"{'; penalized as shopping/trend noise' if score.get('taste_noise_risk') else ''}."
-        f"{' Rejected: serious fashion/history/ethics topic without a practical styling payoff.' if score.get('taste_serious_without_styling') else ''}"
+        f"{'; penalized as self-promotional/marketing-like' if score.get('promotional_risk') else ''}."
     )
 
 
@@ -2055,8 +1739,6 @@ def main() -> int:
                         "format": c["format_decision"],
                         "ai_priority": c["candidate_score"].get("ai_priority", False),
                         "interview_priority": c["candidate_score"].get("interview_priority", False),
-                        "taste_priority": c["candidate_score"].get("taste_priority", False),
-                        "taste_value_signal": c["candidate_score"].get("taste_value_signal", False),
                         "paper_priority": c["candidate_score"].get("paper_priority", False),
                         "paper_user_impact": c["candidate_score"].get("paper_user_impact", False),
                         "ai_source_age_days": c["candidate_score"].get("ai_source_age_days"),

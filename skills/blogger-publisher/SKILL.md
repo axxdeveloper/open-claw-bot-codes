@@ -100,11 +100,12 @@ videos.
   group/institution when useful; for release notes, repos, or unsigned company
   posts, introduce the project, maintainer group, or official team. Keep it
   factual and short, and do not invent biographies.
-- Isaac's 2026-05-16 direction: Blogger's fuller explanation style is the
-  model for TodayShip's technical concept teaching across YouTube, Threads, and
-  Blogger. Keep Blogger as the deepest written version: define terms, explain
-  mechanism, show a concrete scenario, and name the tradeoff/risk in a way that
-  future video scripts and Threads posts can compress.
+- Isaac's 2026-05-16 direction, updated after the 2026-05-29 YouTube Community
+  move: Blogger's fuller explanation style is the model for TodayShip's
+  technical concept teaching across YouTube videos, YouTube Community Posts,
+  and Blogger. Keep Blogger as the deepest written version: define terms,
+  explain mechanism, show a concrete scenario, and name the tradeoff/risk in a
+  way that future video scripts and YouTube Community posts can compress.
 - The article must stand alone without watching the video or already knowing the
   source topic.
 - Before using a core term as a premise, explain what it is in plain Traditional
@@ -118,11 +119,7 @@ videos.
   easier to skim than a transcript: readers should quickly find background,
   mechanism, practical impact, limits/risks, and source links.
 - For technical posts, include at least one section that maps the concept to a
-  backend/AI/debug/architecture workflow. For practical styling posts, include
-  concrete examples, visual language, and when the advice does or does not
-  apply. Macro/finance/politics articles are not routine 小舟 Blogger topics; if
-  Isaac explicitly requests one, define the key indicator or policy mechanism
-  before inference and keep the conclusion educational/source-bounded.
+  backend/AI/debug/architecture workflow.
 - Before Blogger dry-run or public publish, save the generated article HTML and
   run:
 
@@ -140,8 +137,8 @@ videos.
 ## Blog-First Source Explainers
 
 Use this lane when a strong original source has durable/search value, needs more
-Chinese explanation than a single Threads source-intro can provide, or is
-video-worthy but cannot get a video slot yet because video volume is limited.
+Chinese explanation than a single YouTube Community source-intro can provide, or
+is video-worthy but cannot get a video slot yet because video volume is limited.
 
 - Write one standalone Blogger article for one main original source. The article
   should help readers understand the source's technical idea in Chinese, not
@@ -163,9 +160,9 @@ video-worthy but cannot get a video slot yet because video volume is limited.
   and require PASS. If the checker is too narrow for a new source type, add a
   local review note that explicitly verifies definition, context, mechanism,
   example, tradeoff/risk, source-backed implication, and source credit.
-- After public verification, a separate Threads post may share the Blogger
-  article as a Chinese explainer. This is a distinct blog-first share, not a
-  routine source-intro post.
+- After public verification, a separate YouTube Community blog cross-post may
+  share the Blogger article as a Chinese explainer. This is a distinct
+  blog-first share, not a routine source-intro post.
 
 ## Public Persona Tone
 
@@ -243,9 +240,10 @@ Judge improvement with local evidence first:
 
 ## Cross-Surface Link Record
 
-Blogger articles are no longer auto-shared in Threads source-intro posts. Keep
-the cross-surface record reliable for bookkeeping, dedupe, and internal
-comprehension context only:
+Blogger articles are not appended to routine source-intro posts by default, but
+Isaac explicitly allowed published Blogger articles to be shared to YouTube
+Community on 2026-05-31. Keep the cross-surface record reliable for
+bookkeeping, dedupe, and Community blog cross-post context:
 
 - Write `publish-result.json` under
   `reports/blogger-publishing/YYYY-MM-DD/<artifact-basename>/` whenever possible,
@@ -258,8 +256,9 @@ comprehension context only:
 - Only treat the article as verified internal context after public-page
   verification passes or returns a successful HTTP status.
 - Do not treat `publish-result.json` as permission to add the Blogger URL to a
-  Threads source-intro post. Threads should keep only the original source URL
-  and optional TodayShip YouTube note.
+  routine source-intro post. For a YouTube Community blog cross-post, include
+  the Blogger URL only when public-page verification passed, keep the original
+  source URL visible as the primary factual source.
 
 ## Safety
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate source-first Threads drafts for beginner-friendly explanation."""
+"""Validate YouTube Community source-intro drafts for beginner-friendly explanation."""
 
 from __future__ import annotations
 
@@ -31,6 +31,12 @@ SOURCE_CONCLUSION_RE = re.compile(
 )
 
 
+BLOGGER_CROSSPOST_ALLOWED_ERROR_CODES = {
+    "blogger_link_label_not_allowed",
+    "blogger_link_not_allowed_in_youtube_community_source_intro",
+}
+
+
 def read_text(args: argparse.Namespace) -> str:
     if args.text:
         return args.text
@@ -43,12 +49,34 @@ def visible_blocks(text: str) -> list[str]:
     return [block.strip() for block in re.split(r"\n\s*\n", text.strip()) if block.strip()]
 
 
+def allow_blogger_crosspost(errors: list[dict[str, Any]], warnings: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    kept_errors = []
+    removed_codes = []
+    for error in errors:
+        if error.get("code") in BLOGGER_CROSSPOST_ALLOWED_ERROR_CODES:
+            removed_codes.append(error.get("code"))
+        else:
+            kept_errors.append(error)
+
+    if removed_codes:
+        warnings.append(
+            {
+                "code": "blogger_crosspost_allowed_for_youtube_community",
+                "message": "TodayShip Blogger URL is allowed here only because this YouTube Community draft is a blog cross-post; keep the original source URL visible.",
+                "removed_error_codes": removed_codes,
+            }
+        )
+
+    return kept_errors
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check a Threads source-intro draft for from-zero explanation and link formatting."
+        description="Check a YouTube Community source-intro draft for from-zero explanation and link formatting."
     )
     parser.add_argument("text_file", nargs="?")
     parser.add_argument("--text")
+    parser.add_argument("--allow-blogger-crosspost", action="store_true")
     parser.add_argument("--json-out", type=Path)
     args = parser.parse_args()
 
@@ -59,7 +87,7 @@ def main() -> int:
     urls = URL_LINE_RE.findall(text)
 
     if not text.strip():
-        errors.append({"code": "empty_post", "message": "Threads draft is empty."})
+        errors.append({"code": "empty_post", "message": "YouTube Community draft is empty."})
 
     if len(blocks) < 3:
         errors.append(
@@ -74,7 +102,7 @@ def main() -> int:
             {
                 "code": "too_many_blocks",
                 "block_count": len(blocks),
-                "message": "Threads posts should stay compact; consider 3-6 blocks when possible.",
+                "message": "YouTube Community posts should stay compact; consider 3-6 blocks when possible.",
             }
         )
 
@@ -98,15 +126,15 @@ def main() -> int:
         errors.append(
             {
                 "code": "blogger_link_label_not_allowed",
-                "message": "Do not add Blogger link labels in Threads source-intro posts; keep Blogger on Blogger.",
+                "message": "Do not add Blogger link labels in routine source-intro posts.",
             }
         )
 
     if TODAYSHIP_BLOGGER_URL_RE.search(text):
         errors.append(
             {
-                "code": "blogger_link_not_allowed_in_threads_source_intro",
-                "message": "Do not include TodayShip Blogger links in Threads source-intro posts; keep only the original source and optional YouTube note.",
+                "code": "blogger_link_not_allowed_in_youtube_community_source_intro",
+                "message": "Do not include TodayShip Blogger links in routine source-intro posts; keep only the original source and optional YouTube note.",
             }
         )
 
@@ -114,7 +142,7 @@ def main() -> int:
         errors.append(
             {
                 "code": "question_framed_takeaway",
-                "message": "Threads takeaways should give the answer directly, not frame the learning as a question.",
+                "message": "Takeaways should give the answer directly, not frame the learning as a question.",
             }
         )
 
@@ -149,6 +177,9 @@ def main() -> int:
                 "message": "Add one source-backed conclusion, result, change, limitation, or boundary.",
             }
         )
+
+    if args.allow_blogger_crosspost:
+        errors = allow_blogger_crosspost(errors, warnings)
 
     result = {
         "status": "FAIL" if errors else "PASS",

@@ -26,6 +26,12 @@ BGM_REQUIRED_KEYS = [
     "mix_level",
 ]
 NO_BGM_INTRO_OUTRO_STATUS_KEY = "intro_outro_cue_status"
+CANONICAL_NO_CUE_STATUSES = {
+    "no_safe_audio_library_cue_due_to_intelligibility_drop",
+    "no_safe_audio_library_cue_not_found_in_window",
+    "no_safe_creator_music_eligibility_or_license",
+    "no_cue_short_or_low_density_exception",
+}
 GENERIC_NO_BGM_REASONS = {
     "voice-first technical explainer; no background music used to protect clarity and avoid content id risk.",
     "voice-first technical explainer; no background music used to protect clarity and avoid copyright risk.",
@@ -99,6 +105,10 @@ def _is_generic_no_bgm_reason(normalized_reason: str) -> bool:
 def _is_generic_no_bgm_source_priority(source_priority: str) -> bool:
     normalized = _normalize_reason(source_priority)
     return normalized in GENERIC_SOURCE_PRIORITY_NO_BGM
+
+
+def _status_head(value: str) -> str:
+    return value.split("|", 1)[0].strip().lower()
 
 
 def main() -> int:
@@ -213,16 +223,70 @@ def main() -> int:
                         ),
                     }
                 )
-            elif cue_status.lower().startswith("no_safe_") and not cue_trial:
-                warnings.append(
-                    {
-                        "code": "missing_cue_trial_for_no_safe_status",
-                        "message": (
-                            "When intro_outro_cue_status uses a machine-like no_safe_* state, "
-                            "add cue_trial: <track/source/mix/failure signal> for reproducible audits."
-                        ),
-                    }
-                )
+            else:
+                status_head = _status_head(cue_status)
+                if status_head.startswith("skipped_"):
+                    warnings.append(
+                        {
+                            "code": "noncanonical_intro_outro_cue_status",
+                            "message": (
+                                "intro_outro_cue_status should use a canonical no-cue label "
+                                "(`no_safe_audio_library_cue_due_to_intelligibility_drop`, "
+                                "`no_safe_audio_library_cue_not_found_in_window`, "
+                                "`no_safe_creator_music_eligibility_or_license`, "
+                                "`no_cue_short_or_low_density_exception`) before optional details."
+                            ),
+                            "value": cue_status,
+                        }
+                    )
+                elif status_head.startswith("no_safe_") and status_head not in CANONICAL_NO_CUE_STATUSES:
+                    warnings.append(
+                        {
+                            "code": "noncanonical_intro_outro_cue_status",
+                            "message": (
+                                "intro_outro_cue_status uses a no_safe_* form but not a canonical label. "
+                                "Use a canonical label, then append run-specific detail after ` | `."
+                            ),
+                            "value": cue_status,
+                        }
+                    )
+
+                if status_head in CANONICAL_NO_CUE_STATUSES and status_head.startswith("no_safe_") and not cue_trial:
+                    warnings.append(
+                        {
+                            "code": "missing_cue_trial_for_no_safe_status",
+                            "message": (
+                                "When intro_outro_cue_status uses a machine-like no_safe_* state, "
+                                "add cue_trial: <track/source/mix/failure signal> for reproducible audits."
+                            ),
+                        }
+                    )
+                elif (
+                    status_head.startswith("no_safe_")
+                    and status_head not in CANONICAL_NO_CUE_STATUSES
+                    and not cue_trial
+                ):
+                    warnings.append(
+                        {
+                            "code": "missing_cue_trial_for_no_safe_status",
+                            "message": (
+                                "When intro_outro_cue_status uses a machine-like no_safe_* state, "
+                                "add cue_trial: <track/source/mix/failure signal> for reproducible audits."
+                            ),
+                        }
+                    )
+
+                if re.search(r"^(skipped|deferred|no-cue run)", cue_trial.strip(), re.IGNORECASE):
+                    warnings.append(
+                        {
+                            "code": "cue_trial_placeholder",
+                            "message": (
+                                "cue_trial should include one concrete track/source/mix/rejection note, "
+                                "not a skipped/deferred placeholder."
+                            ),
+                            "value": cue_trial,
+                        }
+                    )
 
             normalized_reason = _normalize_reason(reason)
             if _is_generic_no_bgm_reason(normalized_reason):

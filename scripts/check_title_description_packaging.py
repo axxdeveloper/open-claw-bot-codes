@@ -40,7 +40,7 @@ USE_CASE_PACKAGING_RE = re.compile(
 TITLE_WARN_LEN = 52
 TITLE_HARD_LIMIT = 100
 FIRST_LINE_WARN_MIN = 40
-FIRST_LINE_WARN_MAX = 90
+FIRST_LINE_WARN_MAX = 80
 
 
 def _first_non_empty_line(text: str) -> tuple[str, int]:
@@ -225,7 +225,7 @@ def main() -> int:
                             "value": first_len,
                             "message": (
                                 "Top source-understanding line may be too long for mobile preview readability "
-                                "(recommended <= 90 chars)."
+                                "(recommended <= 80 chars)."
                             ),
                         }
                     )

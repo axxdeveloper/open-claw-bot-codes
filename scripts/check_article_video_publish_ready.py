@@ -63,6 +63,17 @@ BLOCKING_SCORECARD_KEYS = {
     "Beginner comprehension",
 }
 
+RESOLVED_DUPLICATE_BLOCKER_STATUSES = {
+    "resolved",
+    "cleared",
+    "closed",
+    "dismissed",
+    "duplicate_hidden",
+    "duplicate_unlisted",
+    "duplicate_private",
+    "duplicate_deleted",
+}
+
 
 def load_json(path: Path) -> dict[str, Any] | None:
     if not path.exists():
@@ -102,6 +113,55 @@ def parse_scorecard(path: Path) -> dict[str, str]:
     return scores
 
 
+def find_workspace_root(path: Path) -> Path:
+    for parent in (path, *path.parents):
+        if (parent / "AGENTS.md").exists() and (parent / "reports").is_dir():
+            return parent
+    return Path.cwd().resolve()
+
+
+def unresolved_duplicate_blockers(workspace_root: Path) -> list[dict[str, Any]]:
+    reports_root = workspace_root / "reports" / "article-video-publisher"
+    if not reports_root.exists():
+        return []
+
+    blockers: list[dict[str, Any]] = []
+    for path in sorted(reports_root.glob("**/youtube/duplicate-public-upload-blocker.json")):
+        data = load_json(path)
+        if data is None:
+            blockers.append(
+                {
+                    "file": str(path.relative_to(workspace_root)),
+                    "status": None,
+                    "message": "Duplicate blocker file is invalid JSON and must be inspected before any new upload.",
+                }
+            )
+            continue
+
+        status = str(data.get("status") or "").strip().lower()
+        if status in RESOLVED_DUPLICATE_BLOCKER_STATUSES:
+            continue
+
+        if (
+            data.get("blocker") == "duplicate_public_upload"
+            or data.get("duplicate_video_id")
+            or data.get("duplicate_youtube_url")
+        ):
+            blockers.append(
+                {
+                    "file": str(path.relative_to(workspace_root)),
+                    "status": data.get("status"),
+                    "canonical_youtube_url": data.get("canonical_youtube_url"),
+                    "duplicate_youtube_url": data.get("duplicate_youtube_url"),
+                    "message": (
+                        "Unresolved public duplicate upload blocker exists. "
+                        "Resolve or explicitly mark it resolved before opening YouTube Studio for another upload."
+                    ),
+                }
+            )
+    return blockers
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Validate final upload readiness for an article-video artifact."
@@ -111,15 +171,18 @@ def main() -> int:
     args = parser.parse_args()
 
     artifact_dir = args.artifact_dir.resolve()
+    workspace_root = find_workspace_root(artifact_dir)
     review_dir = artifact_dir / "review"
     source_path = artifact_dir / "source.json"
     source = load_json(source_path) or {}
     topic_domain = str(source.get("topic_domain") or "").strip().lower()
+    topic_subdomain = str(source.get("topic_subdomain") or source.get("subdomain") or "").strip().lower()
 
     errors: list[dict[str, Any]] = []
     warnings: list[dict[str, Any]] = []
     parsed: dict[str, Any] = {
         "topic_domain": topic_domain,
+        "topic_subdomain": topic_subdomain,
         "required_pass_json": list(REQUIRED_PASS_JSON),
         "required_text_files": list(REQUIRED_TEXT_FILES),
     }
@@ -129,6 +192,46 @@ def main() -> int:
             {
                 "code": "missing_source_json",
                 "message": "source.json is required before upload.",
+            }
+        )
+    elif topic_domain != "technical":
+        errors.append(
+            {
+                "code": "unsupported_topic_domain",
+                "topic_domain": topic_domain,
+                "message": "Article-video upload currently accepts only source.json.topic_domain='technical'. Put finer labels such as backend_database or technical_ai_backend in topic_subdomain.",
+            }
+        )
+
+    existing_upload_result = artifact_dir / "youtube" / "upload-result.json"
+    if existing_upload_result.exists():
+        existing_upload = load_json(existing_upload_result) or {}
+        errors.append(
+            {
+                "code": "existing_upload_result_present",
+                "file": "youtube/upload-result.json",
+                "youtube_url": existing_upload.get("youtube_url")
+                or existing_upload.get("watch_url")
+                or existing_upload.get("canonical_youtube_url"),
+                "message": (
+                    "This artifact already has upload-result.json. Do not open Studio "
+                    "or upload again; use same-video verification/bookkeeping recovery only."
+                ),
+            }
+        )
+
+    duplicate_blockers = unresolved_duplicate_blockers(workspace_root)
+    parsed["unresolved_duplicate_public_upload_blockers"] = duplicate_blockers
+    if duplicate_blockers:
+        errors.append(
+            {
+                "code": "unresolved_duplicate_public_upload_blocker",
+                "blockers": duplicate_blockers,
+                "message": (
+                    "At least one public duplicate upload is unresolved. New YouTube "
+                    "uploads are blocked until the duplicate is hidden/unlisted/private/deleted "
+                    "with approval, or the blocker is explicitly marked resolved."
+                ),
             }
         )
 

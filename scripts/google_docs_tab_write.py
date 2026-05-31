@@ -26,8 +26,8 @@ Examples:
   # Dry-run only
   python3 scripts/google_docs_tab_write.py \
     --doc-id <DOC_ID> \
-    --tab-title "美股" \
-    --file /tmp/us_stock.txt \
+    --tab-title "技術筆記" \
+    --file /tmp/tech_notes.txt \
     --dry-run
 """
 

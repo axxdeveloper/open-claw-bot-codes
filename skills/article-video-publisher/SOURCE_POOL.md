@@ -9,14 +9,13 @@ Machine-readable source registry: `SOURCE_REGISTRY.yml`.
 - Treat `SOURCE_REGISTRY.yml` as the source-of-truth list for scheduled watchers.
 - Treat this file as the editorial rubric: how to score, accept, combine, or reject candidates.
 - When the registry and examples in this file disagree, update the registry first and then refresh this file.
-- Lifestyle / fashion / taste sources are intentionally separate for maintenance and are an optional side lane. Use `LIFESTYLE_TASTE_SOURCE_REGISTRY.yml`, `LIFESTYLE_TASTE_SOURCE_POOL.md`, and `reports/lifestyle-taste-source-watch/` when those sources can be introduced clearly and provide concrete source-backed substance; do not use them merely to force variety.
 
 ## Selection Principles
 
 - Prefer sources with mechanism, data, implementation detail, architecture, evidence, and tradeoffs.
-- This pool is a maintained source list and an editorial scope boundary for routine 小舟 workflows. Topic choice should stay within technical, AI, backend/software, engineering-company/operator, and occasional practical styling sources, then be driven by source quality, source-understanding value, safety, duplication, cadence, and review results.
-- Viewer value means the source becomes easier to understand: technical/system context, operating model, engineering-company lesson, taste/styling principle, concrete conclusion, limitation, or mental model. Do not require every candidate to become a role-specific judgment, workflow, risk check, or decision framework.
-- Keep source pools organized so scoring remains readable. Macro/market reports are separate explicit workflows; politics/public issues require an explicit manual task and are not routine 小舟 source/video candidates.
+- This pool is a maintained source list and an editorial scope boundary for routine 小舟 workflows. Topic choice should stay within technical, AI, backend/software, and engineering-company/operator sources, then be driven by source quality, source-understanding value, safety, duplication, cadence, and review results.
+- Viewer value means the source becomes easier to understand: technical/system context, operating model, engineering-company lesson, concrete conclusion, limitation, or mental model. Do not require every candidate to become a role-specific judgment, workflow, risk check, or decision framework.
+- Keep source pools organized so scoring remains readable.
 - AI-related topics can be weighted above other categories when they are high-quality, non-duplicate, verifiable, and have clear source-understanding value. Do not rescue thin AI marketing posts only because they mention AI.
 - Do not trade off AI by imposing a broad AI quota. AI remains a core lane. Trade off repeated sources: if recent published videos are concentrated in the same domain, registry source, source family, paper feed, interview channel, or company blog, apply a soft repetition penalty and look for an equally strong source from a different original site or evidence type.
 - Within AI, rotate evidence types when quality allows: papers, official lab posts, model/system cards, repositories, engineering blogs, high-signal interviews, and operator/product AI sources. A repeated AI source can still win when it is urgent, unusually deep, or clearly better than alternatives.
@@ -25,13 +24,12 @@ Machine-readable source registry: `SOURCE_REGISTRY.yml`.
 - Avoid thin announcements, pure marketing posts, listicles, rumor-only stories, and content that cannot be verified from a primary or authoritative source.
 - Avoid company posts that are mainly self-promotion, product marketing, customer acquisition, or "why our product" positioning. Official company posts can be selected only when they include enough architecture, benchmark data, implementation detail, operational lessons, limitations, or failure modes to teach something beyond the vendor's pitch.
 - Use Taiwan-local Traditional Chinese explanation in the final video.
-- For explicitly requested non-routine investment/economy/market tasks, explain data, mechanisms, scenarios, risks, and uncertainty. Do not give personalized buy/sell advice.
 - Treat official research blogs and named researcher/team blogs from groups like Anthropic and Google DeepMind as high-priority sources when they contain mechanism, experiments, engineering detail, or clear research context.
 - For researcher/team blog posts, verify major claims against the linked paper, official release note, repo, docs, benchmark, or data source before publication.
 - Treat Hacker News as a technical trend discovery layer, not as the main public source. Recent HN top stories can reveal what technical communities are discussing, but the selected video must trace back to a primary original URL whenever possible. HN score/comment volume can boost urgency only after the source passes viewer-value, verifiability, non-duplicate, and non-marketing checks.
-- For HN-driven candidates, prefer stories with a concrete mechanism: incident analysis, architecture change, release with engineering detail, paper/repo with evidence, performance or reliability tradeoff, security advisory, or production lesson. Reject drama, rumor-only threads, pure opinion fights, generic Show HN demos without substance, and Ask HN threads unless the thread itself contains unusually strong expert detail.
-- Treat Threads follows of technology workers, KOLs, maintainers, researchers, founders/operators, and engineering practitioners as another technical trend discovery layer. Their posts can reveal what AI/backend/database/infra/security/devtools communities are currently discussing, including Kafka, Cassandra, streaming/messaging, database internals, and distributed systems. They are not public sources by themselves.
-- For Threads-driven candidates, trace the signal back to an original article, official project/company post, repo/release, paper, benchmark, conference talk, or documentation before selection. A KOL hot take can only boost urgency or source-discovery priority after the original source passes the scorecard, sourceability, safety, non-duplicate, and non-marketing gates.
+- For HN-driven candidates, prefer stories with a concrete mechanism: incident analysis, architecture change, release with engineering detail, paper/repo with evidence, performance or reliability tradeoff, security advisory, or production lesson. Reject drama, rumor-only discussions, pure opinion fights, generic Show HN demos without substance, and Ask HN discussions unless the discussion itself contains unusually strong expert detail.
+- Treat public posts from technology workers, KOLs, maintainers, researchers, founders/operators, and engineering practitioners as optional technical trend discovery signals. They can reveal what AI/backend/database/infra/security/devtools communities are discussing, including Kafka, Cassandra, streaming/messaging, database internals, and distributed systems. Use only already-available public signals; do not add a social-platform follow or engagement workflow for topic radar.
+- For social/KOL-driven candidates, trace the signal back to an original article, official project/company post, repo/release, paper, benchmark, conference talk, or documentation before selection. A KOL hot take can only boost urgency or source-discovery priority after the original source passes the scorecard, sourceability, safety, non-duplicate, and non-marketing gates.
 
 ## Continuous Topic Optimization Loop
 
@@ -41,9 +39,9 @@ Use this loop for scheduled workflows:
 
 1. Daily source watch scans `SOURCE_REGISTRY.yml` and writes `reports/source-watch/YYYY-MM-DD.jsonl` plus `reports/source-watch/source-health.json`.
 2. Daily HN watch scans recent Hacker News top stories and writes/updates the `hn-daily-top-1500` section in `reports/daily-audio-pack/YYYY-MM-DD.md`; use it as discovery context for the technical branch.
-3. Threads technical following scans or manual follow notes write `reports/threads-following/YYYY-MM-DD.jsonl`; use them as discovery context and source-diversity hints, not as public sources.
+3. Existing historical social/KOL signal notes may be read only as discovery context and source-diversity hints, not as public sources. Do not create a new proactive social follow-scout workflow for topic radar.
 4. Candidate ranking applies the 20-point scorecard, source weights, AI priority multiplier, interview priority bonus, duplicate checks, source-diversity penalty, trend-signal urgency, and marketing penalty before choosing a topic.
-5. Before starting a new video, compare the candidate against recent `reports/article-video-publisher/**/source.json`, YouTube metadata, the last 30 days of source-watch dedupe keys, and recent Threads source-intro ledgers. Inspect both topic duplication and source concentration.
+5. Before starting a new video, compare the candidate against recent `reports/article-video-publisher/**/source.json`, YouTube metadata, the last 30 days of source-watch dedupe keys, and recent YouTube Community source-intro ledgers. Inspect both topic duplication and source concentration.
 6. After every published video, keep `review/improvement-notes.md`, `review/ai-usage-improvement.md`, and `source.json.candidate_score` so future runs can see which sources produced understandable, deep videos and which sources improved our own AI workflows.
 7. Use `review/ai-usage-improvement.md` to capture whether the source suggests improvements to topic selection, prompts, agents, source verification, RAG/search, eval/review gates, TTS/video, reliability, cost/latency, safety, privacy, or publishing operations. Prefer reversible tests; write no-op when the source does not produce a concrete internal improvement.
 8. When a source repeatedly yields thin, promotional, duplicate, or unverifiable candidates, lower its registry weight or disable it. When a source repeatedly yields review-passing, high-depth AI topics or useful internal AI usage improvements, keep or raise its weight.
@@ -56,7 +54,7 @@ The source pool is a maintained system, not a fixed bookmark list.
 
 Daily:
 
-- `source-pool-watch-daily-0830` scans technical and lifestyle/taste registries, writes daily JSONL, and updates `source-health.json`.
+- `source-pool-watch-daily-0830` scans the technical registry, writes daily JSONL, and updates `source-health.json`.
 - Production and補位 jobs should use the latest health/candidate reports before selecting topics.
 - Treat transient feed errors as watch items, not immediate deletion.
 
@@ -138,7 +136,7 @@ Decision:
 - `audience_value=1` means mostly headline awareness; do not make a long-form video.
 - `audience_value=0` means no clear source-understanding value; reject.
 - Apply AI priority after reject/quality filtering, not before. Do not rescue thin AI marketing posts only because they mention AI.
-- Apply HN/Threads trend signals after reject/quality filtering, not before. Do not rescue a weak source only because a community is talking about it.
+- Apply technical community trend signals after reject/quality filtering, not before. Do not rescue a weak source only because a community is talking about it.
 
 Format choice:
 
@@ -200,11 +198,11 @@ AI leader interview priority sources:
 
 Treat high-signal AI interviews as priority candidates when they feature frontier lab leaders, important researchers, model/tooling builders, inference/infra operators, AI product founders, or credible safety/eval voices. Strong interview topics include Ilya Sutskever, Dario Amodei, Demis Hassabis, Jeff Dean, Andrej Karpathy, Noam Shazeer, Jensen Huang, Yann LeCun, Geoffrey Hinton, Yoshua Bengio, Fei-Fei Li, Andrew Ng, and similarly influential AI builders or researchers.
 
-Use the interview episode URL as the main original source only when the episode has enough transcript, show notes, chaptering, linked references, or concrete claims to support a source-attributed explainer. For broad interview feeds, select only AI-relevant episodes. Reject celebrity, biography, investor-positioning, funding, or pure founder-story episodes unless they explain a real technical, product, market-structure, safety, eval, or deployment mechanism.
+Use the interview episode URL as the main original source only when the episode has enough transcript, show notes, chaptering, linked references, or concrete claims to support a source-attributed explainer. For broad interview feeds, select only AI-relevant episodes. Avoid celebrity, biography, fundraising, or pure founder-story episodes unless they explain a real technical, product, safety, eval, or deployment mechanism.
 
 For YouTube-only conference talks or channel videos, do not assume the podcast/RSS feed will catch them. Add or maintain a channel parser/source when the channel repeatedly publishes AI Ascent-style frontier-lab interviews, keynotes, or builder conversations. A title-only item can still be important when it combines an influential AI builder/researcher with a concrete frontier claim such as AGI timelines, world models, AI for science, drug discovery, safety/governance, reasoning/planning limits, or deployment impact. Prefer videos with captions, chapters, or a description rich enough to explain the claim instead of making a personality profile.
 
-Also keep a lane for AI product/operator interviews. These are important when the guest is a credible builder/operator and the episode explains how AI changes product design, team structure, hiring, management layers, consumer AI, user experience, company operating models, or AI adoption workflows. Brian Chesky / Airbnb-style "AI founder mode" conversations should surface when they teach a reusable AI-era product or organization mechanism. Reject pure investing, valuation, market, stock, fund, biography, or motivation episodes even if they mention AI.
+Also keep a lane for AI product/operator interviews. These are important when the guest is a credible builder/operator and the episode explains how AI changes product design, team structure, hiring, management layers, consumer AI, user experience, company operating models, or AI adoption workflows. Brian Chesky / Airbnb-style "AI founder mode" conversations should surface when they teach a reusable AI-era product or organization mechanism. Avoid biography, motivation, or generic business episodes even if they mention AI.
 
 Do not depend only on fixed channels Isaac or the registry already know. The daily broad discovery job writes `reports/source-discovery/YYYY-MM-DD.jsonl` from YouTube searches such as AI founder mode, consumer AI, AI product strategy, AI agents, coding agents, frontier AI, and AI for science. Treat those results as candidate context for technical AI/operator interviews; promote repeated high-quality channels into `SOURCE_REGISTRY.yml`, but do not require manual user submission before evaluating a strong discovered interview.
 
@@ -332,44 +330,6 @@ Good backend video angles:
 - Scaling architecture: queues, caching, storage, consistency, sharding, replication, rate limits.
 - Observability and reliability: tracing, SLOs, retry storms, backpressure, capacity planning.
 - Security and platform: auth, supply chain, sandboxing, secret handling, least privilege.
-
-## Investment / Economy / Macro Sources
-
-Use official data first, then credible analysis for interpretation. Always label data date and uncertainty.
-
-US / global primary sources:
-
-- Federal Reserve: https://www.federalreserve.gov/
-- FRED: https://fred.stlouisfed.org/
-- BLS: https://www.bls.gov/
-- BEA: https://www.bea.gov/data
-- US Treasury: https://home.treasury.gov/
-- IMF: https://www.imf.org/en/Publications
-- BIS: https://www.bis.org/
-- World Bank Data: https://data.worldbank.org/
-- ECB: https://www.ecb.europa.eu/
-
-Taiwan primary sources:
-
-- Central Bank of the Republic of China (Taiwan): https://www.cbc.gov.tw/
-- DGBAS: https://www.dgbas.gov.tw/
-- Taiwan Stock Exchange: https://www.twse.com.tw/
-- Taipei Exchange: https://www.tpex.org.tw/
-- Financial Supervisory Commission: https://www.fsc.gov.tw/
-- Ministry of Finance: https://www.mof.gov.tw/
-
-Market/investment context sources are for explicit macro/market workflows, not routine 小舟 videos:
-
-- ETF issuer pages for fund composition, costs, and official factsheets.
-- Exchange and regulator data for market structure.
-- Credible bank/asset-manager research only when claims are tied back to data.
-
-Good explicit economy/investment explainer angles:
-
-- Data release explainer: what changed, why it matters, leading/lagging parts, caveats.
-- Policy transmission: rates, liquidity, credit, FX, inflation, labor, earnings, valuation.
-- Scenario analysis: base/upside/downside and what data would confirm or invalidate each.
-- Portfolio education: duration, concentration, currency risk, factor exposure, drawdown paths.
 
 ## Technical Video Sources
 

@@ -1,5 +1,5 @@
 version: 1
-last_reviewed: 2026-05-10
+last_reviewed: 2026-05-31
 
 # Machine-readable source registry for OpenClaw source watchers.
 # Keep values on one line; scripts/source_pool_watch.py intentionally parses a
@@ -131,6 +131,7 @@ sources:
     fetch_mode: rss
     fetch_url: https://rss.arxiv.org/rss/cs.LG
     cadence: daily
+    exclude_title_patterns: ["trading agents?", portfolio, quant]
     max_items: 5
     weight: 1.35
     use_for: [research, long_video]
@@ -192,12 +193,12 @@ sources:
     fetch_url: https://huggingface.co/papers
     url_prefixes: [https://huggingface.co/papers/]
     cadence: daily
-    max_items: 5
+    max_items: 4
     weight: 1.20
     use_for: [research, long_video, short]
     tags: [papers, community_discussion, open_source, models, evals]
     enabled: true
-    notes: Paper discovery with community signals; verify selected papers against arXiv/PDF, official repo, code, evals, or lab post, and require clear AI user/developer impact before publication. Keep lower weight and tighter daily cap to reduce repeated paper-feed concentration.
+    notes: Paper discovery with community signals; verify selected papers against arXiv/PDF, official repo, code, evals, or lab post, and require clear AI user/developer impact before publication. Keep lower weight and tighter daily cap to reduce repeated paper-feed concentration and source-family saturation.
 
   - id: dwarkesh-podcast
     name: Dwarkesh Podcast
@@ -213,7 +214,7 @@ sources:
     use_for: [long_video, research]
     tags: [ai_interviews, frontier_labs, researchers, founders, strategy]
     enabled: true
-    notes: High-priority long-form interviews; choose AI episodes with frontier lab leaders, researchers, infrastructure builders, or market-shaping operators.
+    notes: High-priority long-form interviews; choose AI episodes with frontier lab leaders, researchers, infrastructure builders, or influential operators.
   - id: latent-space-podcast
     name: Latent Space
     category: AI
@@ -245,7 +246,7 @@ sources:
     exclude_url_substrings: [/shorts/]
     exclude_title_patterns: ["shorts?"]
     enabled: true
-    notes: AI founder/researcher/operator interviews; prefer full episodes with concrete technical or market mechanism.
+    notes: AI founder/researcher/operator interviews; prefer full episodes with concrete technical or product mechanism.
   - id: cognitive-revolution-podcast
     name: The Cognitive Revolution
     category: AI
@@ -320,11 +321,11 @@ sources:
     url_prefixes: [https://a16z.com/podcast/]
     cadence: daily
     max_items: 8
-    weight: 1.25
+    weight: 1.10
     use_for: [long_video, short, research]
     tags: [ai_business, ai_infra, interviews, startups, evals]
     enabled: true
-    notes: Good for AI market and infrastructure interviews; avoid pure investor positioning unless the episode teaches a mechanism.
+    notes: AI operator/infrastructure interview source; down-weighted so selections require concrete engineering mechanisms.
   - id: sequoia-training-data
     name: Sequoia Training Data
     category: AI
@@ -336,11 +337,11 @@ sources:
     url_prefixes: [https://sequoiacap.com/podcast/]
     cadence: daily
     max_items: 8
-    weight: 1.25
+    weight: 1.15
     use_for: [long_video, short, research]
     tags: [ai_founders, ai_business, interviews, agents, startups]
     enabled: true
-    notes: AI operator and founder interview source; prefer episodes with product, distribution, infra, or market structure lessons.
+    notes: AI operator/founder interview source; slightly down-weighted to keep routine picks focused on source-understanding and concrete technical/product mechanisms.
   - id: sequoia-capital-youtube
     name: Sequoia Capital YouTube
     category: AI
@@ -368,13 +369,12 @@ sources:
     fetch_url: https://www.youtube.com/@ILTB_Podcast/videos
     cadence: daily
     max_items: 16
-    weight: 1.25
+    weight: 1.15
     use_for: [long_video, research]
     tags: [ai_product, ai_operators, interviews, product_strategy, company_building]
     exclude_url_substrings: [/shorts/]
-    exclude_title_patterns: ["shorts?", buffett, "stocks?", trader, "markets?", public software companies, private equity, PE firm]
     enabled: true
-    notes: Broad operator/investing channel; use only AI/product/operator episodes with concrete lessons about AI-era product design, company operating models, consumer AI, engineering/product teams, or AI adoption. Reject market, stock, fund, valuation, and pure investing episodes.
+    notes: Broad operator channel; weight reduced to keep selections focused on AI/product/operator episodes with concrete mechanisms.
   - id: practical-ai-podcast
     name: Practical AI
     category: AI
@@ -428,11 +428,28 @@ sources:
     fetch_mode: rss
     fetch_url: https://aws.amazon.com/blogs/database/feed/
     cadence: daily
+    max_items: 4
     weight: 1.05
     use_for: [long_video, research]
     tags: [database, storage, scaling]
     enabled: true
-    notes: Good when posts include implementation detail and tradeoffs.
+    notes: Good when posts include implementation detail and tradeoffs; cap daily items to reduce same-domain concentration.
+  - id: aws-security
+    name: AWS Security Blog
+    category: Backend
+    tier: 1
+    type: security_blog
+    url: https://aws.amazon.com/blogs/security/
+    fetch_mode: rss
+    fetch_url: https://aws.amazon.com/blogs/security/feed/
+    cadence: daily
+    max_items: 3
+    weight: 0.95
+    use_for: [long_video, short, research]
+    tags: [security, cloud, hardening, identity, incident_response]
+    exclude_title_patterns: [webinar, summit, event, customer story, partner]
+    enabled: true
+    notes: Official AWS security source; prioritize concrete hardening, IAM, threat response, architecture, and operational security lessons over announcements.
   - id: netflix-techblog
     name: Netflix TechBlog
     category: Backend
@@ -574,11 +591,13 @@ sources:
     fetch_mode: rss
     fetch_url: https://www.elastic.co/blog/feed
     cadence: daily
+    exclude_title_patterns: [career, careers, hiring, "engineers share"]
+    max_items: 2
     weight: 0.90
     use_for: [short, research]
     tags: [search, observability, security]
     enabled: true
-    notes: Prefer technical posts over product marketing.
+    notes: Prefer technical posts over product marketing; keep a tighter daily cap to reduce repetitive patch-release candidates.
   - id: databricks-blog
     name: Databricks Blog
     category: Backend
@@ -588,6 +607,8 @@ sources:
     fetch_mode: rss
     fetch_url: https://www.databricks.com/feed
     cadence: daily
+    exclude_title_patterns: ["customer story", "winning under", "^Databricks at "]
+    max_items: 3
     weight: 0.90
     use_for: [long_video, short, research]
     tags: [databricks, data_platform, lakehouse, spark, ai_systems, database]
@@ -843,10 +864,11 @@ sources:
     fetch_mode: rss
     fetch_url: https://www.scylladb.com/tag/apache-cassandra/feed/
     cadence: daily
-    max_items: 4
-    weight: 0.85
+    max_items: 3
+    weight: 0.80
     use_for: [short, research]
     tags: [database, cassandra, nosql, performance, storage]
+    exclude_title_patterns: [webinar, summit, event, customer story, partner, "^announcing", "^introducing"]
     enabled: true
     notes: Targeted Cassandra-focused feed to close weekly Cassandra candidate gaps; verify claims and prefer benchmark/mechanism posts over positioning content.
   - id: instaclustr-engineering-blog
@@ -1205,6 +1227,21 @@ sources:
     tags: [java, jdk, jvm, release, performance]
     enabled: true
     notes: Official Java/JDK source for release, JVM, language, library, and performance topics.
+  - id: inside-java-podcast
+    name: Inside Java Podcast
+    category: Backend
+    tier: 1
+    type: official_java_podcast
+    url: https://inside.java/podcast
+    fetch_mode: rss
+    fetch_url: https://insidejava.libsyn.com/rss
+    cadence: daily
+    max_items: 3
+    weight: 1.10
+    use_for: [long_video, short, research]
+    tags: [java, jdk, jvm, runtime, performance, engineering_operator, interview]
+    enabled: true
+    notes: Official Java team podcast/interview source; prefer episodes with concrete JVM behavior, release context, migration tradeoffs, or production lessons.
   - id: adoptium-news
     name: Eclipse Adoptium News
     category: Backend
@@ -1246,7 +1283,7 @@ sources:
     url: https://spring.io/blog
     fetch_mode: rss
     fetch_url: https://spring.io/blog.atom
-    exclude_title_patterns: [This Week in Spring]
+    exclude_title_patterns: [This Week in Spring, "^A Bootiful Podcast"]
     cadence: daily
     weight: 1.05
     use_for: [long_video, short, research]
@@ -1271,6 +1308,55 @@ sources:
     tags: [devtools, build, ci, supply_chain, java, jvm]
     enabled: true
     notes: JVM/devtools coverage source; prefer build performance, dependency/supply-chain safety, CI reliability, and migration mechanics over company-brand announcements.
+  - id: bazel-blog
+    name: Bazel Blog
+    category: Backend
+    tier: 1
+    type: devtools_blog
+    url: https://blog.bazel.build/
+    fetch_mode: rss
+    fetch_url: https://blog.bazel.build/feed.xml
+    url_prefixes: [https://blog.bazel.build/]
+    exclude_title_patterns: [Community Update, BazelCon, Recap]
+    cadence: daily
+    max_items: 2
+    weight: 0.95
+    use_for: [long_video, short, research]
+    tags: [devtools, build, ci, monorepo, supply_chain, reliability]
+    enabled: true
+    notes: High-signal build/devtools source for build reproducibility, dependency management, CI reliability, and incident postmortems; exclude quarterly/community recap posts to reduce thinness.
+  - id: github-changelog
+    name: GitHub Changelog
+    category: Backend
+    tier: 1
+    type: devtools_blog
+    url: https://github.blog/changelog/
+    fetch_mode: rss
+    fetch_url: https://github.blog/changelog/feed/
+    cadence: daily
+    max_items: 6
+    weight: 1.00
+    use_for: [short, research]
+    tags: [devtools, github, copilot, ci, security, platform]
+    exclude_title_patterns: [holiday, universe recap]
+    enabled: true
+    notes: Official GitHub platform/devtools source; prefer entries with concrete API, security, CI/CD, Copilot, or runtime behavior changes over event/marketing copy.
+  - id: openssf-blog
+    name: OpenSSF Blog
+    category: Backend
+    tier: 1
+    type: security_blog
+    url: https://openssf.org/blog/
+    fetch_mode: rss
+    fetch_url: https://openssf.org/feed/
+    cadence: daily
+    max_items: 4
+    weight: 1.00
+    use_for: [long_video, short, research]
+    tags: [security, supply_chain, oss, devtools, governance]
+    exclude_title_patterns: [newsletter, webinar, event, "call for papers", "press release", ambassador, members, cohort]
+    enabled: true
+    notes: Official OSS supply-chain security source; prioritize technical implementation guidance, standards, and deployment lessons over community announcements.
   - id: foojay
     name: Foojay Today
     category: Backend
@@ -1280,65 +1366,9 @@ sources:
     fetch_mode: rss
     fetch_url: https://foojay.io/today/feed/
     cadence: daily
-    weight: 0.90
+    max_items: 2
+    weight: 0.85
     use_for: [short, research]
     tags: [java, jvm, tooling, performance, community]
     enabled: true
     notes: Java community discovery source; verify major claims against official docs, JEPs, repos, or release notes before publication.
-
-  - id: federal-reserve-press
-    name: Federal Reserve Press Releases
-    category: Economy
-    tier: 1
-    type: official_data_policy
-    url: https://www.federalreserve.gov/newsevents/pressreleases.htm
-    fetch_mode: rss
-    fetch_url: https://www.federalreserve.gov/feeds/press_all.xml
-    cadence: daily
-    weight: 1.25
-    use_for: [long_video, short, research]
-    tags: [rates, policy, liquidity, banking]
-    enabled: false
-    notes: Disabled for routine 小舟 automatic videos/source-intros; macro/market reporting is a separate explicit workflow only.
-  - id: federal-reserve-speeches
-    name: Federal Reserve Speeches
-    category: Economy
-    tier: 1
-    type: official_data_policy
-    url: https://www.federalreserve.gov/newsevents/speeches.htm
-    fetch_mode: rss
-    fetch_url: https://www.federalreserve.gov/feeds/speeches.xml
-    cadence: daily
-    weight: 1.10
-    use_for: [research, short]
-    tags: [rates, policy, inflation, labor]
-    enabled: false
-    notes: Disabled for routine 小舟 automatic videos/source-intros; macro/market reporting is a separate explicit workflow only.
-  - id: ecb-press
-    name: ECB Press Releases
-    category: Economy
-    tier: 1
-    type: official_data_policy
-    url: https://www.ecb.europa.eu/press/pr/html/index.en.html
-    fetch_mode: rss
-    fetch_url: https://www.ecb.europa.eu/rss/press.html
-    cadence: daily
-    weight: 1.00
-    use_for: [research, short]
-    tags: [rates, policy, eurozone, inflation]
-    enabled: false
-    notes: Disabled for routine 小舟 automatic videos/source-intros; macro/market reporting is a separate explicit workflow only.
-  - id: twse-news
-    name: Taiwan Stock Exchange News
-    category: Economy
-    tier: 1
-    type: official_market_data
-    url: https://www.twse.com.tw/
-    fetch_mode: html
-    fetch_url: https://www.twse.com.tw/
-    cadence: daily
-    weight: 1.00
-    use_for: [research, short]
-    tags: [taiwan, market_structure, equities]
-    enabled: false
-    notes: Official Taiwan market context; disabled until a dedicated TWSE parser avoids homepage/navigation links.
