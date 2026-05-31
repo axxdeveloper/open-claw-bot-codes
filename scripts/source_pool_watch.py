@@ -604,9 +604,13 @@ READER_VALUE_KEYWORDS = [
 
 MARKETING_CONTEXT_KEYWORDS = [
     "announcing",
+    "ai-native",
+    "appoints",
+    "appointment",
     "case study",
     "customer",
     "customers",
+    "enterprise adoption",
     "event",
     "introducing",
     "launch",
@@ -614,12 +618,152 @@ MARKETING_CONTEXT_KEYWORDS = [
     "partner",
     "partnership",
     "pricing",
+    "regional director",
+    "representative director",
     "sign up",
     "sponsor",
     "startup",
     "webinar",
     "why choose",
 ]
+
+TECHNICAL_SUBSTANCE_KEYWORDS = [
+    "agent",
+    "api",
+    "architecture",
+    "benchmark",
+    "cache",
+    "cassandra",
+    "changelog",
+    "code",
+    "coding",
+    "cve",
+    "database",
+    "dataset",
+    "developer",
+    "eval",
+    "evaluation",
+    "experiment",
+    "exploit",
+    "implementation",
+    "incident",
+    "inference",
+    "jvm",
+    "kafka",
+    "latency",
+    "method",
+    "migration",
+    "model",
+    "observability",
+    "patch",
+    "performance",
+    "postgres",
+    "postmortem",
+    "query",
+    "reliability",
+    "release notes",
+    "replication",
+    "runtime",
+    "scaling",
+    "sdk",
+    "security",
+    "storage",
+    "streaming",
+    "system",
+    "tool use",
+    "transaction",
+    "upgrade",
+    "vulnerability",
+    "workflow",
+]
+
+OFF_AUDIENCE_CONTEXT_KEYWORDS = [
+    "arts",
+    "bank",
+    "classroom",
+    "consumer story",
+    "culture",
+    "education",
+    "encyclical",
+    "finance",
+    "government",
+    "humanities",
+    "legal",
+    "medicine",
+    "office",
+    "policy",
+    "pope",
+    "public sector",
+    "religion",
+    "retail",
+    "society",
+    "university",
+]
+
+ENRICHMENT_MIN_SUMMARY_CHARS = 180
+ENRICHMENT_MAX_SUMMARY_CHARS = 3500
+ENRICHMENT_RECENT_DAYS = 30
+SOURCE_SCAN_MULTIPLIER = 3
+SOURCE_SCAN_FLOOR = 15
+DEFAULT_MAX_ENRICHMENTS_PER_SOURCE = 2
+
+PRIMARY_ENRICHMENT_SOURCE_TYPES = {
+    "database_blog",
+    "devtools_blog",
+    "engineering_blog",
+    "engineering_reference",
+    "official_blog",
+    "official_data_policy",
+    "official_java_blog",
+    "official_research_blog",
+    "project_blog",
+    "project_ecosystem_blog",
+    "project_news",
+    "project_release_notes",
+    "researcher_team_blog",
+    "runtime_blog",
+    "security_blog",
+}
+
+ENRICHMENT_TECHNICAL_SIGNAL_RE = re.compile(
+    r"\b("
+    r"agent|agentic|api|architecture|benchmark|cassandra|changelog|claude|code|coding|"
+    r"context|cve|database|developer|eval|evaluation|exploit|frontier|gemini|gpt|"
+    r"incident|inference|jvm|kafka|latency|llama|llm|migration|model|model[_ -]?release|"
+    r"observability|performance|postgres|postmortem|rag|reasoning|release|release notes|"
+    r"reliability|runtime|safety|sdk|security|sonnet|storage|streaming|system|tool use|"
+    r"tooling|upgrade|vulnerability|workflow"
+    r")\b|"
+    r"\bv?\d+(?:\.\d+){1,3}\b",
+    re.I,
+)
+
+ENRICHMENT_CORPORATE_NOISE_RE = re.compile(
+    r"\b("
+    r"acquires|acquisition|appoints|appointment|award|awards|case study|conference|"
+    r"country manager|customer|"
+    r"customers|event|funding|hiring|office|partner|partnership|series [a-z]|"
+    r"regional director|representative director|sponsor|startup|webinar"
+    r")\b",
+    re.I,
+)
+
+ENRICHMENT_NOISE_OVERRIDE_RE = re.compile(
+    r"\b("
+    r"architecture|benchmark|cve|deep dive|engineering|eval|evaluation|exploit|"
+    r"incident|migration|performance|postmortem|release notes|security|technical|"
+    r"vulnerability"
+    r")\b",
+    re.I,
+)
+
+HTML_BLOCK_SKIP_RE = re.compile(
+    r"\b("
+    r"accept cookies|all rights reserved|cookie policy|cookie settings|copyright|"
+    r"download app|newsletter|privacy policy|sign in|sign up|subscribe|terms of service"
+    r")\b",
+    re.I,
+)
 
 
 def parse_value(value: str):
@@ -703,6 +847,21 @@ def clean_text(value: str | None) -> str:
     return value.strip()
 
 
+def unique_texts(values: list[str], min_chars: int = 1) -> list[str]:
+    unique: list[str] = []
+    seen: set[str] = set()
+    for value in values:
+        cleaned = clean_text(value)
+        if len(cleaned) < min_chars:
+            continue
+        key = re.sub(r"\W+", "", cleaned.lower())[:120]
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        unique.append(cleaned)
+    return unique
+
+
 def parse_date(value: str | None) -> str | None:
     if not value:
         return None
@@ -720,6 +879,19 @@ def parse_date(value: str | None) -> str | None:
         if parsed.tzinfo is None:
             parsed = parsed.replace(tzinfo=dt.timezone.utc)
         return parsed.astimezone(dt.timezone.utc).isoformat()
+    except Exception:
+        return None
+
+
+def item_age_days(item: dict, now_utc: dt.datetime) -> int | None:
+    published_at = item.get("published_at")
+    if not published_at:
+        return None
+    try:
+        published_dt = dt.datetime.fromisoformat(str(published_at))
+        if published_dt.tzinfo is None:
+            published_dt = published_dt.replace(tzinfo=dt.timezone.utc)
+        return max(0, (now_utc - published_dt.astimezone(dt.timezone.utc)).days)
     except Exception:
         return None
 
@@ -1054,6 +1226,228 @@ def parse_items(text: str, content_type: str, source: dict) -> list[dict]:
     return parse_rss_or_atom(text, source)
 
 
+def title_terms(title: str) -> list[str]:
+    return re.findall(r"[A-Za-z0-9]+|[\u4e00-\u9fff]", title)
+
+
+def metadata_quality(item: dict) -> dict:
+    title = clean_text(str(item.get("title", "")))
+    summary = clean_text(str(item.get("summary", "")))
+    url_title = title_from_url(str(item.get("url", "")))
+    title_from_slug = bool(url_title and title.lower() == url_title.lower())
+    terms = title_terms(title)
+    return {
+        "title_chars": len(title),
+        "title_terms": len(terms),
+        "summary_chars": len(summary),
+        "title_from_url": title_from_slug,
+        "thin_title": len(terms) <= 4 or title_from_slug,
+        "thin_summary": len(summary) < ENRICHMENT_MIN_SUMMARY_CHARS,
+    }
+
+
+def source_is_primary_for_enrichment(source: dict) -> bool:
+    category = str(source.get("category", ""))
+    source_type = str(source.get("type", "")).lower()
+    tags = {str(tag).lower() for tag in source.get("tags", []) or []}
+    tier = int(source.get("tier", 3) or 3)
+    if tier > 2:
+        return False
+    if category not in {"AI", "Backend"} and not (tags & {"ai", "backend", "systems", "infra", "security"}):
+        return False
+    return source_type in PRIMARY_ENRICHMENT_SOURCE_TYPES
+
+
+def enrichment_signal_text(source: dict, item: dict) -> str:
+    parts = [
+        str(source.get("category", "")),
+        str(source.get("type", "")),
+        str(source.get("name", "")),
+        str(item.get("title", "")),
+        str(item.get("url", "")),
+        " ".join(str(tag) for tag in source.get("tags", []) or []),
+    ]
+    return " ".join(parts).lower()
+
+
+def looks_like_corporate_noise(item: dict) -> bool:
+    title_url = f"{item.get('title', '')} {item.get('url', '')}"
+    return bool(ENRICHMENT_CORPORATE_NOISE_RE.search(title_url)) and not bool(
+        ENRICHMENT_NOISE_OVERRIDE_RE.search(title_url)
+    )
+
+
+def should_enrich_candidate(source: dict, item: dict, now_utc: dt.datetime) -> bool:
+    if not item.get("url"):
+        return False
+    if not source_is_primary_for_enrichment(source):
+        return False
+    if looks_like_corporate_noise(item):
+        return False
+
+    quality = metadata_quality(item)
+    if not (quality["thin_summary"] or quality["thin_title"]):
+        return False
+    fetch_mode = str(source.get("fetch_mode", "")).lower()
+    if fetch_mode not in {"sitemap", "html"} and quality["thin_summary"] and not quality["thin_title"]:
+        return False
+
+    age = item_age_days(item, now_utc)
+    if age is not None and age > ENRICHMENT_RECENT_DAYS:
+        return False
+
+    return bool(ENRICHMENT_TECHNICAL_SIGNAL_RE.search(enrichment_signal_text(source, item)))
+
+
+def html_attrs(tag: str) -> dict[str, str]:
+    attrs: dict[str, str] = {}
+    for key, double_value, single_value, bare_value in re.findall(
+        r"([\w:-]+)\s*=\s*(?:\"([^\"]*)\"|'([^']*)'|([^\s\"'=<>`]+))",
+        tag,
+        flags=re.S,
+    ):
+        attrs[key.lower()] = html.unescape(double_value or single_value or bare_value or "")
+    return attrs
+
+
+def walk_jsonld_values(value, keys: set[str], output: list[str], limit: int = 16) -> None:
+    if len(output) >= limit:
+        return
+    if isinstance(value, dict):
+        for key in keys:
+            text = value.get(key)
+            if isinstance(text, str):
+                output.append(text)
+                if len(output) >= limit:
+                    return
+        graph = value.get("@graph")
+        if isinstance(graph, list):
+            walk_jsonld_values(graph, keys, output, limit)
+        for child in value.values():
+            if isinstance(child, (dict, list)):
+                walk_jsonld_values(child, keys, output, limit)
+                if len(output) >= limit:
+                    return
+    elif isinstance(value, list):
+        for child in value:
+            walk_jsonld_values(child, keys, output, limit)
+            if len(output) >= limit:
+                return
+
+
+def extract_html_page_summary(text: str) -> dict:
+    title = ""
+    title_match = re.search(r"<title\b[^>]*>(.*?)</title>", text, re.I | re.S)
+    if title_match:
+        title = clean_text(title_match.group(1))
+
+    meta_texts: list[str] = []
+    for tag in re.findall(r"<meta\b[^>]*>", text, re.I | re.S):
+        attrs = html_attrs(tag)
+        key = (attrs.get("name") or attrs.get("property") or attrs.get("itemprop") or "").lower()
+        content = attrs.get("content", "")
+        if key in {"description", "og:description", "twitter:description"} and content:
+            meta_texts.append(content)
+
+    jsonld_texts: list[str] = []
+    for raw in re.findall(
+        r"<script\b[^>]*type=[\"']application/ld\+json[\"'][^>]*>(.*?)</script>",
+        text,
+        re.I | re.S,
+    ):
+        try:
+            data = json.loads(html.unescape(raw.strip()))
+        except Exception:
+            continue
+        walk_jsonld_values(data, {"headline", "description", "abstract", "articleBody"}, jsonld_texts)
+
+    body = re.sub(
+        r"(?is)<(script|style|noscript|svg|nav|header|footer|form|iframe)\b.*?</\1>",
+        " ",
+        text,
+    )
+    body = re.sub(r"(?is)<!--.*?-->", " ", body)
+    block_texts: list[str] = []
+    for tag_name, content in re.findall(r"(?is)<(h[1-3]|p|li)\b[^>]*>(.*?)</\1>", body):
+        block = clean_text(content)
+        if not block or HTML_BLOCK_SKIP_RE.search(block):
+            continue
+        if tag_name.lower().startswith("h") and len(block) >= 12:
+            block_texts.append(block)
+        elif len(block) >= 40:
+            block_texts.append(block)
+        if len(" ".join(block_texts)) >= ENRICHMENT_MAX_SUMMARY_CHARS:
+            break
+
+    parts = unique_texts(meta_texts + jsonld_texts + block_texts, min_chars=12)
+    summary = " ".join(parts)
+    if len(summary) > ENRICHMENT_MAX_SUMMARY_CHARS:
+        summary = summary[:ENRICHMENT_MAX_SUMMARY_CHARS].rsplit(" ", 1)[0].strip()
+    return {
+        "title": title,
+        "summary": summary,
+        "meta_count": len(unique_texts(meta_texts, min_chars=12)),
+        "jsonld_count": len(unique_texts(jsonld_texts, min_chars=12)),
+        "block_count": len(unique_texts(block_texts, min_chars=12)),
+    }
+
+
+def enrich_item_from_page(item: dict, timeout: int) -> dict:
+    enriched = dict(item)
+    before = metadata_quality(enriched)
+    try:
+        text, final_url, content_type = fetch_text(str(item.get("url", "")), timeout=timeout)
+        if "html" in content_type.lower() or "<html" in text[:1000].lower():
+            page = extract_html_page_summary(text)
+        else:
+            summary = clean_text(text)
+            if len(summary) > ENRICHMENT_MAX_SUMMARY_CHARS:
+                summary = summary[:ENRICHMENT_MAX_SUMMARY_CHARS].rsplit(" ", 1)[0].strip()
+            page = {
+                "title": "",
+                "summary": summary,
+                "meta_count": 0,
+                "jsonld_count": 0,
+                "block_count": 1 if summary else 0,
+            }
+
+        page_title = clean_text(page.get("title", ""))
+        if page_title and (before["title_from_url"] or before["thin_title"]):
+            enriched["title"] = page_title
+
+        existing_summary = clean_text(str(enriched.get("summary", "")))
+        page_summary = clean_text(str(page.get("summary", "")))
+        if page_summary:
+            summary_parts = unique_texts([existing_summary, page_summary], min_chars=1)
+            summary = " ".join(summary_parts)
+            if len(summary) > ENRICHMENT_MAX_SUMMARY_CHARS:
+                summary = summary[:ENRICHMENT_MAX_SUMMARY_CHARS].rsplit(" ", 1)[0].strip()
+            enriched["summary"] = summary
+
+        after = metadata_quality(enriched)
+        enriched["metadata_quality"] = after
+        enriched["enrichment"] = {
+            "status": "ok" if after["summary_chars"] > before["summary_chars"] else "no_new_summary",
+            "resolved_url": final_url,
+            "content_type": content_type,
+            "summary_chars_before": before["summary_chars"],
+            "summary_chars_after": after["summary_chars"],
+            "meta_count": page.get("meta_count", 0),
+            "jsonld_count": page.get("jsonld_count", 0),
+            "block_count": page.get("block_count", 0),
+        }
+        return enriched
+    except Exception as exc:
+        enriched["metadata_quality"] = before
+        enriched["enrichment"] = {
+            "status": "error",
+            "error": f"{type(exc).__name__}: {exc}",
+            "summary_chars_before": before["summary_chars"],
+            "summary_chars_after": before["summary_chars"],
+        }
+        return enriched
+
+
 def candidate_key(url: str, title: str) -> str:
     basis = url.strip().lower() or re.sub(r"\W+", " ", title.lower()).strip()
     return hashlib.sha1(basis.encode("utf-8")).hexdigest()
@@ -1315,6 +1709,8 @@ def score_candidate(
         or ai_product_operator_signal
     )
     marketing_hits = count_keyword_hits(body, MARKETING_CONTEXT_KEYWORDS)
+    technical_substance_hits = count_keyword_hits(body, TECHNICAL_SUBSTANCE_KEYWORDS)
+    off_audience_context_hits = count_keyword_hits(body, OFF_AUDIENCE_CONTEXT_KEYWORDS)
     security_mechanism_hits = count_keyword_hits(
         body,
         ["0-click", "cve", "exploit", "fuzz", "hardening", "memory corruption", "patch", "sandbox", "vulnerability", "zero-day"],
@@ -1441,6 +1837,11 @@ def score_candidate(
         substance_depth = max(0, substance_depth - penalty)
         audience_value = max(0, audience_value - (2 if depth_hits < 2 else 1))
         explainability = max(0, explainability - (2 if depth_hits < 2 else 1))
+    off_audience_risk = bool(off_audience_context_hits and technical_substance_hits < 2)
+    if off_audience_risk:
+        substance_depth = max(0, substance_depth - 3)
+        audience_value = max(0, audience_value - 2)
+        explainability = max(0, explainability - 2)
     novelty_non_repeat = 0 if seen_before else 2
     sourceability = 2 if item.get("url") and tier <= 2 else 1 if item.get("url") else 0
     risk_clarity = 1 if any(w in body for w in ["risk", "limit", "caveat", "uncertain", "safety"]) else 0
@@ -1500,6 +1901,10 @@ def score_candidate(
         "sourceability": sourceability,
         "risk_clarity": risk_clarity,
         "promotional_risk": promotional_risk,
+        "marketing_hits": marketing_hits,
+        "technical_substance_hits": technical_substance_hits,
+        "off_audience_context_hits": off_audience_context_hits,
+        "off_audience_risk": off_audience_risk,
         "blocked_auto_category": blocked_auto_category,
         "ai_priority": ai_related,
         "ai_source_age_days": age_days,
@@ -1569,8 +1974,89 @@ def decision_reason(source: dict, item: dict, score: dict) -> str:
         f"{'; AI paper priority' if score.get('paper_priority') else ''}"
         f"{'; paper deprioritized as low user-impact/noisy' if score.get('paper_source') and not score.get('paper_priority') else ''}"
         f"{'; source-diversity penalty: ' + score.get('source_diversity_note', '') if score.get('source_diversity_penalty') else ''}"
+        f"{'; penalized as off-audience/non-technical context' if score.get('off_audience_risk') else ''}"
         f"{'; penalized as self-promotional/marketing-like' if score.get('promotional_risk') else ''}."
     )
+
+
+def compact_source(source: dict, fetch_url: str | None = None) -> dict:
+    return {
+        "id": source.get("id"),
+        "name": source.get("name"),
+        "category": source.get("category"),
+        "tier": source.get("tier"),
+        "type": source.get("type"),
+        "url": source.get("url"),
+        "fetch_url": fetch_url or source.get("fetch_url") or source.get("url"),
+        "weight": source.get("weight"),
+    }
+
+
+def compact_item(item: dict) -> dict:
+    summary = clean_text(str(item.get("summary", "")))
+    return {
+        "title": item.get("title"),
+        "url": item.get("url"),
+        "published_at": item.get("published_at"),
+        "summary_chars": len(summary),
+        "summary_preview": summary[:500],
+        "metadata_quality": item.get("metadata_quality") or metadata_quality(item),
+        "enrichment": item.get("enrichment"),
+    }
+
+
+def reject_reasons(score: dict, seen_before: bool, min_score: int, format_name: str) -> list[str]:
+    reasons: list[str] = []
+    if seen_before:
+        reasons.append("seen_before")
+    if score["total"] < min_score:
+        reasons.append("below_min_score")
+    if format_name == "reject":
+        if int(score.get("audience_value", 0)) < 2:
+            reasons.append("audience_value_too_low")
+        if score.get("ai_priority") and not score.get("ai_temporal_ok", True):
+            reasons.append("ai_temporal_stale_or_unknown")
+        reasons.append("format_reject")
+    return list(dict.fromkeys(reasons))
+
+
+def should_record_near_miss(source: dict, item: dict, score: dict, reasons: list[str], enriched: bool) -> bool:
+    if reasons == ["seen_before"]:
+        return False
+    tier = int(source.get("tier", 3) or 3)
+    if tier > 2:
+        return False
+    if str(source.get("category", "")) not in {"AI", "Backend"}:
+        return False
+    quality = item.get("metadata_quality") or metadata_quality(item)
+    return bool(
+        enriched
+        or quality.get("thin_summary")
+        or score.get("ranking_score", 0) >= 8
+        or score.get("total", 0) >= 7
+    )
+
+
+def make_near_miss_record(
+    observed_at: str,
+    source: dict,
+    fetch_url: str,
+    item: dict,
+    key: str,
+    score: dict,
+    format_name: str,
+    reasons: list[str],
+) -> dict:
+    return {
+        "observed_at": observed_at,
+        "source": compact_source(source, fetch_url),
+        "item": compact_item(item),
+        "dedupe_key": key,
+        "candidate_score": score,
+        "format_decision": format_name,
+        "reject_reasons": reasons,
+        "decision_reason": decision_reason(source, item, score),
+    }
 
 
 def read_health(path: Path) -> dict:
@@ -1621,9 +2107,12 @@ def main() -> int:
 
     args.report_dir.mkdir(parents=True, exist_ok=True)
     output_path = args.report_dir / f"{args.date}.jsonl"
+    near_miss_path = args.report_dir / f"{args.date}-near-misses.jsonl"
     health_path = args.report_dir / "source-health.json"
     if args.replace and not args.dry_run and output_path.exists():
         output_path.unlink()
+    if args.replace and not args.dry_run and near_miss_path.exists():
+        near_miss_path.unlink()
     health = read_health(health_path)
     health.setdefault("sources", {})
 
@@ -1632,6 +2121,7 @@ def main() -> int:
     now = dt.datetime.now(dt.timezone.utc)
     observed_at = now.isoformat()
     candidates: list[dict] = []
+    near_misses: list[dict] = []
     error_count = 0
 
     for source in sources:
@@ -1642,23 +2132,67 @@ def main() -> int:
             "fetched_at": observed_at,
             "fetch_url": fetch_url,
             "item_count": 0,
+            "scanned_item_count": 0,
             "candidate_count": 0,
+            "near_miss_count": 0,
+            "enriched_count": 0,
+            "enrichment_error_count": 0,
             "error": None,
         }
         try:
             text, final_url, content_type = fetch_text(fetch_url, timeout=args.fetch_timeout)
             items = parse_items(text, content_type, source)
             max_items = int(source.get("max_items", args.max_items_per_source) or args.max_items_per_source)
+            scan_items = int(
+                source.get(
+                    "scan_items",
+                    max(max_items, args.max_items_per_source * SOURCE_SCAN_MULTIPLIER, SOURCE_SCAN_FLOOR),
+                )
+                or max_items
+            )
+            max_enrichments = int(
+                source.get("max_enrichments", DEFAULT_MAX_ENRICHMENTS_PER_SOURCE)
+                or DEFAULT_MAX_ENRICHMENTS_PER_SOURCE
+            )
             source_health["resolved_url"] = final_url
             source_health["content_type"] = content_type
             source_health["item_count"] = len(items)
-            for item in items[:max_items]:
+            source_health["scan_item_limit"] = scan_items
+            for item in items[:scan_items]:
                 if item_excluded(source, item):
                     continue
+                item["metadata_quality"] = metadata_quality(item)
+                enriched = False
+                if (
+                    source_health["enriched_count"] < max_enrichments
+                    and should_enrich_candidate(source, item, now)
+                ):
+                    item = enrich_item_from_page(item, timeout=args.fetch_timeout)
+                    enriched = True
+                    source_health["enriched_count"] += 1
+                    if item.get("enrichment", {}).get("status") == "error":
+                        source_health["enrichment_error_count"] += 1
                 key = candidate_key(str(item.get("url", "")), str(item.get("title", "")))
                 seen_before = key in seen
                 score = score_candidate(source, item, seen_before, now, recent_source_context)
-                if seen_before or score["total"] < args.min_score or format_decision(score) == "reject":
+                format_name = format_decision(score)
+                reasons = reject_reasons(score, seen_before, args.min_score, format_name)
+                source_health["scanned_item_count"] += 1
+                if reasons:
+                    if should_record_near_miss(source, item, score, reasons, enriched):
+                        source_health["near_miss_count"] += 1
+                        near_misses.append(
+                            make_near_miss_record(
+                                observed_at,
+                                source,
+                                fetch_url,
+                                item,
+                                key,
+                                score,
+                                format_name,
+                                reasons,
+                            )
+                        )
                     continue
                 seen.add(key)
                 source_health["candidate_count"] += 1
@@ -1666,20 +2200,11 @@ def main() -> int:
                 candidates.append(
                     {
                         "observed_at": observed_at,
-                        "source": {
-                            "id": source.get("id"),
-                            "name": source.get("name"),
-                            "category": source.get("category"),
-                            "tier": source.get("tier"),
-                            "type": source.get("type"),
-                            "url": source.get("url"),
-                            "fetch_url": fetch_url,
-                            "weight": source.get("weight"),
-                        },
+                        "source": compact_source(source, fetch_url),
                         "item": item,
                         "dedupe_key": key,
                         "candidate_score": score,
-                        "format_decision": format_decision(score),
+                        "format_decision": format_name,
                         "decision_reason": decision_reason(source, item, score),
                     }
                 )
@@ -1710,6 +2235,10 @@ def main() -> int:
         with output_path.open("a", encoding="utf-8") as fh:
             for candidate in candidates:
                 fh.write(json.dumps(candidate, ensure_ascii=False, sort_keys=True) + "\n")
+    if not args.dry_run and near_misses:
+        with near_miss_path.open("a", encoding="utf-8") as fh:
+            for near_miss in near_misses:
+                fh.write(json.dumps(near_miss, ensure_ascii=False, sort_keys=True) + "\n")
     if not args.dry_run:
         health["sources"] = {
             source_id: source_health
@@ -1727,8 +2256,10 @@ def main() -> int:
                 "dry_run": args.dry_run,
                 "sources_scanned": len(sources),
                 "candidates": len(candidates),
+                "near_misses": len(near_misses),
                 "errors": error_count,
                 "output": str(output_path),
+                "near_miss_output": str(near_miss_path),
                 "health": str(health_path),
                 "top": [
                     {

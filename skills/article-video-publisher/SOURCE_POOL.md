@@ -1,6 +1,6 @@
 # Source Pool and Topic Scoring
 
-Last reviewed: 2026-05-21
+Last reviewed: 2026-05-31
 
 Use this file before choosing article-video topics. Prefer primary sources and high-signal material. Secondary sources can help discover topics, but the video should cite and explain primary sources whenever possible.
 
@@ -23,6 +23,7 @@ Machine-readable source registry: `SOURCE_REGISTRY.yml`.
 - Treat a candidate as AI-related when the source category is AI, or when a source is concretely about AI systems, model releases, agents, evals, inference, RAG/search, AI safety, AI developer tooling, AI infrastructure, AI product adoption, or AI organizational impact.
 - Avoid thin announcements, pure marketing posts, listicles, rumor-only stories, and content that cannot be verified from a primary or authoritative source.
 - Avoid company posts that are mainly self-promotion, product marketing, customer acquisition, or "why our product" positioning. Official company posts can be selected only when they include enough architecture, benchmark data, implementation detail, operational lessons, limitations, or failure modes to teach something beyond the vendor's pitch.
+- Do not confuse feed metadata quality with source quality. When a recent tier 1-2 primary technical source only exposes a thin title, URL slug, or empty summary, open the original page before rejecting it if the source type and title/URL/tags suggest a concrete technical release, model/API change, engineering post, benchmark, security item, database/runtime update, or architecture/incident lesson. Still reject obvious corporate noise such as funding, office, customer, event, or partnership posts unless the title itself points to substantial technical detail.
 - Use Taiwan-local Traditional Chinese explanation in the final video.
 - Treat official research blogs and named researcher/team blogs from groups like Anthropic and Google DeepMind as high-priority sources when they contain mechanism, experiments, engineering detail, or clear research context.
 - For researcher/team blog posts, verify major claims against the linked paper, official release note, repo, docs, benchmark, or data source before publication.
@@ -41,10 +42,12 @@ Use this loop for scheduled workflows:
 2. Daily HN watch scans recent Hacker News top stories and writes/updates the `hn-daily-top-1500` section in `reports/daily-audio-pack/YYYY-MM-DD.md`; use it as discovery context for the technical branch.
 3. Existing historical social/KOL signal notes may be read only as discovery context and source-diversity hints, not as public sources. Do not create a new proactive social follow-scout workflow for topic radar.
 4. Candidate ranking applies the 20-point scorecard, source weights, AI priority multiplier, interview priority bonus, duplicate checks, source-diversity penalty, trend-signal urgency, and marketing penalty before choosing a topic.
-5. Before starting a new video, compare the candidate against recent `reports/article-video-publisher/**/source.json`, YouTube metadata, the last 30 days of source-watch dedupe keys, and recent YouTube Community source-intro ledgers. Inspect both topic duplication and source concentration.
-6. After every published video, keep `review/improvement-notes.md`, `review/ai-usage-improvement.md`, and `source.json.candidate_score` so future runs can see which sources produced understandable, deep videos and which sources improved our own AI workflows.
-7. Use `review/ai-usage-improvement.md` to capture whether the source suggests improvements to topic selection, prompts, agents, source verification, RAG/search, eval/review gates, TTS/video, reliability, cost/latency, safety, privacy, or publishing operations. Prefer reversible tests; write no-op when the source does not produce a concrete internal improvement.
-8. When a source repeatedly yields thin, promotional, duplicate, or unverifiable candidates, lower its registry weight or disable it. When a source repeatedly yields review-passing, high-depth AI topics or useful internal AI usage improvements, keep or raise its weight.
+5. For high-authority recent sources with thin feed metadata, the watcher may enrich the candidate by opening the original page and extracting title, meta description, structured data, and article text before scoring. The goal is fair comparison against paper feeds and RSS feeds that already include abstracts; it is not a license to rescue marketing posts.
+6. Review `reports/source-watch/YYYY-MM-DD-near-misses.jsonl` when selection looks odd. It records high-authority or close-call items that were rejected, including whether enrichment ran, the summary length, score, format decision, and reject reasons.
+7. Before starting a new video, compare the candidate against recent `reports/article-video-publisher/**/source.json`, YouTube metadata, the last 30 days of source-watch dedupe keys, and recent YouTube Community source-intro ledgers. Inspect both topic duplication and source concentration.
+8. After every published video, keep `review/improvement-notes.md`, `review/ai-usage-improvement.md`, and `source.json.candidate_score` so future runs can see which sources produced understandable, deep videos and which sources improved our own AI workflows.
+9. Use `review/ai-usage-improvement.md` to capture whether the source suggests improvements to topic selection, prompts, agents, source verification, RAG/search, eval/review gates, TTS/video, reliability, cost/latency, safety, privacy, or publishing operations. Prefer reversible tests; write no-op when the source does not produce a concrete internal improvement.
+10. When a source repeatedly yields thin, promotional, duplicate, or unverifiable candidates, lower its registry weight or disable it. When a source repeatedly yields review-passing, high-depth AI topics or useful internal AI usage improvements, keep or raise its weight.
 
 The practical goal: the pool should drift toward sources that repeatedly produce explainable mechanisms, not just sources that publish often.
 
@@ -121,6 +124,7 @@ Marketing penalty:
 - Subtract enough from `substance_depth`, `audience_value`, and `explainability` to reject posts that are mostly launch copy, customer stories, partner announcements, webinars, lead-gen, or self-serving product comparisons.
 - If the strongest reason to make the video is "this company says its product is useful", reject it.
 - If the post is from a vendor but contains concrete architecture, reproducible benchmarks, constraints, implementation detail, or operational lessons, treat those technical details as the topic and keep vendor claims clearly bounded.
+- Official AI/company posts about customer adoption, partnerships, finance, education, government, legal/policy, culture, religion, society, or other broad non-engineering contexts need substantial technical substance to pass automatic selection. If they do not explain a model/API/system change, benchmark, architecture, implementation, security issue, incident, runtime/database behavior, or operational tradeoff, reject them as off-audience even when the source is authoritative.
 
 Decision:
 
