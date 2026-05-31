@@ -13,14 +13,15 @@ from urllib.parse import parse_qs, urlparse
 
 
 SOURCE_LABEL = "文章來源："
+WEEKLY_SOURCES_LABEL = "本週來源："
 FALLBACK_LABEL = "網址顯示備用："
 BANNED_LABEL = "完整網址文字版"
 
 
-def _load_input(path: Path) -> tuple[str, str | None]:
+def _load_input(path: Path) -> tuple[str, str | None, list[str]]:
     text = path.read_text(encoding="utf-8")
     if path.suffix.lower() != ".json":
-        return text, None
+        return text, None, []
 
     data = json.loads(text)
     if not isinstance(data, dict):
@@ -36,7 +37,14 @@ def _load_input(path: Path) -> tuple[str, str | None]:
     if not isinstance(source_url, str):
         source_url = None
 
-    return description, source_url
+    source_urls_raw = data.get("source_urls")
+    source_urls: list[str] = []
+    if isinstance(source_urls_raw, list):
+        source_urls = [str(url).strip() for url in source_urls_raw if str(url).strip()]
+    elif isinstance(data.get("topic_format"), str) and data.get("topic_format") == "weekly_tech_radar":
+        source_urls = [source_url] if source_url else []
+
+    return description, source_url, source_urls
 
 
 def _next_nonempty(lines: list[str], start: int) -> int | None:
@@ -71,12 +79,17 @@ def _source_tail(source_url: str | None) -> tuple[str | None, str | None]:
 def lint_description(
     description: str,
     source_url: str | None,
+    source_urls: list[str] | None = None,
     *,
     max_fallback_line_chars: int,
 ) -> dict[str, Any]:
     errors: list[str] = []
     warnings: list[str] = []
     lines = [line.rstrip() for line in description.splitlines()]
+    source_urls = [url for url in (source_urls or []) if url]
+
+    if len(source_urls) > 1:
+        return lint_multi_source_description(description, source_urls, max_fallback_line_chars)
 
     inline_source_lines = [
         idx + 1
@@ -184,6 +197,77 @@ def lint_description(
     }
 
 
+def lint_multi_source_description(
+    description: str,
+    source_urls: list[str],
+    max_fallback_line_chars: int,
+) -> dict[str, Any]:
+    errors: list[str] = []
+    warnings: list[str] = []
+    lines = [line.rstrip() for line in description.splitlines()]
+
+    for url in source_urls:
+        if not re.match(r"^https?://\S+$", url):
+            errors.append(f"Every weekly radar source URL must be raw http(s), got {url!r}.")
+
+    source_label_indexes = [
+        idx for idx, line in enumerate(lines) if line.strip() == WEEKLY_SOURCES_LABEL
+    ]
+    if not source_label_indexes:
+        errors.append(f"Missing standalone '{WEEKLY_SOURCES_LABEL}' line for multi-source weekly radar.")
+        return {
+            "status": "FAIL",
+            "errors": errors,
+            "warnings": warnings,
+            "source_urls": source_urls,
+        }
+    if len(source_label_indexes) > 1:
+        errors.append(
+            f"Expected one '{WEEKLY_SOURCES_LABEL}' block, found {len(source_label_indexes)}."
+        )
+
+    label_idx = source_label_indexes[0]
+    block_lines: list[str] = []
+    for line in lines[label_idx + 1 :]:
+        stripped = line.strip()
+        if not stripped:
+            break
+        block_lines.append(stripped)
+
+    if not block_lines:
+        errors.append(f"'{WEEKLY_SOURCES_LABEL}' must include raw source URL lines.")
+
+    for url in source_urls:
+        if url not in block_lines:
+            errors.append(f"Missing raw weekly source URL line: {url}")
+
+    raw_url_lines = [line for line in block_lines if re.match(r"^https?://\S+$", line)]
+    if len(raw_url_lines) < min(len(source_urls), 3):
+        errors.append("Weekly radar source block should include at least the top original source URLs.")
+
+    for line in block_lines:
+        if line.startswith("- http") or line.startswith("* http"):
+            errors.append("Put weekly radar source URLs on standalone raw lines, without bullet prefixes.")
+        if "..." in line:
+            errors.append("Weekly radar source URL lines must not contain '...'.")
+        if not re.match(r"^https?://\S+$", line):
+            warnings.append(f"Non-URL line inside weekly source block: {line!r}.")
+
+    if len(description.strip()) < 300:
+        warnings.append("Weekly radar description looks short; include what was scanned and why picks won.")
+
+    if max(len(line) for line in block_lines or [""]) > max_fallback_line_chars * 4:
+        warnings.append("Some weekly radar URL lines are long; keep summary text above the source block mobile-readable.")
+
+    return {
+        "status": "FAIL" if errors else "PASS",
+        "errors": errors,
+        "warnings": warnings,
+        "source_urls": source_urls,
+        "source_block_lines": block_lines,
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Fail YouTube metadata descriptions whose source URL will be hidden on mobile."
@@ -202,10 +286,11 @@ def main() -> int:
     exit_code = 0
     for path in args.paths:
         try:
-            description, source_url = _load_input(path)
+            description, source_url, source_urls = _load_input(path)
             result = lint_description(
                 description,
                 source_url,
+                source_urls,
                 max_fallback_line_chars=args.max_fallback_line_chars,
             )
         except Exception as exc:  # noqa: BLE001 - command-line lint output should be explicit.

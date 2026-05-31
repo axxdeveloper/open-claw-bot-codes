@@ -72,9 +72,13 @@ AI selection must also carry time awareness. Treat 30 days as the freshness base
 Do not intentionally use non-engineering topics as filler for 小舟 videos.
 
 ## Single-topic and source attribution hard rule
-Every scheduled video run produces exactly one public video topic and one main original source.
+Every scheduled single-topic video run produces exactly one public video topic and one main original source.
 
 Do not make roundups, brief packs, multi-topic daily summaries, "top 3" videos, "2-4 links" videos, or NotebookLM/audio-only outputs in this workflow.
+
+Exception: a weekly technical radar episode is allowed only when Isaac explicitly asks for it or a dedicated weekly-radar workflow invokes it. In that format, use `reports/weekly-tech-radar/YYYY-MM-DD.md` or `.json` as the internal curation artifact, but the public video still has to be source-first: introduce each covered topic by its original source, cite the original source URLs on slides/description, and explain why the source was selected or not selected. Do not cite the local weekly radar report, source-watch, HN, `daily-audio-pack`, or `youtube-pack` as the public source.
+
+For a weekly radar video, set `source.json.topic_format` and `youtube/metadata.json.topic_format` to `weekly_tech_radar`, include `source_urls` for the original sources covered, and write a `本週來源：` description block with each raw URL on its own line. Run the normal description lint; it has a multi-source weekly-radar mode for this format.
 
 Isaac Note, Isaac Note PRs, local reports, `daily-audio-pack`, `reports/youtube-pack`, cron summaries, and source-watch reports are internal discovery context only. They are not public video sources.
 

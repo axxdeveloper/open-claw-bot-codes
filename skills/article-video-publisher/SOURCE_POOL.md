@@ -64,11 +64,21 @@ Daily:
 Weekly:
 
 - Review `reports/source-watch/source-health.json` and the last 7 days of `reports/source-watch/*.jsonl`.
+- Build a weekly technical radar with `scripts/build_weekly_tech_radar.py --date YYYY-MM-DD`. Use `reports/weekly-tech-radar/YYYY-MM-DD.md` as the source for a weekly radar video or YouTube post: what was scanned, the top picks, why those picks won, good topics that were not selected, and what the watcher likely missed.
 - Check for enabled sources with repeated fetch errors, zero candidates, malformed titles, homepage/navigation noise, or mostly marketing output.
 - Check for coverage imbalance across AI, databases, streaming/messaging, observability/SRE, production engineering, Java/JVM, runtimes, and cloud architecture, plus domain/source-family concentration in recently published videos.
 - Adjust weights or disable sources that repeatedly fail the clear source-understanding gate.
 - Add or repair sources when a useful category has weak coverage, but prefer primary, official, project, expert, or high-signal sources over aggregator feeds.
 - Run a clean temporary dry-run after changes and require: registry parses, IDs are unique, watcher can fetch/parse, and candidate quality is plausible.
+
+Weekly radar editorial format:
+
+- The radar is a "what the system saw this week" explanation, not a replacement for normal source-first videos.
+- Cover the strongest candidates across the week, grouped by technical lane when useful: AI, backend/database, streaming/messaging, security, infra/SRE, devtools/runtime, and engineering-operator lessons.
+- For each top pick, say why it was chosen in plain language: source authority, substance, why viewers can understand something better, freshness, explainability, and source-diversity tradeoff.
+- Include a "not picked but worth knowing" section for high-scoring shorts, duplicate-adjacent items, source-repetitive items, or good topics that lost to a stronger candidate.
+- Include a "radar gaps" section. This must be honest and limited: source-health failures, registry categories with no accepted candidates, enabled sources with zero candidates, and manually known important releases that were not captured. Do not claim the internet had no topic; only claim OpenClaw did not scan or accept it.
+- If a radar gap is important, create a follow-up source-registry repair, enrichment rule, or manual topic candidate before the next weekly radar.
 
 Monthly:
 
@@ -350,6 +360,27 @@ Technical video rules:
 - Extract the speaker's core model, not every anecdote.
 - Cite the video URL and any linked slides/repo.
 - Convert talk structure into: background, mechanism, tradeoff, practical takeaway, caveat.
+
+## Weekly Technical Radar
+
+The weekly radar is a separate curation format, not the normal single-source explainer. It can become a YouTube video or YouTube Community post when explicitly scheduled or requested.
+
+Build it with:
+
+```bash
+python3 scripts/build_weekly_tech_radar.py --date YYYY-MM-DD --days 7
+```
+
+Use `reports/weekly-tech-radar/YYYY-MM-DD.md` as the planning artifact. The public output should:
+
+- summarize the main technical lanes OpenClaw scanned this week.
+- introduce the strongest picks and explain why they won: source authority, substance, viewer-understanding value, freshness, explainability, and source-diversity tradeoff.
+- include a "worth knowing but not selected" section for strong runner-up items, source-repetitive items, duplicate-adjacent items, or topics that lost to a stronger source.
+- include a "radar gaps" section: source-health failures, registry categories without accepted candidates, enabled sources with zero candidates, and manually known important releases not captured by the watcher.
+- cite each discussed original source URL. Never cite the local weekly radar report, source-watch JSONL, HN page, daily-audio-pack, or internal report as the public source.
+- avoid pretending the radar is exhaustive. Say what OpenClaw scanned and accepted, not what the whole internet contained.
+
+If the weekly radar becomes a video, set `youtube/metadata.json.topic_format` to `weekly_tech_radar`, include `source_urls` with the original source URLs being introduced, and use a `本週來源：` section with each raw URL on its own line instead of the normal single-source `文章來源：` block. `scripts/lint_youtube_description_source.py` must still PASS before upload.
 
 ## Replacement Rules
 
